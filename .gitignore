@@ -1,0 +1,15 @@
+# Flutter
+.build/
+.dart_tool/
+.packages
+pubspec.lock
+
+# Go
+bin/
+vendor/
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
