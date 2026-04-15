@@ -1,14 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:giliranku/pages/splash/auth/home/home_page.dart';
+import 'package:giliranku/pages/splash/auth/admin_login.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _nikController = TextEditingController();
+  final TextEditingController _namaController = TextEditingController();
+
+  void _masukPasien() {
+    // Navigate to patient home
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomePage()),
+    );
+  }
+
+  void _lewatkan() {
+    // Skip login, go to patient home as guest
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomePage()),
+    );
+  }
+
+  void _masukSebagaiAdmin() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AdminLoginPage()),
+    );
+  }
+
+  @override
+  void dispose() {
+    _nikController.dispose();
+    _namaController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // Background putih
+          // Background
           Container(color: Colors.grey[200]),
 
           // Shape atas
@@ -29,18 +69,16 @@ class LoginPage extends StatelessWidget {
               children: [
                 const SizedBox(height: 60),
 
-                // LOGO (kamu isi sendiri)
+                // Logo
                 Image.asset(
                   'assets/images/logo.png',
                   height: 80,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.local_hospital, size: 80, color: Colors.white);
+                  },
                 ),
 
                 const SizedBox(height: 8),
-
-                const Text(
-                  '"Antri Cepat Tanpa Ribet, Dimanapun"',
-                  style: TextStyle(fontSize: 12),
-                ),
 
                 const SizedBox(height: 40),
 
@@ -55,63 +93,78 @@ class LoginPage extends StatelessWidget {
                         topRight: Radius.circular(40),
                       ),
                     ),
-                    child: Column(
-                      children: [
-                        // NIK
-                        _buildInput(
-                          title: "Nomor Induk Kependudukan",
-                          hint: "Masukkan 16 digit NIK",
-                        ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          // NIK
+                          _buildInput(
+                            controller: _nikController,
+                            title: "Nomor Induk Kependudukan",
+                            hint: "Masukkan 16 digit NIK",
+                            keyboardType: TextInputType.number,
+                          ),
 
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-                        // Nama
-                        _buildInput(
-                          title: "Nama Lengkap",
-                          hint: "Masukkan Nama Lengkap",
-                        ),
+                          // Nama
+                          _buildInput(
+                            controller: _namaController,
+                            title: "Nama Lengkap",
+                            hint: "Masukkan Nama Lengkap",
+                          ),
 
-                        const SizedBox(height: 30),
+                          const SizedBox(height: 30),
 
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
                                   ),
+                                  onPressed: _masukPasien,
+                                  child: const Text("Masuk"),
                                 ),
-                                onPressed: () {},
-                                child: const Text("Masuk"),
+                              ),
+                              const SizedBox(width: 15),
+                              Expanded(
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: const Color(0xFF2F9E8F),
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                  ),
+                                  onPressed: _lewatkan,
+                                  child: const Text("Lewatkan"),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          GestureDetector(
+                            onTap: _masukSebagaiAdmin,
+                            child: const Text(
+                              "Masuk Sebagai Admin",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.white,
                               ),
                             ),
-                            const SizedBox(width: 15),
-                            Expanded(
-                              child: OutlinedButton(
-                                style: OutlinedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                ),
-                                onPressed: () {},
-                                child: const Text("Lewatkan"),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        const Text(
-                          "Masuk Sebagai Admin",
-                          style: TextStyle(fontSize: 12),
-                        )
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -123,13 +176,20 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInput({required String title, required String hint}) {
+  Widget _buildInput({
+    required TextEditingController controller,
+    required String title,
+    required String hint,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(color: Colors.white)),
+        Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
         TextField(
+          controller: controller,
+          keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: hint,
             filled: true,
