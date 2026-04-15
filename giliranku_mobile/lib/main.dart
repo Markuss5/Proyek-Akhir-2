@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:gliranku_mobile/pages/splash/auth/home/home_page.dart';
+import 'package:giliranku/pages/splash/splash_page.dart';
+import 'package:giliranku/services/notification_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize the notification service for native phone notifications
+  await NotificationService().initialize();
+
   runApp(const MyApp());
 }
 
@@ -12,7 +18,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const HomePage(),
+      theme: ThemeData(
+        primaryColor: const Color(0xFF2F9E8F),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2F9E8F)),
+        useMaterial3: true,
+      ),
+      home: const SplashPage(),
     );
   }
-} 
+}
