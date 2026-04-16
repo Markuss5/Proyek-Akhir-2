@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:giliranku/pages/splash/auth/admin/notifikasi_kontrol_page.dart';
 
 class AdminBerandaTab extends StatelessWidget {
-  final void Function(int) onSwitchTab;
-
-  const AdminBerandaTab({super.key, required this.onSwitchTab});
+  const AdminBerandaTab({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -68,12 +67,18 @@ class AdminBerandaTab extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Dashboard Admin",
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      const Text(
+                        "Dashboard Admin",
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
                       const SizedBox(height: 4),
-                      Text("Selamat datang kembali!",
-                          style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                      Text(
+                        "Selamat datang kembali!",
+                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                      ),
                       const SizedBox(height: 20),
+
+                      // Stats row
                       Row(
                         children: [
                           _buildStatCard("67", "Pasien Hari Ini", const Color(0xFFE8F5E9)),
@@ -95,9 +100,12 @@ class AdminBerandaTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("Menu Cepat",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text(
+                    "Menu Cepat",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 15),
+
                   GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -111,7 +119,12 @@ class AdminBerandaTab extends StatelessWidget {
                         title: "Notifikasi Kontrol",
                         subtitle: "Pengingat pasien",
                         color: const Color(0xFF2F9E8F),
-                        onTap: () => onSwitchTab(1), // Switch to Kontrol tab
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const NotifikasiKontrolPage()),
+                          );
+                        },
                       ),
                       _buildMenuCard(
                         icon: Icons.local_hospital,
@@ -151,7 +164,10 @@ class AdminBerandaTab extends StatelessWidget {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                    ),
                   ],
                 ),
                 child: Row(
@@ -191,13 +207,18 @@ class AdminBerandaTab extends StatelessWidget {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            Text(value,
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[700])),
+            Text(label,
+                style: TextStyle(fontSize: 11, color: Colors.grey[700])),
           ],
         ),
       ),
@@ -220,7 +241,11 @@ class AdminBerandaTab extends StatelessWidget {
           borderRadius: BorderRadius.circular(15),
           border: Border.all(color: Colors.grey.shade200),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
           ],
         ),
         child: Column(
@@ -236,9 +261,11 @@ class AdminBerandaTab extends StatelessWidget {
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(height: 12),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            Text(title,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
             const SizedBox(height: 2),
-            Text(subtitle, style: TextStyle(color: Colors.grey[500], fontSize: 11)),
+            Text(subtitle,
+                style: TextStyle(color: Colors.grey[500], fontSize: 11)),
           ],
         ),
       ),

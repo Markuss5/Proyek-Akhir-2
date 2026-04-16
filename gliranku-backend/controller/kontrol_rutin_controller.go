@@ -78,14 +78,3 @@ func (ctrl *KontrolRutinController) GetUpcoming(c *gin.Context) {
 
 	utils.Success(c, http.StatusOK, "Data kontrol mendatang berhasil diambil", response.FromKontrolRutinList(results))
 }
-
-// GET /api/v1/kontrol-rutin/all
-func (ctrl *KontrolRutinController) GetAll(c *gin.Context) {
-	results, err := ctrl.Service.GetAll()
-	if err != nil {
-		utils.Error(c, http.StatusInternalServerError, "Gagal mengambil semua data kontrol rutin")
-		return
-	}
-
-	utils.Success(c, http.StatusOK, "Semua data kontrol rutin berhasil diambil", response.FromKontrolRutinList(results))
-}

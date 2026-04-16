@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku/pages/splash/auth/home/home_page.dart';
 import 'package:giliranku/pages/splash/auth/admin_login.dart';
-import 'package:giliranku/services/api_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -13,45 +12,12 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _nikController = TextEditingController();
   final TextEditingController _namaController = TextEditingController();
-  bool _isLoading = false;
 
-  Future<void> _masukPasien() async {
-    final nik = _nikController.text.trim();
-    final nama = _namaController.text.trim();
-
-    if (nik.isEmpty || nama.isEmpty) {
-      _showError("Mohon isi NIK dan Nama Lengkap");
-      return;
-    }
-    if (nik.length != 16) {
-      _showError("NIK harus 16 digit");
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    final result = await ApiService.loginPasien(nik, nama);
-
-    setState(() => _isLoading = false);
-
-    if (!mounted) return;
-
-    if (result == null) {
-      _showError("Tidak dapat terhubung ke server. Pastikan backend berjalan.");
-      return;
-    }
-
-    if (result.containsKey('error')) {
-      _showError(result['error']);
-      return;
-    }
-
-    // Login success — navigate to home with patient data
+  void _masukPasien() {
+    // Navigate to patient home
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (_) => HomePage(patientData: result),
-      ),
+      MaterialPageRoute(builder: (_) => const HomePage()),
     );
   }
 
@@ -67,12 +33,6 @@ class _LoginPageState extends State<LoginPage> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const AdminLoginPage()),
-    );
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 
@@ -119,6 +79,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
 
                 const SizedBox(height: 8),
+
                 const SizedBox(height: 40),
 
                 Expanded(
@@ -166,17 +127,8 @@ class _LoginPageState extends State<LoginPage> {
                                       borderRadius: BorderRadius.circular(30),
                                     ),
                                   ),
-                                  onPressed: _isLoading ? null : _masukPasien,
-                                  child: _isLoading
-                                      ? const SizedBox(
-                                          height: 20,
-                                          width: 20,
-                                          child: CircularProgressIndicator(
-                                            color: Colors.white,
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : const Text("Masuk"),
+                                  onPressed: _masukPasien,
+                                  child: const Text("Masuk"),
                                 ),
                               ),
                               const SizedBox(width: 15),

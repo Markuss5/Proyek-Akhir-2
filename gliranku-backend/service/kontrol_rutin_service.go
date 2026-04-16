@@ -91,7 +91,3 @@ func (s *KontrolRutinService) GetByNIK(nik string) ([]models.KontrolRutin, error
 func (s *KontrolRutinService) GetUpcoming(days int) ([]models.KontrolRutin, error) {
 	return s.KontrolRutinRepo.FindUpcoming(days)
 }
-
-func (s *KontrolRutinService) GetAll() ([]models.KontrolRutin, error) {
-	return s.KontrolRutinRepo.FindAll()
-}
