@@ -63,10 +63,7 @@ class ProfilView extends StatelessWidget {
       backgroundColor: const Color(0xFFF1F1F1),
       appBar: AppBar(
         backgroundColor: const Color(0xFF2F9E8F),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        automaticallyImplyLeading: false,
         title: const Text(
           'Profil Rumah Sakit',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -196,7 +193,6 @@ class ProfilView extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: _buildNavbar(),
     );
   }
 
@@ -256,20 +252,6 @@ class ProfilView extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildNavbar() {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      currentIndex: 1,
-      selectedItemColor: Colors.blueAccent,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Beranda"),
-        BottomNavigationBarItem(icon: Icon(Icons.apartment), label: "Informasi"),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: "Antrian"),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profil"),
-      ],
     );
   }
 }

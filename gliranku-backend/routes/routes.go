@@ -10,13 +10,31 @@ func SetupRoutes(
 	r *gin.Engine,
 	kontrolRutinCtrl *controller.KontrolRutinController,
 	notifikasiCtrl *controller.NotifikasiController,
+	poliCtrl *controller.PoliController,
+	dokterCtrl *controller.DokterController,
+	pasienCtrl *controller.PasienController,
 ) {
 	api := r.Group("/api/v1")
+
+	// Pasien routes
+	pasien := api.Group("/pasien")
+	{
+		pasien.POST("/login", pasienCtrl.Login)
+		pasien.GET("/profile/:nik", pasienCtrl.GetProfile)
+		pasien.PUT("/profile", pasienCtrl.UpdateProfile)
+	}
+
+	// Poliklinik routes
+	api.GET("/poliklinik", poliCtrl.GetAll)
+
+	// Dokter routes
+	api.GET("/dokter", dokterCtrl.GetByPoly)
 
 	// Kontrol Rutin routes
 	kontrolRutin := api.Group("/kontrol-rutin")
 	{
 		kontrolRutin.POST("", kontrolRutinCtrl.Create)
+		kontrolRutin.GET("/all", kontrolRutinCtrl.GetAll)
 		kontrolRutin.GET("/pasien/:nik", kontrolRutinCtrl.GetByNIK)
 		kontrolRutin.GET("/upcoming", kontrolRutinCtrl.GetUpcoming)
 	}

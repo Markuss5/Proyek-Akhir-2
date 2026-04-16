@@ -1,0 +1,6 @@
+ALTER TABLE pasien
+  DROP COLUMN IF EXISTS "noBPJS",
+  DROP COLUMN IF EXISTS "golonganDarah",
+  DROP COLUMN IF EXISTS "tanggalLahir",
+  DROP COLUMN IF EXISTS alamat,
+  DROP COLUMN IF EXISTS "jenisKelamin";
