@@ -16,9 +16,9 @@ func NewNotifikasiRepository(db *sql.DB) *NotifikasiRepository {
 
 func (r *NotifikasiRepository) Create(notifikasi *models.Notifikasi) (*models.Notifikasi, error) {
 	query := `
-		INSERT INTO "Notifikasi" (message, "scheduledDate", "isSent", "NIK")
+		INSERT INTO notifikasi (message, scheduleddate, issent, nik)
 		VALUES ($1, $2, $3, $4)
-		RETURNING "notificationID", message, "scheduledDate", "isSent", "sentAt", "NIK"
+		RETURNING notificationid, message, scheduleddate, issent, sentat, nik
 	`
 
 	var result models.Notifikasi
@@ -44,10 +44,10 @@ func (r *NotifikasiRepository) Create(notifikasi *models.Notifikasi) (*models.No
 
 func (r *NotifikasiRepository) FindByNIK(nik string) ([]models.Notifikasi, error) {
 	query := `
-		SELECT "notificationID", message, "scheduledDate", "isSent", "sentAt", "NIK"
-		FROM "Notifikasi"
-		WHERE "NIK" = $1
-		ORDER BY "scheduledDate" ASC
+		SELECT notificationid, message, scheduleddate, issent, sentat, nik
+		FROM notifikasi
+		WHERE nik = $1
+		ORDER BY scheduleddate ASC
 	`
 
 	rows, err := r.DB.Query(query, nik)
@@ -70,10 +70,10 @@ func (r *NotifikasiRepository) FindByNIK(nik string) ([]models.Notifikasi, error
 
 func (r *NotifikasiRepository) FindPending() ([]models.Notifikasi, error) {
 	query := `
-		SELECT "notificationID", message, "scheduledDate", "isSent", "sentAt", "NIK"
-		FROM "Notifikasi"
-		WHERE "isSent" = false AND "scheduledDate" <= CURRENT_DATE
-		ORDER BY "scheduledDate" ASC
+		SELECT notificationid, message, scheduleddate, issent, sentat, nik
+		FROM notifikasi
+		WHERE issent = false AND scheduleddate <= CURRENT_DATE
+		ORDER BY scheduleddate ASC
 	`
 
 	rows, err := r.DB.Query(query)
@@ -96,9 +96,9 @@ func (r *NotifikasiRepository) FindPending() ([]models.Notifikasi, error) {
 
 func (r *NotifikasiRepository) MarkAsSent(id int) error {
 	query := `
-		UPDATE "Notifikasi"
-		SET "isSent" = true, "sentAt" = $1
-		WHERE "notificationID" = $2
+		UPDATE notifikasi
+		SET issent = true, sentat = $1
+		WHERE notificationid = $2
 	`
 
 	_, err := r.DB.Exec(query, time.Now(), id)
