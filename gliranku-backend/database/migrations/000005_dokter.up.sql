@@ -1,0 +1,58 @@
+-- PostgreSQL version of tbdaftardokter
+DROP TABLE IF EXISTS tbdaftardokter CASCADE;
+CREATE TABLE tbdaftardokter (
+  "IdDokter" SERIAL PRIMARY KEY,
+  "NamaDokter" VARCHAR(255) DEFAULT NULL,
+  "PangkatCorps" VARCHAR(255) DEFAULT NULL,
+  "NRP" VARCHAR(255) DEFAULT NULL,
+  "Spesialisasi" INTEGER NOT NULL DEFAULT 0,
+  "NoTelp" VARCHAR(255) DEFAULT NULL,
+  "Keterangan" TEXT DEFAULT NULL,
+  "Kategori" INTEGER NOT NULL DEFAULT 0,
+  "Status" VARCHAR(255) NOT NULL DEFAULT 'aktif',
+  "Gambar" VARCHAR(255) NOT NULL DEFAULT '',
+  "TandaTangan" VARCHAR(255) NOT NULL DEFAULT '',
+  "Jkel" VARCHAR(255) DEFAULT NULL,
+  "TanggalLahir" DATE DEFAULT NULL,
+  "NoKTP" VARCHAR(255) DEFAULT NULL,
+  "KodeSatuSehat" VARCHAR(255) DEFAULT NULL,
+  "NamaSatuSehat" VARCHAR(255) DEFAULT NULL,
+  "IdBPJS" VARCHAR(255) NOT NULL DEFAULT ''
+);
+
+INSERT INTO tbdaftardokter ("IdDokter", "NamaDokter", "PangkatCorps", "NRP", "Spesialisasi", "NoTelp", "Keterangan", "Kategori", "Status", "Gambar", "TandaTangan", "Jkel", "TanggalLahir", "NoKTP", "KodeSatuSehat", "NamaSatuSehat", "IdBPJS") VALUES
+(1, 'dr. Tommy Candilala Siahaan, MKM', NULL, NULL, 1, '081376098398', NULL, 0, 'aktif', '', '', 'L', NULL, '1212131006770001', '10016591613', 'dr. Tommy Candilala Siahaan, MKM', '000'),
+(2, 'dr. Carolina S.Pardede', NULL, NULL, 1, '08116212026', NULL, 0, 'aktif', '', '', '', NULL, '1212016109790001', '10007669531', 'dr. Carolina S.Pardede', '3067'),
+(3, 'dr.Rintar Pardosi', NULL, NULL, 1, '081361039383', NULL, 0, 'aktif', '', '', 'L', NULL, '1212040501810001', '10009977700', 'dr.Rintar Pardosi', '214564'),
+(4, 'dr.Daniel Romulus Butarbutar', NULL, NULL, 1, '081362234767', NULL, 0, 'aktif', '', '', '', NULL, '1219032910840002', '10010457962', 'dr.Daniel Romulus Butarbutar', '271012'),
+(5, 'dr.Siska Tuanita Lumban Tobing', NULL, NULL, 1, '081296615712', NULL, 0, 'aktif', '', '', 'P', NULL, '1207234806790003', '10004328043', 'dr.Siska Tuanita Lumban Tobing', '170539'),
+(7, 'drg. Maorina Desta .,Sp.Ort', NULL, NULL, 166, '082360660515', NULL, 0, 'aktif', '', '', 'P', NULL, '1212017108810001', '10002314474', 'drg. Maorina Desta', '000'),
+(8, 'drg. Nancy Pebrinawanti Hutabarat', NULL, NULL, 33, '085261009191', NULL, 0, 'aktif', '', '', 'P', NULL, '1212075102850003', '10019656242', 'drg. Nancy Pebrinawanti Hutabarat', '214435'),
+(10, 'dr. Yunita V.Tampubolon, SpPD', NULL, NULL, 4, '08126525628', NULL, 0, 'aktif', '', '', 'P', NULL, '1271016206670006', '10015206571', 'dr. Yunita V.Tampubolon, SpPD', '2595'),
+(11, 'dr. Yusak Parlaungan Simanjuntak, SpKJ', NULL, NULL, 12, '081376672441', NULL, 0, 'aktif', '', '', 'L', NULL, '1271011107680002', '10001364799', 'dr. Yusak Parlaungan Simanjuntak, SpKJ', '259894'),
+(12, 'dr. Rahel M.Sitorus, Sp.Rad', NULL, NULL, 7, '08126526321', NULL, 0, 'aktif', '', '', 'P', NULL, '1271214510780005', '10007650640', 'dr. Rahel M.Sitorus, Sp.Rad', '2594'),
+(13, 'dr.Pita O.Lumban Gaol, SpPK', NULL, NULL, 11, '082164552561', NULL, 0, 'aktif', '', '', 'P', NULL, '1212024401710044', '10011958777', 'dr.Pita O.Lumban Gaol, SpPK', '2838'),
+(14, 'dr.Flora Mindo Panjaitan, SpA', NULL, NULL, 5, '082160790012', NULL, 0, 'aktif', '', '', 'P', NULL, '1271074106810002', '10016184548', 'dr.Flora Mindo Panjaitan, SpA', '214529'),
+(16, 'dr. Gopas Simanjuntak, SpPD', NULL, NULL, 4, '081362135077', NULL, 0, 'aktif', '', '', '', NULL, '1212110501770001', '10018135417', 'dr. Gopas Simanjuntak, SpPD', '2600'),
+(17, 'dr. Poltak J.Sirait, M.Kes, SpKJ', NULL, NULL, 12, '081370892026', NULL, 0, 'aktif', '', '', 'L', NULL, '1212010212760001', '10011057626', 'dr. Poltak J.Sirait, M.Kes, SpKJ', '3551'),
+(18, 'dr. Desmonia T. Damanik, SpP', NULL, NULL, 17, '081370203812', NULL, 0, 'aktif', '', '', 'L', NULL, '1271031212750001', '10018355406', 'dr. Desmonia T. Damanik, SpP', '2866'),
+(20, 'dr.Dame Lamtiur Sitompul, SpA', NULL, NULL, 5, '081260602101', NULL, 0, 'aktif', '', '', 'P', NULL, '1212014808740001', '10018756593', 'dr.Dame Lamtiur Sitompul, SpA', '214531'),
+(21, 'dr. Sintyche E.Marpaung SpOG', NULL, NULL, 6, '085270063540', NULL, 0, 'aktif', '', '', 'P', NULL, '1271174201800001', '10014617939', 'dr. Sintyche E.Marpaung SpOG', '295520'),
+(22, 'dr. Laily Munawwarah, SpA', NULL, NULL, 5, '08116007722', NULL, 0, 'aktif', '', '', '', NULL, '1271037110780002', '12690215882', 'dr. Laily Munawwarah, SpA', '264475'),
+(23, 'dr. Velrones Tampubolon, SpB', NULL, NULL, 3, '082163164444', NULL, 0, 'aktif', '', '', 'L', NULL, '1207230310780005', '10015591514', 'dr. Velrones Tampubolon, SpB', '214548'),
+(24, 'dr.Reynold Sianturi, SpB', NULL, NULL, 3, '081375219509', NULL, 0, 'aktif', '', '', 'L', NULL, '1212031112730001', '10015198549', 'dr.Reynold Sianturi, SpB', '214495'),
+(25, 'dr. Herbet Pardamean Hutagaol SpP', NULL, NULL, 17, '081275400037', NULL, 0, 'aktif', '', '', 'L', NULL, '1212071409850001', '10001966686', 'dr. Herbet Pardamean Hutagaol SpP', '315959'),
+(27, 'dr.Esfayanti Hotmauli Sianturi SpA', NULL, NULL, 5, '08126472434', NULL, 0, 'aktif', '', '', 'P', NULL, '1208164107820007', '10003126379', 'dr.Esfayanti Hotmauli Sianturi SpA', '386120'),
+(28, 'dr.Frangky H.Sitepu, SpKJ', NULL, NULL, 12, '081340779940', NULL, 0, 'aktif', '', '', 'L', NULL, '1206010812800004', '10033765734', 'dr.Frangky H.Sitepu, SpKJ', '267576'),
+(29, 'dr.Pantas Martin Riwanto, SpA', NULL, NULL, 5, '08126471196', NULL, 0, 'aktif', '', '', 'L', NULL, '3172041003810010', '10018347191', 'dr.Pantas Martin Riwanto, SpA', '2880'),
+(31, 'dr.Toman G.M Simamora, SpTHT-KL', NULL, NULL, 14, '081263848899', NULL, 0, 'aktif', '', '', 'L', NULL, '1271071206700002', '10000589060', 'dr.Toman G.M Simamora, SpTHT-KL', '11265'),
+(33, 'dr.Feryary Diploma Sembiring, SpS', NULL, NULL, 18, '08126559294', NULL, 0, 'aktif', '', '', 'L', NULL, '1206142809780001', '10009272544', 'dr.Feryary Diploma Sembiring, SpS', '549545'),
+(34, 'dr. Masta Nova Br. Ginting, SP.JP', NULL, NULL, 16, '081370790299', NULL, 0, 'aktif', '', '', 'P', NULL, '1271215711870002', '10011218439', 'dr. Masta Nova Br. Ginting, SP.JP', '258011'),
+(39, 'dr. Sudung Reinhard Mangatur Siahaan SpOG', NULL, NULL, 6, '08113970780', NULL, 0, 'aktif', '', '', 'L', NULL, '1272061307800005', '10019313988', 'dr. Sudung Reinhard Mangatur Siahaan SpOG', '446353'),
+(46, 'FRANKY FRANS SIHOMBING, SP. M', NULL, NULL, 13, '081273355104', NULL, 0, 'aktif', '', '', 'L', NULL, '1902010710820003', '10007795981', 'FRANKY FRANS SIHOMBING, SP. M', '307607'),
+(48, 'DR.ADI PUTRA. Sp.N', NULL, NULL, 18, '081263339983', NULL, 0, 'aktif', '', '', 'L', NULL, '1271052609830001', '10001159756', 'DR.ADI PUTRA. Sp.N', '458518'),
+(49, 'dr. Silvia Aritonang, Sp.MK', NULL, NULL, 27, '082367190747', NULL, 0, 'aktif', '', '', 'P', NULL, '1212016004750001', '10005125459', 'dr. Silvia Aritonang, Sp.MK', ''),
+(53, 'dr. Doharjo Manullang, Sp.PD, KKV', NULL, NULL, 4, '0000', NULL, 0, 'aktif', '', '', 'L', NULL, '', '', '', '26905'),
+(54, 'MARCELLA EUNIKE PURBA, DRG', NULL, NULL, 34, '081260120535', NULL, 0, 'aktif', '', '', 'P', '1985-03-27', '1271076703850003', '201706', 'MARCELLA EUNIKE PURBA, DRG', '201706');
+
+SELECT setval(pg_get_serial_sequence('tbdaftardokter', 'IdDokter'), COALESCE(MAX("IdDokter"), 1)) FROM tbdaftardokter;

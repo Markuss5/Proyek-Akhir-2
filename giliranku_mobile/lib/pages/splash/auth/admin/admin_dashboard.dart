@@ -9,24 +9,28 @@ class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
 
   @override
-  State<AdminDashboard> createState() => _AdminDashboardState();
+  State<AdminDashboard> createState() => AdminDashboardState();
 }
 
-class _AdminDashboardState extends State<AdminDashboard> {
+class AdminDashboardState extends State<AdminDashboard> {
   int _currentIndex = 0;
 
-  final List<Widget> _tabs = const [
-    AdminBerandaTab(),
-    AdminKontrolTab(),
-    AdminKelolaTab(),
-    AdminKunjunganTab(),
-    AdminProfilTab(),
-  ];
+  void switchToTab(int index) {
+    setState(() => _currentIndex = index);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> tabs = [
+      AdminBerandaTab(onSwitchTab: switchToTab),
+      const AdminKontrolTab(),
+      const AdminKelolaTab(),
+      const AdminKunjunganTab(),
+      const AdminProfilTab(),
+    ];
+
     return Scaffold(
-      body: _tabs[_currentIndex],
+      body: tabs[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
@@ -38,26 +42,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
           setState(() => _currentIndex = index);
         },
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Beranda",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_active),
-            label: "Kontrol",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.description),
-            label: "Kelola Data",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.apartment),
-            label: "Kunjungan RS",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: "Profil",
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Beranda"),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications_active), label: "Kontrol"),
+          BottomNavigationBarItem(icon: Icon(Icons.description), label: "Kelola Data"),
+          BottomNavigationBarItem(icon: Icon(Icons.apartment), label: "Kunjungan RS"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profil"),
         ],
       ),
     );

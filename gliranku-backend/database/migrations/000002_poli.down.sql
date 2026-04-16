@@ -1,0 +1,2 @@
+DROP INDEX IF EXISTS idx_tbpoli_tipepoli;
+DROP TABLE IF EXISTS tbpoli CASCADE;
