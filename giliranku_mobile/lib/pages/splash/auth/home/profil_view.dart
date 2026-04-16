@@ -254,4 +254,4 @@ class ProfilView extends StatelessWidget {
       ),
     );
   }
-}
+}
