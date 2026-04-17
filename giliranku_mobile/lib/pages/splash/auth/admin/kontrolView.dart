@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/services/api_service.dart';
+import 'package:giliranku/services/apiService.dart';
+import 'package:giliranku/services/notifikasiService.dart';
 
 class KontrolItem {
   final int? controlId;
@@ -44,7 +45,7 @@ class KontrolItem {
       poliklinik: poli,
       dokter: dokter,
       tanggal: date,
-      waktu: const TimeOfDay(hour: 9, minute: 0),
+      waktu: TimeOfDay(hour: date.toLocal().hour, minute: date.toLocal().minute),
       status: date.isBefore(DateTime.now()) ? 'selesai' : 'terjadwal',
     );
   }
@@ -61,6 +62,8 @@ class _AdminKontrolTabState extends State<AdminKontrolTab> {
   String _activeFilter = 'Semua';
   List<KontrolItem> _kontrolList = [];
   bool _isLoading = true;
+  bool _selectionMode = false;
+  final Set<int> _selectedIds = {};
 
   @override
   void initState() {
@@ -71,7 +74,7 @@ class _AdminKontrolTabState extends State<AdminKontrolTab> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
-      final data = await ApiService.fetchAllKontrolRutin();
+      final data = await apiService.fetchAllKontrolRutin();
       setState(() {
         _kontrolList = data.map((e) => KontrolItem.fromApiJson(e)).toList();
         _isLoading = false;
@@ -108,7 +111,7 @@ class _AdminKontrolTabState extends State<AdminKontrolTab> {
     bool isLoadingDokter = false;
 
     // Fetch poli data once before showing dialog
-    poliList = await ApiService.fetchPoliklinik();
+    poliList = await apiService.fetchPoliklinik();
 
     if (!mounted) return;
 
@@ -181,7 +184,7 @@ class _AdminKontrolTabState extends State<AdminKontrolTab> {
                                     });
                                     // Fetch doctors for selected poli
                                     if (val != null) {
-                                      ApiService.fetchDokterByPoly(val['poly_id']).then((data) {
+                                      apiService.fetchDokterByPoly(val['poly_id']).then((data) {
                                         setDialogState(() {
                                           dokterList = data;
                                           isLoadingDokter = false;
@@ -362,19 +365,46 @@ class _AdminKontrolTabState extends State<AdminKontrolTab> {
                               return;
                             }
 
+                            final nikText = nikCtrl.text.trim();
+                            if (nikText.length != 16 || double.tryParse(nikText) == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("NIK harus terdiri dari tepat 16 digit angka."),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
+                            }
+
                             final poliName = selectedPoli!['poly_name'] ?? '';
                             final dokterName = selectedDokter!['doctor_name'] ?? '';
-                            final dateStr =
-                                "${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}";
-
-                            // Call API to create kontrol rutin
-                            final success = await ApiService.createKontrolRutin(
-                              nik: nikCtrl.text,
+                            
+                            final exactDateTime = DateTime(
+                              selectedDate!.year,
+                              selectedDate!.month,
+                              selectedDate!.day,
+                              selectedTime!.hour,
+                              selectedTime!.minute,
+                            );
+                            
+                            // Call API to create kontrol rutin (adding Z via UTC so backend parsers don't fail)
+                            final dateStr = exactDateTime.toUtc().toIso8601String();
+                            
+                            final success = await apiService.createKontrolRutin(
+                              nik: nikText,
                               controlDate: dateStr,
                               notes: "$poliName - $dokterName",
                             );
 
                             if (success) {
+                              // Schedule local phone notifications (H-7, H-3, H-1)
+                              await NotifikasiService().scheduleKontrolRutinReminders(
+                                controlId: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+                                controlDate: exactDateTime,
+                                patientName: nikText,
+                                notes: "$poliName - $dokterName",
+                              );
+
                               Navigator.pop(ctx);
                               // Reload data from API
                               _loadData();
@@ -695,23 +725,165 @@ class _AdminKontrolTabState extends State<AdminKontrolTab> {
           ),
         ],
       ),
+      floatingActionButton: _selectionMode
+          ? FloatingActionButton.extended(
+              onPressed: () => _deleteSelectedControls(),
+              backgroundColor: Colors.red,
+              icon: const Icon(Icons.delete, color: Colors.white),
+              label: Text("Hapus (${_selectedIds.length})", 
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            )
+          : null,
     );
+  }
+
+  Future<void> _deleteSelectedControls() async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text("Hapus ${_selectedIds.length} Jadwal"),
+        content: Text("Yakin ingin menghapus ${_selectedIds.length} jadwal kontrol yang dipilih?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text("Batal"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text("Hapus", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isLoading = true);
+    
+    int successCount = 0;
+    for (int id in _selectedIds) {
+      final success = await apiService.deleteKontrolRutin(id);
+      if (success) {
+        successCount++;
+        await NotifikasiService().cancelKontrolRutinReminders(id);
+      }
+    }
+
+    setState(() {
+      _selectionMode = false;
+      _selectedIds.clear();
+    });
+    
+    await _loadData();
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("$successCount jadwal berhasil dihapus"),
+          backgroundColor: successCount > 0 ? const Color(0xFF2F9E8F) : Colors.red,
+        ),
+      );
+    }
   }
 
   Widget _buildKontrolCard(KontrolItem item) {
     final isSelesai = item.status == 'selesai';
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: isSelesai
-              ? Colors.green.withOpacity(0.3)
-              : const Color(0xFF2F9E8F).withOpacity(0.2),
+    final isSelected = _selectedIds.contains(item.controlId);
+
+    return GestureDetector(
+      onLongPress: () {
+        if (item.controlId != null) {
+          setState(() {
+            _selectionMode = true;
+            _selectedIds.add(item.controlId!);
+          });
+        }
+      },
+      onTap: () {
+        if (_selectionMode && item.controlId != null) {
+          setState(() {
+            if (isSelected) {
+              _selectedIds.remove(item.controlId!);
+              if (_selectedIds.isEmpty) _selectionMode = false;
+            } else {
+              _selectedIds.add(item.controlId!);
+            }
+          });
+        }
+      },
+      child: Stack(
+        children: [
+          Dismissible(
+      key: Key(item.controlId?.toString() ?? item.hashCode.toString()),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: Colors.red.withOpacity(0.8),
+          borderRadius: BorderRadius.circular(15),
         ),
+        alignment: Alignment.centerRight,
+        child: const Icon(Icons.delete, color: Colors.white),
       ),
+      confirmDismiss: (direction) async {
+        return await showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text("Hapus Jadwal"),
+            content: const Text("Yakin ingin menghapus jadwal kontrol ini?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text("Batal"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text("Hapus", style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+        );
+      },
+      onDismissed: (direction) async {
+        if (item.controlId != null) {
+          final success = await apiService.deleteKontrolRutin(item.controlId!);
+          if (success) {
+            await NotifikasiService().cancelKontrolRutinReminders(item.controlId!);
+            setState(() {
+              _kontrolList.removeWhere((k) => k.controlId == item.controlId);
+            });
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text("Jadwal berhasil dihapus"),
+                    backgroundColor: Colors.red),
+              );
+            }
+          } else {
+            _loadData();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text("Gagal menghapus jadwal"),
+                    backgroundColor: Colors.red),
+              );
+            }
+          }
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: isSelesai
+                ? Colors.green.withOpacity(0.3)
+                : const Color(0xFF2F9E8F).withOpacity(0.2),
+          ),
+        ),
       child: Row(
         children: [
           Container(
@@ -776,6 +948,23 @@ class _AdminKontrolTabState extends State<AdminKontrolTab> {
               ),
             ),
           ),
+        ],
+      ),
+      ),
+      ),
+          if (isSelected)
+            Positioned.fill(
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2F9E8F).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: const Color(0xFF2F9E8F), width: 2),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(Icons.check_circle, color: Color(0xFF2F9E8F), size: 40),
+              ),
+            ),
         ],
       ),
     );

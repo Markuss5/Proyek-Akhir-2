@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"gliranku/models"
 	"time"
 )
@@ -136,4 +137,17 @@ func (r *KontrolRutinRepository) FindAll() ([]models.KontrolRutin, error) {
 		results = append(results, kr)
 	}
 	return results, nil
+}
+
+func (r *KontrolRutinRepository) Delete(id int) error {
+	query := `DELETE FROM kontrol_rutin WHERE controlid = $1`
+	result, err := r.DB.Exec(query, id)
+	if err != nil {
+		return err
+	}
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return fmt.Errorf("kontrol rutin dengan ID %d tidak ditemukan", id)
+	}
+	return nil
 }

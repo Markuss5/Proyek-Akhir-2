@@ -95,3 +95,7 @@ func (s *KontrolRutinService) GetUpcoming(days int) ([]models.KontrolRutin, erro
 func (s *KontrolRutinService) GetAll() ([]models.KontrolRutin, error) {
 	return s.KontrolRutinRepo.FindAll()
 }
+
+func (s *KontrolRutinService) Delete(id int) error {
+	return s.KontrolRutinRepo.Delete(id)
+}

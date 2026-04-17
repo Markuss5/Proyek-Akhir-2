@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku/pages/splash/splash_page.dart';
-import 'package:giliranku/services/notification_service.dart';
+import 'package:giliranku/services/notifikasiService.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize the notification service for native phone notifications
-  await NotificationService().initialize();
+  await NotifikasiService().initialize();
 
   runApp(const MyApp());
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku/pages/splash/auth/home/patient_profil_tab.dart';
 import 'package:giliranku/pages/splash/auth/home/profil_view.dart';
-import 'package:giliranku/pages/splash/auth/home/patient_notifikasi_page.dart';
+import 'package:giliranku/pages/splash/auth/home/notifikasiKontrolView.dart';
 import 'package:giliranku/pages/splash/auth/antrian/antrian_page.dart';
 
 class HomePage extends StatefulWidget {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/services/api_service.dart';
+import 'package:giliranku/services/apiService.dart';
 
 class PatientNotifikasiPage extends StatefulWidget {
   final String? nik;
@@ -28,7 +28,7 @@ class _PatientNotifikasiPageState extends State<PatientNotifikasiPage> {
     }
     setState(() => _isLoading = true);
     try {
-      final data = await ApiService.fetchNotifikasiByNIK(widget.nik!);
+      final data = await apiService.fetchNotifikasiByNIK(widget.nik!);
       setState(() {
         _notifications = data;
         _isLoading = false;
