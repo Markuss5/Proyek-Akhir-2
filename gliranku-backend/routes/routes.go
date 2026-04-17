@@ -37,6 +37,7 @@ func SetupRoutes(
 		kontrolRutin.GET("/all", kontrolRutinCtrl.GetAll)
 		kontrolRutin.GET("/pasien/:nik", kontrolRutinCtrl.GetByNIK)
 		kontrolRutin.GET("/upcoming", kontrolRutinCtrl.GetUpcoming)
+		kontrolRutin.DELETE("/:id", kontrolRutinCtrl.Delete)
 	}
 
 	// Notifikasi routes

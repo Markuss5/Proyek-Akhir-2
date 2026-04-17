@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku/pages/splash/auth/admin/admin_beranda_tab.dart';
-import 'package:giliranku/pages/splash/auth/admin/admin_kontrol_tab.dart';
+import 'package:giliranku/pages/splash/auth/admin/kontrolView.dart';
 import 'package:giliranku/pages/splash/auth/admin/admin_kelola_tab.dart';
 import 'package:giliranku/pages/splash/auth/admin/admin_kunjungan_tab.dart';
 import 'package:giliranku/pages/splash/auth/admin/admin_profil_tab.dart';

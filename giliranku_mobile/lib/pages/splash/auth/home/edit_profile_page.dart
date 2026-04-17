@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/services/api_service.dart';
+import 'package:giliranku/services/apiService.dart';
 
 class EditProfilePage extends StatefulWidget {
   final Map<String, dynamic> patientData;
@@ -55,7 +55,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     setState(() => _isSaving = true);
 
-    final updated = await ApiService.updateProfile({
+    final updated = await apiService.updateProfile({
       'nik': widget.patientData['nik'],
       'patient_name': _nameCtrl.text.trim(),
       'phone': _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
