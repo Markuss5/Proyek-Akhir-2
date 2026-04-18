@@ -50,9 +50,9 @@ final HospitalData rsudPorseaData = HospitalData(
   email: 'info@rsudporsea.go.id',
 );
 
-// 3. VIEW (Sesuai Komponen "ProfilView" di Sequence Diagram)
-class ProfilView extends StatelessWidget {
-  const ProfilView({super.key});
+// 3. VIEW (Sesuai Komponen "informasiView" di Sequence Diagram)
+class informasiView extends StatelessWidget {
+  const informasiView({super.key});
 
   @override
   Widget build(BuildContext context) {
