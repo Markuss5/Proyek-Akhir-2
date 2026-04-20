@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku/pages/splash/auth/home/patient_profil_tab.dart';
-import 'package:giliranku/pages/splash/auth/home/profil_view.dart';
 import 'package:giliranku/pages/splash/auth/home/patient_notifikasi_page.dart';
 import 'package:giliranku/pages/splash/auth/antrian/antrian_page.dart';
+import 'package:giliranku/pages/splash/auth/informasi/informasi.dart';
 
 class HomePage extends StatefulWidget {
   final Map<String, dynamic>? patientData;
@@ -30,7 +30,7 @@ class _HomePageState extends State<HomePage> {
         patientData: widget.patientData,
         onSwitchTab: _switchTab,
       ),
-      const ProfilView(),
+      const InformasiPage(),
       const _PlaceholderTab(title: 'Antrian', icon: Icons.calendar_today),
       PatientProfilTab(patientData: widget.patientData),
     ];
