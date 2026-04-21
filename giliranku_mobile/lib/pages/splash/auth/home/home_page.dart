@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/pages/splash/auth/home/patient_profil_tab.dart';
-import 'package:giliranku/pages/splash/auth/home/patient_notifikasi_page.dart';
-import 'package:giliranku/pages/splash/auth/antrian/antrian_page.dart';
-import 'package:giliranku/pages/splash/auth/informasi/informasi.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:giliranku_mobile/pages/splash/auth/home/patient_profil_tab.dart';
-import 'package:giliranku_mobile/pages/splash/auth/home/informasi_view.dart';
-import 'package:giliranku_mobile/pages/splash/auth/home/patient_notifikasi_page.dart';
-import 'package:giliranku_mobile/pages/splash/auth/antrian/antrian_page.dart';
+
+// Import widget & helper
 import 'package:giliranku_mobile/widgets/app_colors.dart';
 import 'package:giliranku_mobile/widgets/navbar.dart';
-import 'package:giliranku_mobile/pages/splash/auth/home/InformasiMenuPage.dart';
 
-
+import 'package:giliranku_mobile/pages/splash/auth/home/patient_profil_tab.dart';
+import 'package:giliranku_mobile/pages/splash/auth/home/patient_notifikasi_page.dart';
+import 'package:giliranku_mobile/pages/splash/auth/home/informasi_view.dart';
+import 'package:giliranku_mobile/pages/splash/auth/home/InformasiMenuPage.dart'; // Pastikan nama file sesuai
+import 'package:giliranku_mobile/pages/splash/auth/antrian/antrian_page.dart';
 class HomePage extends StatefulWidget {
   final Map<String, dynamic>? patientData;
   const HomePage({super.key, this.patientData});
