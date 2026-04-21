@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class ApiService {
+class apiService {
   // For physical device: use your PC's local IP address (run 'ipconfig' to find it)
   // For Android emulator: use 10.0.2.2
   // NOTE: WiFi IPs can change! Run 'ipconfig' if connection fails.
@@ -79,9 +79,24 @@ class ApiService {
           'notes': notes ?? '',
         }),
       ).timeout(_timeout);
+      if (response.statusCode != 201) {
+        print('Create kontrol rutin failed: ${response.body}');
+      }
       return response.statusCode == 201;
     } catch (e) {
       print('Error creating kontrol rutin: $e');
+    }
+    return false;
+  }
+
+  static Future<bool> deleteKontrolRutin(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/kontrol-rutin/$id'),
+      ).timeout(_timeout);
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error deleting kontrol rutin: $e');
     }
     return false;
   }

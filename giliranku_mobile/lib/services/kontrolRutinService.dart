@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:giliranku/models/kontrol_rutin_model.dart';
-import 'package:giliranku/models/notifikasi_model.dart';
-import 'package:giliranku/services/notification_service.dart';
+import 'package:giliranku_mobile/models/kontrolModel.dart';
+import 'package:giliranku_mobile/models/notifikasiModel.dart';
+import 'package:giliranku_mobile/services/notifikasiService.dart';
 
 class KontrolRutinService {
   // Change this to your backend URL
-  static const String _baseUrl = 'http://10.0.2.2:8080/api/v1';
+  static const String _baseUrl = 'http://10.223.75.41:8080/api/v1';
 
-  final NotificationService _notificationService = NotificationService();
+  final NotifikasiService _notifikasiService = NotifikasiService();
 
   /// Create a new kontrol rutin schedule.
   /// This will:
@@ -37,7 +37,7 @@ class KontrolRutinService {
         final kontrolRutin = KontrolRutinModel.fromJson(data['data']);
 
         // Schedule local native phone notifications
-        await _notificationService.scheduleKontrolRutinReminders(
+        await _notifikasiService.scheduleKontrolRutinReminders(
           controlId: kontrolRutin.controlId,
           controlDate: kontrolRutin.controlDate,
           patientName: nik, // Will be replaced with actual name if available
@@ -105,7 +105,7 @@ class KontrolRutinService {
       for (final kr in kontrolList) {
         // Only re-schedule for future controls
         if (kr.controlDate.isAfter(now)) {
-          await _notificationService.scheduleKontrolRutinReminders(
+          await _notifikasiService.scheduleKontrolRutinReminders(
             controlId: kr.controlId,
             controlDate: kr.controlDate,
             patientName: nik,

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/pages/splash/auth/home/home_page.dart';
-import 'package:giliranku/pages/splash/auth/admin_login.dart';
-import 'package:giliranku/services/api_service.dart';
+import 'package:giliranku_mobile/pages/splash/auth/home/home_page.dart';
+import 'package:giliranku_mobile/pages/splash/auth/admin_login.dart';
+import 'package:giliranku_mobile/services/apiService.dart';
+import 'package:giliranku_mobile/services/kontrolRutinService.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -30,7 +31,7 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => _isLoading = true);
 
-    final result = await ApiService.loginPasien(nik, nama);
+    final result = await apiService.loginPasien(nik, nama);
 
     setState(() => _isLoading = false);
 
@@ -46,7 +47,10 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    // Login success — navigate to home with patient data
+    // Login success — resync local notifications for upcoming kontrol
+    KontrolRutinService().resyncNotifications(nik);
+
+    // Navigate to home with patient data
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(

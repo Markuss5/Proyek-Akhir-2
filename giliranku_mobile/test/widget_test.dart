@@ -1,11 +1,9 @@
-// This is a basic Flutter widget test placeholder.
-// Replace with actual tests as needed.
-
 import 'package:flutter_test/flutter_test.dart';
+import 'package:giliranku_mobile/main.dart'; 
 
 void main() {
-  testWidgets('Placeholder test', (WidgetTester tester) async {
-    // Placeholder - replace with actual widget tests
-    expect(1 + 1, 2);
+  testWidgets('App load test', (WidgetTester tester) async {
+    // Mengetes apakah aplikasi bisa terbuka tanpa error
+    await tester.pumpWidget(const MyApp());
   });
 }

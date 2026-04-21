@@ -28,9 +28,9 @@ func (ctrl *KontrolRutinController) Create(c *gin.Context) {
 		return
 	}
 
-	controlDate, err := time.Parse("2006-01-02", req.ControlDate)
+	controlDate, err := time.Parse(time.RFC3339, req.ControlDate)
 	if err != nil {
-		utils.Error(c, http.StatusBadRequest, "Format tanggal tidak valid. Gunakan format YYYY-MM-DD")
+		utils.Error(c, http.StatusBadRequest, "Format tanggal tak valid. Gunakan ISO-8601")
 		return
 	}
 
@@ -88,4 +88,22 @@ func (ctrl *KontrolRutinController) GetAll(c *gin.Context) {
 	}
 
 	utils.Success(c, http.StatusOK, "Semua data kontrol rutin berhasil diambil", response.FromKontrolRutinList(results))
+}
+
+// DELETE /api/v1/kontrol-rutin/:id
+func (ctrl *KontrolRutinController) Delete(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		utils.Error(c, http.StatusBadRequest, "ID harus berupa angka")
+		return
+	}
+
+	err = ctrl.Service.Delete(id)
+	if err != nil {
+		utils.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.Success(c, http.StatusOK, "Jadwal kontrol rutin berhasil dihapus", nil)
 }
