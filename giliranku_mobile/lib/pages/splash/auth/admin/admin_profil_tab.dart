@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/pages/splash/auth/login.dart';
+import 'package:giliranku_mobile/pages/splash/auth/login.dart';
 
 class AdminProfilTab extends StatelessWidget {
   const AdminProfilTab({super.key});

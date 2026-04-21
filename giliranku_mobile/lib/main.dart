@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/pages/splash/splash_page.dart';
-import 'package:giliranku/services/notifikasiService.dart';
-import 'package:giliranku/pages/splash/auth/home/home_page.dart';
+import 'package:giliranku_mobile/pages/splash/splash_page.dart';
+import 'package:giliranku_mobile/services/notifikasiService.dart';
+import 'package:giliranku_mobile/pages/splash/auth/home/home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

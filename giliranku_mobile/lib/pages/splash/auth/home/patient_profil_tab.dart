@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/pages/splash/auth/login.dart';
-import 'package:giliranku/pages/splash/auth/home/edit_profile_page.dart';
+import 'package:giliranku_mobile/pages/splash/auth/login.dart';
+import 'package:giliranku_mobile/pages/splash/auth/home/edit_profile_page.dart';
 
 class PatientProfilTab extends StatefulWidget {
   final Map<String, dynamic>? patientData;

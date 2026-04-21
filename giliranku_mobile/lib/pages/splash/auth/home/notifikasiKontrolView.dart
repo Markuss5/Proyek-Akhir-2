@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/services/apiService.dart';
+import 'package:giliranku_mobile/services/apiService.dart';
 
 class PatientNotifikasiPage extends StatefulWidget {
   final String? nik;

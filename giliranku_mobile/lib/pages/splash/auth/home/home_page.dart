@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:giliranku_mobil/pages/splash/auth/home/patient_profil_tab.dart';
+import 'package:giliranku_mobile/pages/splash/auth/home/patient_profil_tab.dart';
 import 'package:giliranku_mobile/pages/splash/auth/home/informasi_view.dart';
 import 'package:giliranku_mobile/pages/splash/auth/home/patient_notifikasi_page.dart';
 import 'package:giliranku_mobile/pages/splash/auth/antrian/antrian_page.dart';
-
 import 'package:giliranku_mobile/widgets/app_colors.dart';
 import 'package:giliranku_mobile/widgets/navbar.dart';
+import 'package:giliranku_mobile/pages/splash/auth/home/InformasiMenuPage.dart';
+
 
 class HomePage extends StatefulWidget {
   final Map<String, dynamic>? patientData;
@@ -18,29 +19,24 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
-  late final List<Widget> _pages;
 
   // Logika switch tab 
   void _switchTab(int index) => setState(() => _currentIndex = index);
 
-  @override
-  void initState() {
-    super.initState();
-
-    _pages = [
+@override
+  Widget build(BuildContext context) {
+    // 1. Definisikan daftar halaman di sini (tanpa underscore)
+    final List<Widget> pages = [
       _BerandaTab(patientData: widget.patientData, onSwitchTab: _switchTab),
-      informasiView(),
+      const InformasiMenuPage(), 
       const _PlaceholderTab(title: 'Antrian', icon: Icons.calendar_month_rounded),
       PatientProfilTab(patientData: widget.patientData),
     ];
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surface,
-      body: _pages[_currentIndex],
-      // Menggunakan AppBottomNav asli milikmu
+      // 2. Panggil 'pages' yang baru saja dibuat di atas
+      body: pages[_currentIndex], 
       bottomNavigationBar: AppBottomNav(
         currentIndex: _currentIndex,
         onTap: _switchTab,
@@ -70,7 +66,6 @@ class _BerandaTab extends StatelessWidget {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // --- BAGIAN HEADER: LOGO & LENGKUNGAN (DARI TEMAN) ---
           SliverToBoxAdapter(
             child: Stack(
               alignment: Alignment.center,
@@ -90,13 +85,14 @@ class _BerandaTab extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(top: 60),
+                  padding: const EdgeInsets.only(top: 80),
                   child: Column(
                     children: [
-                      // Logo dari teman
-                      Image.asset(
+                
+                     Image.asset(
                         'assets/images/logo.png',
-                        width: 180,
+                        height: 90,
+                        width: 90,
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) => 
                           const Icon(Iconsax.hospital, color: Colors.white, size: 60),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/pages/splash/auth/admin/admin_dashboard.dart';
+import 'package:giliranku_mobile/pages/splash/auth/admin/admin_dashboard.dart';
 
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({super.key});

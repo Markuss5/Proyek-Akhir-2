@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/pages/splash/auth/home/home_page.dart';
-import 'package:giliranku/pages/splash/auth/admin_login.dart';
-import 'package:giliranku/services/apiService.dart';
-import 'package:giliranku/services/kontrolRutinService.dart';
+import 'package:giliranku_mobile/pages/splash/auth/home/home_page.dart';
+import 'package:giliranku_mobile/pages/splash/auth/admin_login.dart';
+import 'package:giliranku_mobile/services/apiService.dart';
+import 'package:giliranku_mobile/services/kontrolRutinService.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

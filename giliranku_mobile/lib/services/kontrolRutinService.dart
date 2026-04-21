@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:giliranku/models/kontrolModel.dart';
-import 'package:giliranku/models/notifikasiModel.dart';
-import 'package:giliranku/services/notifikasiService.dart';
+import 'package:giliranku_mobile/models/kontrolModel.dart';
+import 'package:giliranku_mobile/models/notifikasiModel.dart';
+import 'package:giliranku_mobile/services/notifikasiService.dart';
 
 class KontrolRutinService {
   // Change this to your backend URL

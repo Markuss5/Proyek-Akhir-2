@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/services/apiService.dart';
-import 'package:giliranku/services/notifikasiService.dart';
+import 'package:giliranku_mobile/services/apiService.dart';
+import 'package:giliranku_mobile/services/notifikasiService.dart';
 
 class KontrolItem {
   final int? controlId;

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/pages/splash/auth/admin/admin_beranda_tab.dart';
-import 'package:giliranku/pages/splash/auth/admin/kontrolView.dart';
-import 'package:giliranku/pages/splash/auth/admin/admin_kelola_tab.dart';
-import 'package:giliranku/pages/splash/auth/admin/admin_kunjungan_tab.dart';
-import 'package:giliranku/pages/splash/auth/admin/admin_profil_tab.dart';
+import 'package:giliranku_mobile/pages/splash/auth/admin/admin_beranda_tab.dart';
+import 'package:giliranku_mobile/pages/splash/auth/admin/kontrolView.dart';
+import 'package:giliranku_mobile/pages/splash/auth/admin/admin_kelola_tab.dart';
+import 'package:giliranku_mobile/pages/splash/auth/admin/admin_kunjungan_tab.dart';
+import 'package:giliranku_mobile/pages/splash/auth/admin/admin_profil_tab.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
