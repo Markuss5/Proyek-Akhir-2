@@ -1,33 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/feature/splash/splashView.dart';
-import 'package:giliranku/feature/patient/home/homeView.dart';
-import 'package:giliranku/feature/admin/dashboard/adminDashboardView.dart';
-import 'package:giliranku/core/services/sessionService.dart';
-import 'package:giliranku/core/services/notificationService.dart';
+import 'package:giliranku/pages/splash/splash_page.dart';
+import 'package:giliranku/services/notifikasiService.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await NotificationService().initialize();
+  // Initialize the notification service for native phone notifications
+  await NotifikasiService().initialize();
 
-  final sessionType = await SessionService().getSessionType();
-  Widget homeWidget = const SplashView();
-
-  if (sessionType == SessionType.admin) {
-    homeWidget = const AdminDashboardView();
-  } else if (sessionType == SessionType.patient) {
-    final patientData = await SessionService().getPatientMap();
-    homeWidget = HomeView(patientData: patientData);
-  } else if (sessionType == SessionType.guest) {
-    homeWidget = const HomeView();
-  }
-
-  runApp(MyApp(home: homeWidget));
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final Widget? home;
-  const MyApp({super.key, this.home});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +23,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2F9E8F)),
         useMaterial3: true,
       ),
-      home: home ?? const SplashView(),
+      home: const SplashPage(),
     );
   }
 }
