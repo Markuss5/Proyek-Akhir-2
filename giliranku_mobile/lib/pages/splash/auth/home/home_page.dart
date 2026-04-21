@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:giliranku/pages/splash/auth/home/patient_profil_tab.dart';
+import 'package:giliranku/pages/splash/auth/home/patient_notifikasi_page.dart';
+import 'package:giliranku/pages/splash/auth/antrian/antrian_page.dart';
+import 'package:giliranku/pages/splash/auth/informasi/informasi.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:giliranku_mobile/pages/splash/auth/home/patient_profil_tab.dart';
 import 'package:giliranku_mobile/pages/splash/auth/home/informasi_view.dart';
