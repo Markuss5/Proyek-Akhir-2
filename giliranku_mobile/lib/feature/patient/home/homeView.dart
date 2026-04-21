@@ -16,7 +16,8 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   int _currentIndex = 0;
 
-  late final List<Widget> _pages;
+  // Logika switch tab 
+  void _switchTab(int index) => setState(() => _currentIndex = index);
 
   void _switchTab(int index) {
     setState(() => _currentIndex = index);
@@ -31,10 +32,7 @@ class _HomeViewState extends State<HomeView> {
       const _PlaceholderTab(title: 'Antrian', icon: Icons.calendar_today),
       PatientProfilView(patientData: widget.patientData),
     ];
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       body: _pages[_currentIndex],
       bottomNavigationBar: Container(
@@ -84,7 +82,9 @@ class _HomeViewState extends State<HomeView> {
   }
 }
 
-// ============ BERANDA TAB ============
+// ─────────────────────────────────────────
+// BERANDA TAB (ISI UTAMA HALAMAN HOME)
+// ─────────────────────────────────────────
 class _BerandaTab extends StatelessWidget {
   final Map<String, dynamic>? patientData;
   final void Function(int) onSwitchTab;
@@ -557,10 +557,57 @@ class _BerandaTab extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
-                  ],
+                  ),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 80),
+                  child: Column(
+                    children: [
+                
+                     Image.asset(
+                        'assets/images/logo.png',
+                        height: 90,
+                        width: 90,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => 
+                          const Icon(Iconsax.hospital, color: Colors.white, size: 60),
+                      ),
+                      const SizedBox(height: 12),
+                      // Sapaan menggunakan data login kamu
+                      Text(
+                        "Halo, $_name",
+                        style: const TextStyle(
+                          color: Colors.white, 
+                          fontSize: 18, 
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // --- ISI KONTEN (LOGIKA & LAYOUT KAMU) ---
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                _ReminderCard(
+                  isLoggedIn: _isLoggedIn,
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PatientNotifikasiPage(nik: _nik))),
+                ),
+                const SizedBox(height: 28),
+                const _SectionTitle('Layanan'),
+                const SizedBox(height: 14),
+                _buildMenuGrid(context),
+                const SizedBox(height: 28),
+                const _SectionTitle('Info Rumah Sakit'),
+                const SizedBox(height: 14),
+                _buildHospitalCard(),
+                const SizedBox(height: 20),
+              ]),
             ),
           ),
         ],
@@ -575,29 +622,22 @@ class _BerandaTab extends StatelessWidget {
     VoidCallback onTap,
   ) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: data.onTap,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [BoxShadow(color: data.gradient.first.withOpacity(0.12), blurRadius: 12, offset: const Offset(0, 4))],
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              width: 5,
+              height: double.infinity,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(14),
+                gradient: LinearGradient(colors: data.gradient, begin: Alignment.topCenter, end: Alignment.bottomCenter),
+                borderRadius: const BorderRadius.only(topLeft: Radius.circular(18), bottomLeft: Radius.circular(18)),
               ),
-              child: Icon(icon, color: color, size: 28),
             ),
             const SizedBox(height: 10),
             Text(
@@ -611,12 +651,59 @@ class _BerandaTab extends StatelessWidget {
   }
 }
 
-// ============ PLACEHOLDER TAB ============
+class _ReminderCard extends StatelessWidget {
+  final bool isLoggedIn;
+  final VoidCallback onTap;
+  const _ReminderCard({required this.isLoggedIn, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Iconsax.notification_status5, color: AppColors.gold, size: 28),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Pengingat Janji Temu', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  Text(
+                    isLoggedIn ? 'Cek jadwal kontrol rutin Anda' : 'Masuk untuk melihat jadwal kontrol',
+                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Iconsax.arrow_right_3, color: AppColors.textMuted, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+  const _SectionTitle(this.title);
+  @override
+  Widget build(BuildContext context) {
+    return Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary));
+  }
+}
+
 class _PlaceholderTab extends StatelessWidget {
   final String title;
   final IconData icon;
   const _PlaceholderTab({required this.title, required this.icon});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

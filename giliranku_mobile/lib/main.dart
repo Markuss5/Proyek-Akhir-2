@@ -34,6 +34,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        // TETAP PAKAI INI: Agar warna aplikasi tetap hijau RSUD Porsea
         primaryColor: const Color(0xFF2F9E8F),
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2F9E8F)),
         useMaterial3: true,
