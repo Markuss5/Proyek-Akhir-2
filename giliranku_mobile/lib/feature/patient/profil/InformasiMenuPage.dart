@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku_mobile/pages/splash/auth/home/informasi_view.dart';
+import 'package:giliranku_mobile/pages/splash/auth/informasi/informasi_dokter.dart';
 
 class InformasiMenuPage extends StatelessWidget {
   const InformasiMenuPage({super.key});
@@ -7,32 +8,22 @@ class InformasiMenuPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF25A699),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          "Pusat Informasi",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
       body: Column(
         children: [
-          // Header dengan Logo
-          Container(
-            height: 180,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Color(0xFF2F9E8F),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(40),
-                bottomRight: Radius.circular(40),
-              ),
-            ),
-            child: SafeArea(
-              child: Center(
-                child: Image.asset(
-                  'assets/images/logo.png',
-                  height: 90,
-                ),
-              ),
-            ),
-          ),
           const SizedBox(height: 20),
-          
-          // List Menu
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -55,16 +46,19 @@ class InformasiMenuPage extends StatelessWidget {
                   title: 'Informasi Poliklinik',
                   subtitle: 'Daftar poliklinik beserta layanan yang tersedia',
                   onTap: () {
-                    // Navigasi ke halaman poliklinik nanti
+                    // Navigasi poliklinik jika sudah ada
                   },
                 ),
                 _buildMenuCard(
                   context,
-                  icon: Icons.person_search_outlined,
-                  title: 'Informasi Dokter',
-                  subtitle: 'Informasi dokter dan jadwal praktek di setiap poliklinik',
+                  icon: Icons.person_search_rounded,
+                  title: "Informasi Dokter",
+                  subtitle: "Informasi dokter dan jadwal praktek di setiap poliklinik",
                   onTap: () {
-                    // Navigasi ke halaman dokter nanti
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => InformasiDokterPage()),
+                    );
                   },
                 ),
               ],
@@ -75,25 +69,40 @@ class InformasiMenuPage extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuCard(BuildContext context, 
-      {required IconData icon, required String title, required String subtitle, required VoidCallback onTap}) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 15),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      elevation: 1,
+  Widget _buildMenuCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(15),
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFF2F9E8F).withOpacity(0.1),
-            shape: BoxShape.circle,
+            color: const Color(0xFFE0F2F1),
+            borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: const Color(0xFF2F9E8F)),
+          child: Icon(icon, color: const Color(0xFF25A699)),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
-        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
         onTap: onTap,
       ),
     );
