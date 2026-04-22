@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/feature/patient/profil/informasiView.dart';
+import 'package:giliranku/feature/patient/informasi/informasiView.dart';
+import 'package:giliranku/feature/patient/informasi/informasi_dokter.dart';
 
 class InformasiMenuPage extends StatelessWidget {
   const InformasiMenuPage({super.key});
@@ -54,12 +55,14 @@ class InformasiMenuPage extends StatelessWidget {
                   title: "Informasi Dokter",
                   subtitle: "Informasi dokter dan jadwal praktek di setiap poliklinik",
                   onTap: () {
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(builder: (context) => InformasiDokterPage()),
-                    // );
-                  },
-                ),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => InformasiDokterPage(),
+                  ),
+                    );
+                },
+              ),
               ],
             ),
           ),

@@ -29,7 +29,7 @@ class AppHeader extends StatelessWidget {
             width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColors.primary, AppColors.secondary],
+                colors: [   AppColors.primary,  const Color(0xFF1E857B), ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -42,14 +42,14 @@ class AppHeader extends StatelessWidget {
           ),
         ),
 
-        // ── Logo dari assets/images/logo.png ──
+        // ── Logo dari lib/images/logo.png ──
         Positioned(
           top: 48,
           left: 0,
           right: 0,
           child: Center(
             child: Image.asset(
-              'assets/images/logo.png',
+              'lib/assets/images/logo.png',
               height: 50,
               fit: BoxFit.contain,
               errorBuilder: (_, __, ___) => const _FallbackLogo(),
@@ -131,7 +131,7 @@ class _GreetingCard extends StatelessWidget {
             height: 42,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [AppColors.primary, AppColors.secondary],
+                colors: [AppColors.primary, AppColors.primaryLight],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -164,7 +164,7 @@ class _GreetingCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: AppColors.primarySurface,
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Text(
