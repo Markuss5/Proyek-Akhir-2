@@ -5,6 +5,7 @@ import 'package:giliranku/feature/patient/home/homeView.dart';
 import 'package:giliranku/feature/admin/dashboard/adminDashboardView.dart';
 import 'package:giliranku/core/services/sessionService.dart';
 import 'package:giliranku/core/services/notificationService.dart';
+import 'package:giliranku/feature/patient/profil/informasiPoliklinikView.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +35,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: AppTheme.light,
+      home: const InformasiPoliklinikView(),
       theme: AppTheme.light,
       home: home ?? const SplashView(),
     );
