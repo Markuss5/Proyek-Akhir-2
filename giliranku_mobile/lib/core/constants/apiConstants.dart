@@ -12,6 +12,7 @@ class ApiConstants {
   static const Duration timeout = Duration(seconds: 10);
 
   // ── Endpoints ─────────────────────────────────────────────────────────────
+  static const String informasi = '/informasi';
   static const String poliklinik = '/poliklinik';
   static const String dokter = '/dokter';
 

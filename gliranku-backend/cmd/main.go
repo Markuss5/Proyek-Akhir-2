@@ -24,18 +24,23 @@ func main() {
 	notifikasiRepo := repository.NewNotifikasiRepository(db)
 	poliRepo := repository.NewPoliRepository(db)
 	dokterRepo := repository.NewDokterRepository(db)
+	informasiRepo := repository.NewInformasiRepository(db)
 
 	// Initialize services
 	pasienService := service.NewPasienService(pasienRepo)
 	kontrolRutinService := service.NewKontrolRutinService(kontrolRutinRepo, notifikasiRepo, pasienRepo)
 	notifikasiService := service.NewNotifikasiService(notifikasiRepo, pasienRepo)
+	poliService := service.NewPoliService(poliRepo)
+	dokterService := service.NewDokterService(dokterRepo)
+	informasiService := service.NewInformasiService(informasiRepo)
 
 	// Initialize controllers
 	pasienCtrl := controller.NewPasienController(pasienService)
 	kontrolRutinCtrl := controller.NewKontrolRutinController(kontrolRutinService)
 	notifikasiCtrl := controller.NewNotifikasiController(notifikasiService)
-	poliCtrl := controller.NewPoliController(poliRepo)
-	dokterCtrl := controller.NewDokterController(dokterRepo)
+	poliCtrl := controller.NewPoliController(poliRepo, poliService)
+	dokterCtrl := controller.NewDokterController(dokterRepo, dokterService)
+	informasiCtrl := controller.NewInformasiController(informasiService)
 
 	// Setup Gin router
 	r := gin.Default()
@@ -48,7 +53,7 @@ func main() {
 	})
 
 	// Register routes
-	routes.SetupRoutes(r, kontrolRutinCtrl, notifikasiCtrl, poliCtrl, dokterCtrl, pasienCtrl)
+	routes.SetupRoutes(r, kontrolRutinCtrl, notifikasiCtrl, poliCtrl, dokterCtrl, pasienCtrl, informasiCtrl)
 
 	// Start server
 	port := config.GetEnv("PORT", "8080")

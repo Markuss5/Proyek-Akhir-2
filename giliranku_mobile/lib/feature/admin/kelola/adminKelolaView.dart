@@ -1,58 +1,65 @@
 import 'package:flutter/material.dart';
+import 'package:giliranku/core/theme/theme.dart';
+import 'package:giliranku/feature/admin/kelola/kelolaPoliView.dart';
+import 'package:giliranku/feature/admin/kelola/kelolaDokterView.dart';
+import 'package:giliranku/feature/admin/kelola/kelolaInformasiView.dart';
 
-class AdminKelolaView extends StatelessWidget {
+class AdminKelolaView extends StatefulWidget {
   const AdminKelolaView({super.key});
+
+  @override
+  State<AdminKelolaView> createState() => _AdminKelolaViewState();
+}
+
+class _AdminKelolaViewState extends State<AdminKelolaView>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      body: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
-            decoration: const BoxDecoration(
-              color: Color(0xFF25A699),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: const Text(
-              'Kelola Data',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+      appBar: AppBar(
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        title: const Text(
+          'Kelola Data',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
-          const SizedBox(height: 20),
-          Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.folder_open, size: 80, color: Colors.grey[300]),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Kelola Data Pasien & Dokter',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Segera Hadir',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[400]),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        ),
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: Colors.white,
+          indicatorWeight: 3,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          tabs: const [
+            Tab(text: 'Poli & Layanan'),
+            Tab(text: 'Dokter'),
+            Tab(text: 'Informasi'),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: const [
+          KelolaPoliView(),
+          KelolaDokterView(),
+          KelolaInformasiView(),
         ],
       ),
     );

@@ -83,17 +83,43 @@ class ApiDataSource {
     return null;
   }
 
+  // ══ INFORMASI ═════════════════════════════════════════════════════════════
+
+  Future<Map<String, dynamic>?> getInformasi() async {
+    try {
+      final res = await _client.get(_uri(ApiConstants.informasi)).timeout(_timeout);
+      if (res.statusCode == 200) {
+        return (jsonDecode(res.body) as Map<String, dynamic>)['data'] as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint('ApiDataSource.getInformasi: $e');
+    }
+    return null;
+  }
+
+  Future<bool> updateInformasi(Map<String, dynamic> data) async {
+    try {
+      final res = await _client
+          .put(
+            _uri(ApiConstants.informasi),
+            headers: _jsonHeaders,
+            body: jsonEncode(data),
+          )
+          .timeout(_timeout);
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('ApiDataSource.updateInformasi: $e');
+      return false;
+    }
+  }
+
   // ══ POLIKLINIK & DOKTER ═══════════════════════════════════════════════════
 
   Future<List<Map<String, dynamic>>> fetchPoliklinik() async {
     try {
-      final res = await _client
-          .get(_uri(ApiConstants.poliklinik))
-          .timeout(_timeout);
+      final res = await _client.get(_uri(ApiConstants.poliklinik)).timeout(_timeout);
       if (res.statusCode == 200) {
-        return ((jsonDecode(res.body) as Map<String, dynamic>)['data']
-                    as List<dynamic>? ??
-                [])
+        return ((jsonDecode(res.body) as Map<String, dynamic>)['data'] as List<dynamic>? ?? [])
             .cast<Map<String, dynamic>>();
       }
     } catch (e) {
@@ -102,21 +128,86 @@ class ApiDataSource {
     return [];
   }
 
-  Future<List<Map<String, dynamic>>> fetchDokterByPoly(int polyId) async {
+  Future<bool> createPoli(Map<String, dynamic> data) async {
     try {
       final res = await _client
-          .get(_uri('${ApiConstants.dokter}?poly_id=$polyId'))
+          .post(_uri(ApiConstants.poliklinik), headers: _jsonHeaders, body: jsonEncode(data))
           .timeout(_timeout);
+      return res.statusCode == 201;
+    } catch (e) {
+      debugPrint('ApiDataSource.createPoli: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updatePoli(int id, Map<String, dynamic> data) async {
+    try {
+      final res = await _client
+          .put(_uri('${ApiConstants.poliklinik}/$id'), headers: _jsonHeaders, body: jsonEncode(data))
+          .timeout(_timeout);
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('ApiDataSource.updatePoli: $e');
+      return false;
+    }
+  }
+
+  Future<bool> deletePoli(int id) async {
+    try {
+      final res = await _client.delete(_uri('${ApiConstants.poliklinik}/$id')).timeout(_timeout);
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('ApiDataSource.deletePoli: $e');
+      return false;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchDokterByPoly(int? polyId) async {
+    try {
+      final url = polyId != null ? '${ApiConstants.dokter}?poly_id=$polyId' : ApiConstants.dokter;
+      final res = await _client.get(_uri(url)).timeout(_timeout);
       if (res.statusCode == 200) {
-        return ((jsonDecode(res.body) as Map<String, dynamic>)['data']
-                    as List<dynamic>? ??
-                [])
+        return ((jsonDecode(res.body) as Map<String, dynamic>)['data'] as List<dynamic>? ?? [])
             .cast<Map<String, dynamic>>();
       }
     } catch (e) {
-      debugPrint('ApiDataSource.fetchDokterByPoly: $e');
+      debugPrint('ApiDataSource.fetchDokter: $e');
     }
     return [];
+  }
+
+  Future<bool> createDokter(Map<String, dynamic> data) async {
+    try {
+      final res = await _client
+          .post(_uri(ApiConstants.dokter), headers: _jsonHeaders, body: jsonEncode(data))
+          .timeout(_timeout);
+      return res.statusCode == 201;
+    } catch (e) {
+      debugPrint('ApiDataSource.createDokter: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateDokter(int id, Map<String, dynamic> data) async {
+    try {
+      final res = await _client
+          .put(_uri('${ApiConstants.dokter}/$id'), headers: _jsonHeaders, body: jsonEncode(data))
+          .timeout(_timeout);
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('ApiDataSource.updateDokter: $e');
+      return false;
+    }
+  }
+
+  Future<bool> deleteDokter(int id) async {
+    try {
+      final res = await _client.delete(_uri('${ApiConstants.dokter}/$id')).timeout(_timeout);
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('ApiDataSource.deleteDokter: $e');
+      return false;
+    }
   }
 
   // ══ KONTROL RUTIN ═════════════════════════════════════════════════════════

@@ -64,6 +64,8 @@ class InformasiDokterPage extends StatelessWidget {
     ),
   ];
 
+  InformasiDokterPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

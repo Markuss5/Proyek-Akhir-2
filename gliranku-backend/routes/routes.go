@@ -13,6 +13,7 @@ func SetupRoutes(
 	poliCtrl *controller.PoliController,
 	dokterCtrl *controller.DokterController,
 	pasienCtrl *controller.PasienController,
+	informasiCtrl *controller.InformasiController,
 ) {
 	api := r.Group("/api/v1")
 
@@ -24,11 +25,30 @@ func SetupRoutes(
 		pasien.PUT("/profile", pasienCtrl.UpdateProfile)
 	}
 
+	// Informasi routes
+	informasi := api.Group("/informasi")
+	{
+		informasi.GET("", informasiCtrl.Get)
+		informasi.PUT("", informasiCtrl.Update)
+	}
+
 	// Poliklinik routes
-	api.GET("/poliklinik", poliCtrl.GetAll)
+	poliklinik := api.Group("/poliklinik")
+	{
+		poliklinik.GET("", poliCtrl.GetAll)
+		poliklinik.POST("", poliCtrl.Create)
+		poliklinik.PUT("/:id", poliCtrl.Update)
+		poliklinik.DELETE("/:id", poliCtrl.Delete)
+	}
 
 	// Dokter routes
-	api.GET("/dokter", dokterCtrl.GetByPoly)
+	dokter := api.Group("/dokter")
+	{
+		dokter.GET("", dokterCtrl.GetByPoly)
+		dokter.POST("", dokterCtrl.Create)
+		dokter.PUT("/:id", dokterCtrl.Update)
+		dokter.DELETE("/:id", dokterCtrl.Delete)
+	}
 
 	// Kontrol Rutin routes
 	kontrolRutin := api.Group("/kontrol-rutin")
