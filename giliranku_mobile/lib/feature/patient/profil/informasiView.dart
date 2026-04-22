@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku_mobile/widgets/app_colors.dart';
+import 'package:giliranku/core/theme/theme.dart';
 
 // 1. DATA MODEL
 class HospitalData {
@@ -74,7 +74,7 @@ class _InformasiViewState extends State<InformasiView> {
               width: double.infinity,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppColors.primaryDark, AppColors.primaryLight],
+                  colors: [AppColors.primary, AppColors.primary],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -94,7 +94,7 @@ class _InformasiViewState extends State<InformasiView> {
                     left: 10,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2), 
+                        color: Colors.white.withValues(alpha: 0.2), 
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
@@ -157,7 +157,7 @@ class _InformasiViewState extends State<InformasiView> {
                     padding: const EdgeInsets.all(20),
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppColors.primarySurface,
+                      color: AppColors.primary,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Column(
@@ -233,7 +233,7 @@ class _InformasiViewState extends State<InformasiView> {
                           height: 160,
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: AppColors.divider.withOpacity(0.5),
+                            color: AppColors.divider.withValues(alpha: 0.5),
                             borderRadius: BorderRadius.circular(15),
                           ),
                           child: Column(
@@ -274,7 +274,7 @@ class _InformasiViewState extends State<InformasiView> {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white.withOpacity(opacity),
+          color: Colors.white.withValues(alpha: opacity),
         ),
       );
 
@@ -287,7 +287,7 @@ class _InformasiViewState extends State<InformasiView> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -310,7 +310,7 @@ class _InformasiViewState extends State<InformasiView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-          color: AppColors.primarySurface,
+          color: AppColors.primary,
           borderRadius: BorderRadius.circular(12)),
       child: Row(
         children: [

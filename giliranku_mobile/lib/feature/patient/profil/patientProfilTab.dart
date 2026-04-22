@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku/feature/auth/loginView.dart';
 import 'package:giliranku/feature/patient/profil/editProfilView.dart';
+import 'package:giliranku/core/services/sessionService.dart';
 
 class PatientProfilView extends StatefulWidget {
   final Map<String, dynamic>? patientData;
@@ -309,11 +310,14 @@ class _PatientProfilViewState extends State<PatientProfilView> {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              Navigator.pushReplacement(
+              await SessionService().logout();
+              if (!context.mounted) return;
+              Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (_) => const LoginView()),
+                (route) => false,
               );
             },
             child: const Text('Keluar'),

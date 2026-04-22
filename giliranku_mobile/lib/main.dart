@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:giliranku/core/theme/theme.dart';
 import 'package:giliranku/feature/splash/splashView.dart';
 import 'package:giliranku/feature/patient/home/homeView.dart';
 import 'package:giliranku/feature/admin/dashboard/adminDashboardView.dart';
@@ -33,12 +34,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        // TETAP PAKAI INI: Agar warna aplikasi tetap hijau RSUD Porsea
-        primaryColor: const Color(0xFF2F9E8F),
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2F9E8F)),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light,
       home: home ?? const SplashView(),
     );
   }

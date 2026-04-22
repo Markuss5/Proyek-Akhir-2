@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/repositories/kontrolRutinRepository.dart';
-import 'package:giliranku/core/repositories/pasienRepository.dart';
-import 'package:giliranku/core/repositories/notifikasiRepository.dart';
 import 'package:giliranku/core/services/notificationService.dart';
 
 class KontrolItem {
@@ -630,7 +628,7 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.08),
+                                      color: Colors.black.withValues(alpha: 0.08),
                                       blurRadius: 15,
                                       offset: const Offset(0, 5),
                                     ),
@@ -989,7 +987,7 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.8),
+                color: Colors.red.withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(15),
               ),
               alignment: Alignment.centerRight,
@@ -1062,8 +1060,8 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(
                   color: isSelesai
-                      ? Colors.green.withOpacity(0.3)
-                      : const Color(0xFF2F9E8F).withOpacity(0.2),
+                      ? Colors.green.withValues(alpha: 0.3)
+                      : const Color(0xFF2F9E8F).withValues(alpha: 0.2),
                 ),
               ),
               child: Row(
@@ -1170,7 +1168,7 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
               child: Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2F9E8F).withOpacity(0.15),
+                  color: const Color(0xFF2F9E8F).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(15),
                   border: Border.all(color: const Color(0xFF2F9E8F), width: 2),
                 ),

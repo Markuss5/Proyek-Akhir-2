@@ -7,7 +7,7 @@ class ApiConstants {
   /// Physical device: PC's local IP.
   /// Android emulator: use 10.0.2.2
   /// Run `ipconfig` to find your IP if connection fails.
-  static const String baseUrl = 'http://10.226.247.41:8080/api/v1';
+  static const String baseUrl = 'http://10.245.121.41:8080/api/v1';
 
   static const Duration timeout = Duration(seconds: 10);
 

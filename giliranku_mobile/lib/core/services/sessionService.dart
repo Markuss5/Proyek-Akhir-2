@@ -73,8 +73,9 @@ class SessionService {
     await prefs.setString(_nameKey, patient.name);
     if (patient.phone != null) await prefs.setString(_phoneKey, patient.phone!);
     if (patient.bpjs != null) await prefs.setString(_bpjsKey, patient.bpjs!);
-    if (patient.bloodType != null)
+    if (patient.bloodType != null) {
       await prefs.setString(_bloodTypeKey, patient.bloodType!);
+    }
   }
 
   /// Persist a guest session (skip-login pressed, remembered).
