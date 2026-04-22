@@ -38,6 +38,10 @@ dependencies:
   http: ^1.2.2
   timezone: ^0.10.0
   flutter_timezone: ^3.0.1
+<<<<<<< Updated upstream
+=======
+  shared_preferences: ^2.5.5
+>>>>>>> Stashed changes
 
 dev_dependencies:
   flutter_test:
