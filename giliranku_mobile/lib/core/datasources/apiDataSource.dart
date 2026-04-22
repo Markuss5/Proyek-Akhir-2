@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:giliranku/core/constants/api_constants.dart';
+import 'package:giliranku/core/constants/apiConstants.dart';
 import 'package:giliranku/core/models/pasienModel.dart';
 import 'package:giliranku/core/models/kontrolRutinModel.dart';
 import 'package:giliranku/core/models/notifikasiModel.dart';

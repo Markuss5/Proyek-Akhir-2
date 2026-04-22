@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/core/repositories/kontrolRutinRepository.dart';
 import 'package:giliranku/core/repositories/pasienRepository.dart';
-import 'package:giliranku/core/repositories/notifikasiRepository.dart';
 
 class EditProfilView extends StatefulWidget {
   final Map<String, dynamic> patientData;

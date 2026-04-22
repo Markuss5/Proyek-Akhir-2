@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/core/repositories/kontrolRutinRepository.dart';
-import 'package:giliranku/core/repositories/pasienRepository.dart';
 import 'package:giliranku/core/repositories/notifikasiRepository.dart';
 import 'package:giliranku/core/models/notifikasiModel.dart';
 

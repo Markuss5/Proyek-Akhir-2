@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'app_colors.dart';
+import 'package:giliranku/core/theme/theme.dart';
 
 /// Header reusable — bisa dipakai di halaman mana saja.
 /// [patientName] & [isLoggedIn] — untuk greeting card di bawah header
@@ -29,7 +29,7 @@ class AppHeader extends StatelessWidget {
             width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColors.primaryDark, AppColors.primaryLight],
+                colors: [AppColors.primary, AppColors.secondary],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -42,14 +42,14 @@ class AppHeader extends StatelessWidget {
           ),
         ),
 
-        // ── Logo dari lib/images/logo.png ──
+        // ── Logo dari assets/images/logo.png ──
         Positioned(
           top: 48,
           left: 0,
           right: 0,
           child: Center(
             child: Image.asset(
-              'lib/assets/images/logo.png',
+              'assets/images/logo.png',
               height: 50,
               fit: BoxFit.contain,
               errorBuilder: (_, __, ___) => const _FallbackLogo(),
@@ -131,7 +131,7 @@ class _GreetingCard extends StatelessWidget {
             height: 42,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [AppColors.primary, AppColors.primaryLight],
+                colors: [AppColors.primary, AppColors.secondary],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -164,7 +164,7 @@ class _GreetingCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: AppColors.primarySurface,
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Text(
