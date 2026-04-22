@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku/feature/patient/informasi/informasiView.dart';
 import 'package:giliranku/feature/patient/informasi/informasi_dokter.dart';
+import 'package:giliranku/feature/patient/informasi/informasiPoliklinikView.dart';
 
 class InformasiMenuPage extends StatelessWidget {
   const InformasiMenuPage({super.key});
@@ -46,7 +47,10 @@ class InformasiMenuPage extends StatelessWidget {
                   title: 'Informasi Poliklinik',
                   subtitle: 'Daftar poliklinik beserta layanan yang tersedia',
                   onTap: () {
-                    // Navigasi poliklinik jika sudah ada
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const InformasiPoliklinikView()),
+                    );
                   },
                 ),
                 _buildMenuCard(

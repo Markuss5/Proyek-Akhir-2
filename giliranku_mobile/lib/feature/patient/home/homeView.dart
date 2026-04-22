@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku/feature/patient/informasi/informasiMenuView.dart';
-import 'package:giliranku/feature/patient/informasi/informasi_dokter.dart';
+import 'package:giliranku/feature/patient/informasi/informasi_dokter.dart'; 
 import 'package:iconsax/iconsax.dart';
 
 // Import sesuai folder kamu
