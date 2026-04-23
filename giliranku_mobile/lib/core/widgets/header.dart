@@ -29,7 +29,7 @@ class AppHeader extends StatelessWidget {
             width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [   AppColors.primary,  const Color(0xFF1E857B), ],
+                colors: [   AppColors.primary,  Color(0xFF1E857B), ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -52,7 +52,7 @@ class AppHeader extends StatelessWidget {
               'lib/assets/images/logo.png',
               height: 50,
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const _FallbackLogo(),
+              errorBuilder: (_, _, _) => const _FallbackLogo(),
             ),
           ),
         ),

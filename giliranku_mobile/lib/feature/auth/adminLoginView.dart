@@ -71,7 +71,7 @@ class _AdminLoginViewState extends State<AdminLoginView> {
                 Image.asset(
                   'assets/images/logo.png',
                   height: 80,
-                  errorBuilder: (_, __, ___) => const Icon(
+                  errorBuilder: (_, _, _) => const Icon(
                     Icons.local_hospital,
                     size: 80,
                     color: Colors.white,

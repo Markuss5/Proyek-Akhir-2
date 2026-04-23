@@ -29,7 +29,7 @@ class AppColors {
   static const Color cardShadow = Color(0x0F000000);   
   static const Color containerLight = Color(0xFFE9F6F5);
 
-  static get primaryDark => null;
+  static Null get primaryDark => null;
 }
 
 class AppTheme {

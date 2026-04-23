@@ -69,7 +69,7 @@ class _SplashViewState extends State<SplashView>
                 'assets/images/logo.png',
                 width: 200,
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(
+                errorBuilder: (_, _, _) => const Icon(
                   Icons.local_hospital,
                   size: 100,
                   color: Colors.white,

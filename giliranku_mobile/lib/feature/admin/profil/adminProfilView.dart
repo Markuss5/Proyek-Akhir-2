@@ -67,7 +67,7 @@ class AdminProfilView extends StatelessWidget {
                   'assets/images/logo.png',
                   width: 160,
                   fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Text(
+                  errorBuilder: (_, _, _) => const Text(
                     'GiliranKu',
                     style: TextStyle(
                       color: Colors.white,

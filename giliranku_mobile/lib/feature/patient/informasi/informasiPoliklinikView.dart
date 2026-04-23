@@ -97,7 +97,7 @@ class _InformasiPoliklinikViewState extends State<InformasiPoliklinikView> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                 itemCount: filteredList.length,
-                separatorBuilder: (_, __) =>
+                separatorBuilder: (_, _) =>
                     const Divider(height: 1, color: Color(0xFFEAEAEA)),
                 itemBuilder: (context, index) {
                   final poli = filteredList[index];
