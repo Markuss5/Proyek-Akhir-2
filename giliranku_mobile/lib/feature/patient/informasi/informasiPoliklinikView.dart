@@ -86,18 +86,22 @@ class _InformasiPoliklinikViewState extends State<InformasiPoliklinikView> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: Colors.white,
+
+      // bottomNavigationBar DIHAPUS
+
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
-            _buildHeader(),
+            _buildHeader(context),
             _buildSearchBox(),
             Expanded(
               child: ListView.separated(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 itemCount: filteredList.length,
-                separatorBuilder: (_, _) =>
+                separatorBuilder: (_, __) =>
                     const Divider(height: 1, color: Color(0xFFEAEAEA)),
                 itemBuilder: (context, index) {
                   final poli = filteredList[index];
@@ -113,35 +117,52 @@ class _InformasiPoliklinikViewState extends State<InformasiPoliklinikView> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavbar(),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
+    final double topPadding = MediaQuery.of(context).padding.top;
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 20),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        topPadding + 16,
+        16,
+        18,
+      ),
       decoration: const BoxDecoration(
-        color: Color(0xFF22B8B0),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
+        color: Color(0xFF25A699),
       ),
       child: Row(
-        children: const [
-          Icon(
-            Icons.arrow_back_ios_new,
-            color: Colors.white,
-            size: 18,
+        children: [
+          GestureDetector(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+            ),
           ),
-          SizedBox(width: 8),
-          Text(
+          const SizedBox(width: 12),
+          const Text(
             "Daftar Poliklinik",
             style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
               color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
             ),
           ),
         ],
@@ -151,7 +172,7 @@ class _InformasiPoliklinikViewState extends State<InformasiPoliklinikView> {
 
   Widget _buildSearchBox() {
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(20),
       child: TextField(
         controller: _searchController,
         onChanged: (value) {
@@ -161,16 +182,14 @@ class _InformasiPoliklinikViewState extends State<InformasiPoliklinikView> {
         },
         decoration: InputDecoration(
           hintText: "Cari Poliklinik...",
-          hintStyle: const TextStyle(fontSize: 14),
-          prefixIcon: const Icon(Icons.search),
           filled: true,
           fillColor: Colors.white,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          prefixIcon: const Icon(Icons.search, color: Colors.grey),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.circular(12),
           ),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 15),
         ),
       ),
     );
@@ -189,7 +208,7 @@ class _InformasiPoliklinikViewState extends State<InformasiPoliklinikView> {
           Icon(
             icon,
             size: 24,
-            color: const Color(0xFF22B8B0),
+            color: const Color(0xFF25A699),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -200,7 +219,7 @@ class _InformasiPoliklinikViewState extends State<InformasiPoliklinikView> {
                   nama,
                   style: const TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
                 ),
@@ -209,7 +228,7 @@ class _InformasiPoliklinikViewState extends State<InformasiPoliklinikView> {
                   desc,
                   style: const TextStyle(
                     fontSize: 13,
-                    color: Colors.black54,
+                    color: Colors.grey,
                     height: 1.45,
                   ),
                 ),
@@ -218,37 +237,6 @@ class _InformasiPoliklinikViewState extends State<InformasiPoliklinikView> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildBottomNavbar() {
-    return BottomNavigationBar(
-      currentIndex: 1,
-      selectedItemColor: const Color(0xFF22B8B0),
-      unselectedItemColor: Colors.grey,
-      type: BottomNavigationBarType.fixed,
-      selectedLabelStyle:
-          const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-      unselectedLabelStyle:
-          const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: "Beranda",
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.local_hospital),
-          label: "Informasi",
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_month),
-          label: "Antrian",
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person),
-          label: "Profil",
-        ),
-      ],
     );
   }
 }
