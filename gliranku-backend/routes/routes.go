@@ -13,6 +13,7 @@ func SetupRoutes(
 	poliCtrl *controller.PoliController,
 	dokterCtrl *controller.DokterController,
 	pasienCtrl *controller.PasienController,
+	antrianCtrl *controller.AntrianController, 
 ) {
 	api := r.Group("/api/v1")
 
@@ -48,5 +49,15 @@ func SetupRoutes(
 		notifikasi.GET("/pending", notifikasiCtrl.GetPending)
 		notifikasi.PUT("/:id/mark-sent", notifikasiCtrl.MarkAsSent)
 		notifikasi.POST("/process", notifikasiCtrl.ProcessPending)
+	}
+
+	// GET  /api/v1/antrian/layanan  → tampilkan jenis layanan
+	// POST /api/v1/antrian/cek-nik  → verifikasi NIK pasien lama
+	// POST /api/v1/antrian          → buat antrian baru
+	antrian := api.Group("/antrian")
+	{
+		antrian.GET("/layanan", antrianCtrl.GetLayanan)
+		antrian.POST("/cek-nik", antrianCtrl.CekNIK)
+		antrian.POST("", antrianCtrl.CreateAntrian)
 	}
 }

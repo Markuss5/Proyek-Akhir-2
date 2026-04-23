@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Model data untuk mempermudah pengelolaan informasi dokter
 class Doctor {
   final String name;
   final String specialty;
@@ -20,7 +19,6 @@ class Doctor {
 }
 
 class InformasiDokterPage extends StatelessWidget {
-  // Data dummy berdasarkan desain gambar yang Anda kirimkan
   final List<Doctor> doctors = [
     Doctor(
       name: "dr. Hendra Siahaan, Sp.PD",
@@ -100,7 +98,6 @@ class InformasiDokterPage extends StatelessWidget {
             ),
           ),
           
-          // Filter Hari
           Container(
             height: 45,
             padding: const EdgeInsets.symmetric(horizontal: 20),

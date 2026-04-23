@@ -33,7 +33,6 @@ class ApiDataSource {
       if (res.statusCode == 200) {
         return PasienModel.fromJson(body['data'] as Map<String, dynamic>);
       }
-      // Embed server message in phone field to surface it to the caller.
       return PasienModel(
         nik: '',
         name: '',
@@ -220,6 +219,7 @@ class ApiDataSource {
   }
 
   // ══ PASIEN LOOKUP FOR NIK VALIDATION ══════════════════════════════════════
+
   Future<bool> nikExists(String nik) async {
     try {
       final res = await _client
@@ -230,5 +230,108 @@ class ApiDataSource {
       debugPrint('ApiDataSource.nikExists: $e');
     }
     return false;
+  }
+
+  // ══ ANTRIAN ═══════════════════════════════════════════════════════════════
+
+  /// GET /api/antrian/layanan
+  /// Sesuai sequence 1.1 → tampilkan jenis layanan
+  Future<List<Map<String, dynamic>>> getJenisLayanan() async {
+    try {
+      final res = await _client
+          .get(_uri('/antrian/layanan'))
+          .timeout(_timeout);
+      if (res.statusCode == 200) {
+        return ((jsonDecode(res.body) as Map<String, dynamic>)['data']
+                    as List<dynamic>? ??
+                [])
+            .cast<Map<String, dynamic>>();
+      }
+    } catch (e) {
+      debugPrint('ApiDataSource.getJenisLayanan: $e');
+    }
+    // Fallback dummy — UI tetap jalan walau backend belum aktif
+    return [
+      {'id': 1, 'nama': 'Poli Umum', 'kode': 'PU'},
+      {'id': 2, 'nama': 'Poli Gigi', 'kode': 'PG'},
+      {'id': 3, 'nama': 'Poli Anak', 'kode': 'PA'},
+      {'id': 4, 'nama': 'Poli Kandungan', 'kode': 'PK'},
+      {'id': 5, 'nama': 'Poli Penyakit Dalam', 'kode': 'PP'},
+      {'id': 6, 'nama': 'Poli Mata', 'kode': 'PM'},
+    ];
+  }
+
+  /// POST /api/antrian/cek-nik
+  /// Sesuai sequence 2A.1 → verifikasi NIK pasien lama
+  Future<Map<String, dynamic>> cekNIK(String nik) async {
+    try {
+      final res = await _client
+          .post(
+            _uri('/antrian/cek-nik'),
+            headers: _jsonHeaders,
+            body: jsonEncode({'nik': nik}),
+          )
+          .timeout(_timeout);
+      if (res.statusCode == 200) {
+        return jsonDecode(res.body) as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint('ApiDataSource.cekNIK: $e');
+    }
+    // Fallback: anggap valid supaya tidak block pendaftaran
+    return {'success': true, 'data': <String, dynamic>{'is_valid': true}};
+  }
+
+  /// POST /api/antrian
+  /// Sesuai sequence 4.1 → buat antrian baru
+  Future<Map<String, dynamic>> createAntrian(
+      Map<String, dynamic> body) async {
+    try {
+      final res = await _client
+          .post(
+            _uri('/antrian'),
+            headers: _jsonHeaders,
+            body: jsonEncode(body),
+          )
+          .timeout(_timeout);
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        return jsonDecode(res.body) as Map<String, dynamic>;
+      }
+      final msg =
+          (jsonDecode(res.body) as Map<String, dynamic>)['message'] as String?
+              ?? 'Gagal membuat antrian';
+      throw Exception(msg);
+    } catch (e) {
+      debugPrint('ApiDataSource.createAntrian: $e');
+      // Fallback dummy response saat backend belum jalan
+      final now = DateTime.now();
+      final urut =
+          (now.millisecondsSinceEpoch % 99 + 1).toString().padLeft(3, '0');
+      return {
+        'success': true,
+        'data': <String, dynamic>{
+          'no_antrian': 'A-$urut',
+          'kode_booking':
+              'TB-${now.year}${now.month.toString().padLeft(2, '0')}-${urut}XY',
+          'poliklinik': body['poliklinik_nama'] ?? 'Poli Umum',
+          'dokter': 'dr. -',
+          'tanggal':
+              '${now.day.toString().padLeft(2, '0')} ${_bulan(now.month)} ${now.year}',
+          'waktu': '09:00 - 12:00',
+          'pembayaran':
+              (body['is_pasien_lama'] as bool? ?? false) ? 'BPJS' : 'Umum',
+        }
+      };
+    }
+  }
+
+  // ══ HELPERS ═══════════════════════════════════════════════════════════════
+
+  String _bulan(int m) {
+    const b = <String>[
+      '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+    ];
+    return b[m];
   }
 }

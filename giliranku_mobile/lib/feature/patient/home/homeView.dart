@@ -26,12 +26,12 @@ class _HomeViewState extends State<HomeView> {
 
 @override
   Widget build(BuildContext context) {
-    final List<Widget> pages = [
-      _BerandaTab(patientData: widget.patientData, onSwitchTab: _switchTab),
-      const InformasiMenuPage(), 
-      const _PlaceholderTab(title: 'Antrian', icon: Icons.calendar_month_rounded),
-      PatientProfilView(patientData: widget.patientData),
-    ];
+  final List<Widget> pages = [
+    _BerandaTab(patientData: widget.patientData, onSwitchTab: _switchTab),
+    const InformasiMenuPage(),
+    const AntrianView(), // ← ganti ini
+    PatientProfilView(patientData: widget.patientData),
+  ];
 
     return Scaffold(
       backgroundColor: AppColors.surface,
