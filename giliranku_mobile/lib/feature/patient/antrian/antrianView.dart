@@ -94,6 +94,7 @@ class _AntrianViewState extends State<AntrianView>
     try {
       // getJenisLayanan() return List<Map<String,dynamic>> langsung
       final list = await _api.getJenisLayanan();
+      if (!mounted) return;
       setState(() {
         _layananList = list
             .map((e) => JenisLayanan.fromJson(e))
