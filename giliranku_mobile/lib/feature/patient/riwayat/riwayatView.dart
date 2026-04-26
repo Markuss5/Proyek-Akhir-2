@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart'; 
+import 'package:giliranku/core/widgets/header.dart';
 
 class RiwayatView extends StatelessWidget {
   const RiwayatView({super.key});
@@ -7,8 +9,22 @@ class RiwayatView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: AppBar(title: const Text('Riwayat')),
-      body: const Center(child: Text('Halaman Riwayat')),
+
+      body: Column(
+        children: [
+          AppHeader(
+            mode: HeaderMode.page,
+            title: 'Riwayat',
+            pageIcon: Iconsax.clock,
+          ),
+
+          const Expanded(
+            child: Center(
+              child: Text('Halaman Riwayat'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

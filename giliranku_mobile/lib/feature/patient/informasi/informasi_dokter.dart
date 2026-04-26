@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:giliranku/core/widgets/header.dart';
+import 'package:iconsax/iconsax.dart';
 
 class Doctor {
   final String name;
@@ -68,66 +70,65 @@ class InformasiDokterPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF25A699), // Warna hijau toska
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          "Informasi Dokter",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
-      body: Column(
-        children: [
-          // Bagian Pencarian
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: "Cari Informasi Jadwal...",
-                filled: true,
-                fillColor: Colors.white,
-                prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            // ✅ HEADER GLOBAL
+            AppHeader(
+              mode: HeaderMode.page,
+              title: 'Informasi Dokter',
+              subtitle: 'RSUD Porsea',
+              pageIcon: Iconsax.user,
+            ),
+
+            //  SEARCH
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: "Cari Informasi Jadwal...",
+                  filled: true,
+                  fillColor: Colors.white,
+                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 15),
               ),
             ),
-          ),
-          
-          Container(
-            height: 45,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                _buildDayFilter("Sen", true),
-                _buildDayFilter("Sel", false),
-                _buildDayFilter("Rab", false),
-                _buildDayFilter("Kam", false),
-                _buildDayFilter("Jum", false),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 10),
 
-          // Daftar Kartu Dokter
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              itemCount: doctors.length,
-              itemBuilder: (context, index) {
-                return _buildDoctorCard(doctors[index]);
-              },
+            //  FILTER HARI
+            Container(
+              height: 45,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  _buildDayFilter("Sen", true),
+                  _buildDayFilter("Sel", false),
+                  _buildDayFilter("Rab", false),
+                  _buildDayFilter("Kam", false),
+                  _buildDayFilter("Jum", false),
+                ],
+              ),
             ),
-          ),
-        ],
+
+            const SizedBox(height: 10),
+
+            //  LIST DOKTER
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                itemCount: doctors.length,
+                itemBuilder: (context, index) {
+                  return _buildDoctorCard(doctors[index]);
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

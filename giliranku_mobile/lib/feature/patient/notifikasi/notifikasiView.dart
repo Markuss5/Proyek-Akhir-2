@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku/core/repositories/notifikasiRepository.dart';
 import 'package:giliranku/core/models/notifikasiModel.dart';
+import 'package:giliranku/core/widgets/header.dart';
+import 'package:iconsax/iconsax.dart';
 
 class NotifikasiView extends StatefulWidget {
   final String? nik;
@@ -74,48 +76,18 @@ class _NotifikasiViewState extends State<NotifikasiView> {
     return groups;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      body: Column(
-        children: [
-          // AppBar-style header
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 12,
-              left: 16,
-              right: 16,
-              bottom: 16,
-            ),
-            decoration: const BoxDecoration(color: Color(0xFF2F9E8F)),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.white,
-                    size: 24,
-                  ),
+           @override
+            Widget build(BuildContext context) {
+              return Scaffold(
+                backgroundColor: Colors.grey[100],
+                body: Column(
+                  children: [
+                    // AppBar-style header
+                    AppHeader(
+                  mode: HeaderMode.page,
+                  title: 'Notifikasi',
+                  pageIcon: Iconsax.notification,
                 ),
-                const Expanded(
-                  child: Center(
-                    child: Text(
-                      'Notifikasi',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                const Icon(Icons.more_vert, color: Colors.white, size: 24),
-              ],
-            ),
-          ),
 
           // Filter chips
           Container(

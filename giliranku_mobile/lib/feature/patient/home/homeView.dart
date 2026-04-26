@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:giliranku/feature/patient/informasi/informasiMenuView.dart';
 import 'package:iconsax/iconsax.dart';
-
-// Import sesuai folder kamu
 import 'package:giliranku/feature/patient/profil/patientProfilTab.dart';
 import 'package:giliranku/feature/patient/notifikasi/notifikasiView.dart';
 import 'package:giliranku/feature/patient/antrian/antrianView.dart';
 import 'package:giliranku/core/theme/theme.dart';
 import 'package:giliranku/core/widgets/navbar.dart';
+import 'package:giliranku/core/widgets/header.dart';
 
-class HomeView  extends StatefulWidget {
+class HomeView extends StatefulWidget {
   final Map<String, dynamic>? patientData;
   const HomeView({super.key, this.patientData});
 
@@ -20,22 +20,23 @@ class HomeView  extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   int _currentIndex = 0;
 
-  // Logika switch tab 
-  void _switchTab(int index) => setState(() => _currentIndex = index);
+  void _switchTab(int index) {
+    HapticFeedback.lightImpact();
+    setState(() => _currentIndex = index);
+  }
 
-@override
+  @override
   Widget build(BuildContext context) {
-  final List<Widget> pages = [
-    _BerandaTab(patientData: widget.patientData, onSwitchTab: _switchTab),
-    const InformasiMenuPage(),
-    const AntrianView(), // ← ganti ini
-    PatientProfilView(patientData: widget.patientData),
-  ];
+    final List<Widget> pages = [
+      _BerandaTab(patientData: widget.patientData, onSwitchTab: _switchTab),
+      const InformasiMenuPage(),
+      const AntrianView(),
+      PatientProfilView(patientData: widget.patientData),
+    ];
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
-      // 2. Panggil 'pages' yang baru saja dibuat di atas
-      body: pages[_currentIndex], 
+      backgroundColor: AppColors.background,
+      body: pages[_currentIndex],
       bottomNavigationBar: AppBottomNav(
         currentIndex: _currentIndex,
         onTap: _switchTab,
@@ -44,16 +45,15 @@ class _HomeViewState extends State<HomeView> {
   }
 }
 
-// ─────────────────────────────────────────
-// BERANDA TAB (ISI UTAMA HALAMAN HOME)
-// ─────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// BERANDA TAB
+// ─────────────────────────────────────────────────────────────────────────────
 class _BerandaTab extends StatelessWidget {
   final Map<String, dynamic>? patientData;
   final void Function(int) onSwitchTab;
 
   const _BerandaTab({this.patientData, required this.onSwitchTab});
 
-  // Logika pengecekan login tetap sama
   bool get _isLoggedIn => patientData != null && patientData!.containsKey('nik');
   String? get _nik     => _isLoggedIn ? patientData!['nik'] : null;
   String get _name     => _isLoggedIn ? (patientData!['patient_name'] ?? 'Pasien') : 'Tamu';
@@ -61,76 +61,46 @@ class _BerandaTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
+          // Header — AppHeader menangani SafeArea sendiri via MediaQuery
           SliverToBoxAdapter(
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Transform.scale(
-                  scaleX: 1.5,
-                  child: Container(
-                    height: 280,
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF2F9E8F), // Warna hijau RSUD Porsea
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(180),
-                        bottomRight: Radius.circular(180),
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 80),
-                  child: Column(
-                    children: [
-                
-                     Image.asset(
-                        'assets/images/logo.png',
-                        height: 90,
-                        width: 90,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => 
-                          const Icon(Iconsax.hospital, color: Colors.white, size: 60),
-                      ),
-                      const SizedBox(height: 12),
-                      // Sapaan menggunakan data login kamu
-                      Text(
-                        "Halo, $_name",
-                        style: const TextStyle(
-                          color: Colors.white, 
-                          fontSize: 18, 
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            child: AppHeader(
+              mode: HeaderMode.home,
+              patientName: _name,
+              isLoggedIn: _isLoggedIn,
             ),
           ),
 
-          // --- ISI KONTEN (LOGIKA & LAYOUT KAMU) ---
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
+            padding: const EdgeInsets.fromLTRB(20, 6, 20, 100),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
+
+                // Status buka
+                _OperasionalBadge(),
+                const SizedBox(height: 10),
+
+                // Kartu pengingat
                 _ReminderCard(
                   isLoggedIn: _isLoggedIn,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => NotifikasiView(nik: _nik))),
+                  onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => NotifikasiView(nik: _nik))),
                 ),
-                const SizedBox(height: 28),
-                const _SectionTitle('Layanan'),
+                const SizedBox(height: 22),
+
+                // Section layanan
+                _SectionHeader(title: 'Layanan Utama', sub: 'Pilih layanan yang tersedia'),
+                const SizedBox(height: 0),
+                _MenuGrid(nik: _nik, onSwitchTab: onSwitchTab),
                 const SizedBox(height: 14),
-                _buildMenuGrid(context),
-                const SizedBox(height: 28),
-                const _SectionTitle('Info Rumah Sakit'),
-                const SizedBox(height: 14),
-                _buildHospitalCard(),
-                const SizedBox(height: 20),
+
+                // Section info RS
+                _SectionHeader(title: 'Info Rumah Sakit', sub: 'RSUD Porsea'),
+                const SizedBox(height: 12),
+                _HospitalCard(),
               ]),
             ),
           ),
@@ -138,117 +108,165 @@ class _BerandaTab extends StatelessWidget {
       ),
     );
   }
+}
 
-  // Grid Menu menggunakan data mapping kamu
-  Widget _buildMenuGrid(BuildContext context) {
-    final menus = [
-      _MenuData(
-        icon: Iconsax.calendar_1,
-        label: 'Ambil Antrian',
-        gradient: [AppColors.primary, AppColors.primaryLight],
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AntrianView())),
-      ),
-      _MenuData(
-        icon: Iconsax.notification,
-        label: 'Notifikasi',
-        gradient: [AppColors.gold, const Color(0xFFFFAA00)],
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => NotifikasiView(nik: _nik))),
-      ),
-      _MenuData(
-        icon: Iconsax.info_circle,
-        label: 'Informasi RS',
-        gradient: [const Color(0xFF3B82F6), const Color(0xFF60A5FA)],
-        onTap: () => onSwitchTab(1),
-      ),
-      _MenuData(
-        icon: Iconsax.user,
-        label: 'Profil Saya',
-        gradient: [const Color(0xFF8B5CF6), const Color(0xFFA78BFA)],
-        onTap: () => onSwitchTab(3),
-      ),
-    ];
-
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 14,
-      mainAxisSpacing: 14,
-      childAspectRatio: 1.5,
-      children: menus.map((m) => _MenuCard(data: m)).toList(),
-    );
-  }
-
-  Widget _buildHospitalCard() {
+// ─────────────────────────────────────────────────────────────────────────────
+// OPERASIONAL BADGE
+// ─────────────────────────────────────────────────────────────────────────────
+class _OperasionalBadge extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.divider),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.06),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
+            color: AppColors.primary.withValues(alpha: 0.06),
+            blurRadius: 10, offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          children: [
-            _infoRow(Iconsax.location, 'Alamat', 'Jl. Sutomo No.5, Porsea, Toba'),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Divider(height: 1, color: AppColors.divider),
+      child: Row(
+        children: [
+          Container(
+            width: 8, height: 8,
+            decoration: const BoxDecoration(
+                color: Color(0xFF22C55E), shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          const Text('Sedang Buka',
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF22C55E))),
+          const SizedBox(width: 6),
+          const Text('·',
+              style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+          const SizedBox(width: 6),
+          const Expanded(
+            child: Text(
+              'Senin–Sabtu  08:00 – 16:00 WIB',
+              style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500),
+              overflow: TextOverflow.ellipsis,
             ),
-            _infoRow(Iconsax.clock, 'Operasional', 'Senin–Sabtu: 08:00–16:00 WIB'),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Divider(height: 1, color: AppColors.divider),
-            ),
-            _infoRow(Iconsax.call, 'Telepon', '(0632) 331088'),
-          ],
-        ),
+          ),
+          const Icon(Iconsax.clock, size: 14, color: AppColors.textMuted),
+        ],
       ),
     );
   }
+}
 
-  Widget _infoRow(IconData icon, String title, String value) {
-    return Row(
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION HEADER
+// ─────────────────────────────────────────────────────────────────────────────
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final String sub;
+  const _SectionHeader({required this.title, required this.sub});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppColors.primarySurface,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: AppColors.primary, size: 20),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary)),
-              Text(value, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-            ],
-          ),
-        ),
+        Text(title,
+            style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+                letterSpacing: -0.3)),
+        const SizedBox(height: 2),
+        Text(sub,
+            style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
       ],
     );
   }
 }
 
-// ─────────────────────────────────────────
-// WIDGET PENDUKUNG (TETAP SAMA SEPERTI KODEMU)
-// ─────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// MENU GRID — 2×2 layanan utama
+// childAspectRatio dikalibrasi agar tidak overflow
+// ─────────────────────────────────────────────────────────────────────────────
+class _MenuGrid extends StatelessWidget {
+  final String? nik;
+  final void Function(int) onSwitchTab;
 
+  const _MenuGrid({this.nik, required this.onSwitchTab});
+
+  @override
+  Widget build(BuildContext context) {
+    final menus = [
+      _MenuData(
+        icon: Iconsax.calendar_add,
+        label: 'Ambil Antrian',
+        desc: 'Daftar online',
+        colors: [const Color(0xFF0D9B86), const Color(0xFF0FC49E)],
+        onTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const AntrianView())),
+      ),
+      _MenuData(
+        icon: Iconsax.notification_status,
+        label: 'Notifikasi',
+        desc: 'Pengingat jadwal',
+        colors: [const Color(0xFFF59E0B), const Color(0xFFFBBF24)],
+        onTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => NotifikasiView(nik: nik))),
+      ),
+      _MenuData(
+        icon: Iconsax.document_text,
+        label: 'Informasi RS',
+        desc: 'Info & layanan',
+        colors: [const Color(0xFF3B82F6), const Color(0xFF60A5FA)],
+        onTap: () => onSwitchTab(1),
+      ),
+      _MenuData(
+        icon: Iconsax.profile_circle,
+        label: 'Profil Saya',
+        desc: 'Data & riwayat',
+        colors: [const Color(0xFF8B5CF6), const Color(0xFFA78BFA)],
+        onTap: () => onSwitchTab(3),
+      ),
+    ];
+
+    // Hitung lebar card agar aspect ratio pas tanpa overflow
+    final screenW = MediaQuery.of(context).size.width;
+    final cardW   = (screenW - 40 - 12) / 2; // padding 20 kiri-kanan + gap 12
+    final cardH   = cardW * 0.72;             // proporsi tinggi card
+
+    return GridView.count(
+      crossAxisCount: 2,
+      crossAxisSpacing: 10,
+      mainAxisSpacing: 10,
+      childAspectRatio: cardW / cardH,
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true, // 🔥 WAJIB
+      children: menus.map((m) => _MenuCard(data: m)).toList(),
+    );
+  }
+}
+
+// ─── Menu card individual ─────────────────────────────────────────────────────
 class _MenuData {
   final IconData icon;
   final String label;
-  final List<Color> gradient;
+  final String desc;
+  final List<Color> colors;
   final VoidCallback onTap;
-  _MenuData({required this.icon, required this.label, required this.gradient, required this.onTap});
+
+  const _MenuData({
+    required this.icon,
+    required this.label,
+    required this.desc,
+    required this.colors,
+    required this.onTap,
+  });
 }
 
 class _MenuCard extends StatelessWidget {
@@ -258,27 +276,81 @@ class _MenuCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: data.onTap,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        data.onTap();
+      },
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(18),
-          boxShadow: [BoxShadow(color: data.gradient.first.withOpacity(0.12), blurRadius: 12, offset: const Offset(0, 4))],
+          border: Border.all(color: AppColors.divider),
+          boxShadow: [
+            BoxShadow(
+              color: data.colors.first.withValues(alpha: 0.10),
+              blurRadius: 14, offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        child: Row(
+        child: Stack(
           children: [
-            Container(
-              width: 5,
-              height: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(colors: data.gradient, begin: Alignment.topCenter, end: Alignment.bottomCenter),
-                borderRadius: const BorderRadius.only(topLeft: Radius.circular(18), bottomLeft: Radius.circular(18)),
+            // Dekorasi bulat di pojok kanan bawah
+            Positioned(
+              right: -14, bottom: -14,
+              child: Container(
+                width: 60, height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: data.colors.first.withValues(alpha: 0.08),
+                ),
               ),
             ),
-            const SizedBox(width: 12),
-            Icon(data.icon, color: data.gradient.first, size: 22),
-            const SizedBox(width: 10),
-            Expanded(child: Text(data.label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
+
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Icon gradient
+                  Container(
+                    width: 38, height: 38,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: data.colors,
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(data.icon, color: Colors.white, size: 18),
+                  ),
+
+                  // Label & deskripsi — di bawah
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(data.label,
+                          style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.2),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                      const SizedBox(height: 1),
+                      Text(data.desc,
+                          style: const TextStyle(
+                              fontSize: 10,
+                              color: AppColors.textMuted,
+                              fontWeight: FontWeight.w400),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -286,6 +358,9 @@ class _MenuCard extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// REMINDER CARD
+// ─────────────────────────────────────────────────────────────────────────────
 class _ReminderCard extends StatelessWidget {
   final bool isLoggedIn;
   final VoidCallback onTap;
@@ -296,29 +371,59 @@ class _ReminderCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+          gradient: LinearGradient(
+            colors: [
+              AppColors.gold.withValues(alpha: 0.12),
+              AppColors.gold.withValues(alpha: 0.04),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+              color: AppColors.gold.withValues(alpha: 0.30), width: 1.5),
         ),
         child: Row(
           children: [
-            const Icon(Iconsax.notification_status5, color: AppColors.gold, size: 28),
-            const SizedBox(width: 14),
+            Container(
+              width: 42, height: 42,
+              decoration: BoxDecoration(
+                color: AppColors.gold.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Iconsax.notification_status5,
+                  color: AppColors.gold, size: 20),
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Pengingat Janji Temu', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  const Text('Pengingat Janji Temu',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                          fontSize: 13)),
+                  const SizedBox(height: 2),
                   Text(
-                    isLoggedIn ? 'Cek jadwal kontrol rutin Anda' : 'Masuk untuk melihat jadwal kontrol',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    isLoggedIn
+                        ? 'Cek jadwal kontrol rutin Anda'
+                        : 'Masuk untuk melihat jadwal kontrol',
+                    style: const TextStyle(
+                        fontSize: 11, color: AppColors.textSecondary),
                   ),
                 ],
               ),
             ),
-            const Icon(Iconsax.arrow_right_3, color: AppColors.textMuted, size: 18),
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: AppColors.gold.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: const Icon(Iconsax.arrow_right_3,
+                  color: AppColors.gold, size: 14),
+            ),
           ],
         ),
       ),
@@ -326,21 +431,131 @@ class _ReminderCard extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  const _SectionTitle(this.title);
+// ─────────────────────────────────────────────────────────────────────────────
+// HOSPITAL CARD — info kontak & jam operasional
+// ─────────────────────────────────────────────────────────────────────────────
+class _HospitalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary));
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.divider),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 14, offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header kartu
+          Container(
+           padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withValues(alpha: 0.08),
+                  AppColors.primary.withValues(alpha: 0.02),
+                ],
+              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(9),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                  child: const Icon(Iconsax.hospital,
+                      color: Colors.white, size: 18),
+                ),
+                const SizedBox(width: 11),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('RSUD Porsea',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary)),
+                    Text('Rumah Sakit Umum Daerah',
+                        style: TextStyle(
+                            fontSize: 11, color: AppColors.textSecondary)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Info rows
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              children: [
+                _InfoRow(
+                    icon: Iconsax.location,
+                    value: 'Jl. Sutomo No.5, Porsea, Toba',
+                    color: AppColors.primary),
+                const _Divider(),
+                _InfoRow(
+                    icon: Iconsax.clock,
+                    value: 'Senin–Sabtu: 08:00–16:00 WIB',
+                    color: AppColors.gold),
+                const _Divider(),
+                _InfoRow(
+                    icon: Iconsax.call,
+                    value: '(0632) 331088',
+                    color: Color(0xFF3B82F6)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
-class _PlaceholderTab extends StatelessWidget {
-  final String title;
+class _InfoRow extends StatelessWidget {
   final IconData icon;
-  const _PlaceholderTab({required this.title, required this.icon});
+  final String value;
+  final Color color;
+  const _InfoRow({required this.icon, required this.value, required this.color});
+
   @override
   Widget build(BuildContext context) {
-    return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, size: 48, color: AppColors.textMuted), const SizedBox(height: 12), Text(title, style: const TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold))]));
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Icon(icon, color: color, size: 14),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(value,
+              style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500)),
+        ),
+      ],
+    );
   }
+}
+
+class _Divider extends StatelessWidget {
+  const _Divider();
+  @override
+  Widget build(BuildContext context) => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 10),
+        child: Divider(height: 1, color: AppColors.divider),
+      );
 }

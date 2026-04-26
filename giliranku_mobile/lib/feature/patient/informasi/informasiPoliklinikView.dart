@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:giliranku/core/widgets/header.dart';
+import 'package:iconsax/iconsax.dart';
 
 class InformasiPoliklinikView extends StatefulWidget {
   const InformasiPoliklinikView({super.key});
@@ -8,8 +10,10 @@ class InformasiPoliklinikView extends StatefulWidget {
       _InformasiPoliklinikViewState();
 }
 
-class _InformasiPoliklinikViewState extends State<InformasiPoliklinikView> {
-  final TextEditingController _searchController = TextEditingController();
+class _InformasiPoliklinikViewState
+    extends State<InformasiPoliklinikView> {
+  final TextEditingController _searchController =
+      TextEditingController();
 
   final List<Map<String, dynamic>> poliList = [
     {
@@ -87,19 +91,26 @@ class _InformasiPoliklinikViewState extends State<InformasiPoliklinikView> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-
-      // bottomNavigationBar DIHAPUS
-
       body: SafeArea(
         top: false,
         child: Column(
           children: [
-            _buildHeader(context),
+            // HEADER
+            AppHeader(
+              mode: HeaderMode.page,
+              title: 'Daftar Poliklinik',
+              subtitle: 'RSUD Porsea',
+              pageIcon: Iconsax.hospital,
+            ),
+
+            // 🔍 SEARCH
             _buildSearchBox(),
+
+            // 📋 LIST
             Expanded(
               child: ListView.separated(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 20, vertical: 8),
                 itemCount: filteredList.length,
                 separatorBuilder: (_, __) =>
                     const Divider(height: 1, color: Color(0xFFEAEAEA)),
@@ -120,59 +131,9 @@ class _InformasiPoliklinikViewState extends State<InformasiPoliklinikView> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    final double topPadding = MediaQuery.of(context).padding.top;
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        16,
-        topPadding + 16,
-        16,
-        18,
-      ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF25A699),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.arrow_back_ios_new,
-                  color: Colors.white,
-                  size: 16,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Text(
-            "Daftar Poliklinik",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSearchBox() {
     return Container(
-      margin: const EdgeInsets.all(20),
+      margin: const EdgeInsets.fromLTRB(20, 12, 20, 20),
       child: TextField(
         controller: _searchController,
         onChanged: (value) {
@@ -205,11 +166,7 @@ class _InformasiPoliklinikViewState extends State<InformasiPoliklinikView> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            size: 24,
-            color: const Color(0xFF25A699),
-          ),
+          Icon(icon, size: 24, color: const Color(0xFF25A699)),
           const SizedBox(width: 14),
           Expanded(
             child: Column(

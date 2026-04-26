@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:giliranku/core/datasources/apiDataSource.dart';
-
+import 'package:giliranku/core/widgets/header.dart';
+import 'package:iconsax/iconsax.dart';
 // ============================================================
 // MODEL LOKAL
 // ============================================================
@@ -236,131 +237,46 @@ class _AntrianViewState extends State<AntrianView>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4F8),
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(),
-          SliverToBoxAdapter(
+      body: SafeArea(
+      top: false,
+      child: Column(
+        children: [
+          AppHeader(
+            mode: HeaderMode.page,
+            title: 'Ambil Antrian',
+            subtitle: 'RSUD Porsea',
+            pageIcon: Iconsax.ticket,
+          ),
+
+          Expanded(
             child: _isLoadingLayanan
                 ? _buildShimmer()
                 : FadeTransition(
                     opacity: _fadeAnim,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(children: [
-                        _buildToggle(),
-                        const SizedBox(height: 24),
-                        _buildFormCard(),
-                        const SizedBox(height: 28),
-                        _buildDaftarButton(),
-                        const SizedBox(height: 32),
-                      ]),
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          children: [
+                            _buildToggle(),
+                            const SizedBox(height: 24),
+                            _buildFormCard(),
+                            const SizedBox(height: 28),
+                            _buildDaftarButton(),
+                            const SizedBox(height: 32),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
           ),
         ],
       ),
-    );
-  }
+    ),
+        );
+      }
 
-  Widget _buildAppBar() {
-    return SliverAppBar(
-      expandedHeight: 195,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: const Color(0xFF0D7A6A),
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF0DB89E), Color(0xFF0A6B5C)],
-            ),
-          ),
-          child: Stack(children: [
-            Positioned(
-              right: -40,
-              top: -40,
-              child: Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.06),
-                ),
-              ),
-            ),
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(Icons.queue_rounded,
-                            color: Colors.white, size: 22),
-                      ),
-                      const SizedBox(width: 12),
-                      const Text('Ambil Antrian',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700)),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Text('Hari ini',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600)),
-                      ),
-                    ]),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            width: 1),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.access_time_rounded,
-                              color: Colors.white70, size: 16),
-                          SizedBox(width: 8),
-                          Text('Jam Operasional: 08:00 – 16:00 WIB',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ]),
-        ),
-      ),
-    );
-  }
+  
 
   Widget _buildToggle() {
     return Container(

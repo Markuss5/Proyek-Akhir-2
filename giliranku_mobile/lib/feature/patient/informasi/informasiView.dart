@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku/core/theme/theme.dart';
+import 'package:giliranku/core/widgets/header.dart';
+import 'package:iconsax/iconsax.dart';
 
 class HospitalData {
   final String name;
@@ -71,63 +73,12 @@ class _InformasiViewState extends State<InformasiView> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Container(
-              height: 180,
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.primary, Color(0xFF2F9E8F)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
-                ),
-              ),
-              child: Stack(
-                children: [
-                  Positioned(top: -20, right: -20, child: _circle(130, 0.06)),
-                  Positioned(bottom: 20, left: -10, child: _circle(90, 0.04)),
-                  Positioned(
-                    top: 50,
-                    left: 20,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                            color: Colors.white, size: 20),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ),
-                  ),
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 40),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.local_hospital_rounded,
-                              color: Colors.white, size: 32),
-                          const SizedBox(width: 12),
-                          Text(
-                            profile.name,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.1),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            AppHeader(
+            mode: HeaderMode.page,
+            title: 'Informasi RS',
+            subtitle: 'RSUD Porsea',
+            pageIcon: Iconsax.info_circle,
+          ),
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
