@@ -14,6 +14,7 @@ func SetupRoutes(
 	dokterCtrl *controller.DokterController,
 	pasienCtrl *controller.PasienController,
 	informasiCtrl *controller.InformasiController,
+	antrianCtrl *controller.AntrianController,
 ) {
 	api := r.Group("/api/v1")
 

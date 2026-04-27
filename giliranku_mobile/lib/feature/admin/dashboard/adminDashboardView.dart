@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:giliranku/feature/admin/beranda/adminBerandaView.dart';
 import 'package:giliranku/feature/admin/kontrol/adminKontrolView.dart';
 import 'package:giliranku/feature/admin/kelola/adminKelolaView.dart';
-import 'package:giliranku/feature/admin/kunjungan/adminKunjunganView.dart';
+import 'package:giliranku/feature/admin/kunjungan/menuLaporanKunjungan.dart';
 import 'package:giliranku/feature/admin/profil/adminProfilView.dart';
 
 class AdminDashboardView extends StatefulWidget {
@@ -23,7 +23,7 @@ class AdminDashboardViewState extends State<AdminDashboardView> {
       AdminBerandaView(onSwitchTab: switchToTab),
       const AdminKontrolView(),
       const AdminKelolaView(),
-      const AdminKunjunganView(),
+      const LaporanKunjunganView(),
       const AdminProfilView(),
     ];
 
