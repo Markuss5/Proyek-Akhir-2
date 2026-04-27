@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:giliranku/feature/patient/informasi/informasiView.dart';
 import 'package:giliranku/feature/patient/informasi/informasi_dokter.dart';
 import 'package:giliranku/feature/patient/informasi/informasiPoliklinikView.dart';
+import 'package:giliranku/feature/patient/home/homeView.dart';
 
 class InformasiMenuPage extends StatelessWidget {
   const InformasiMenuPage({super.key});
@@ -98,9 +99,15 @@ class InformasiMenuPage extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // 🔙 BACK
+          // Button BACK
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+          onTap: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeView()),
+              (route) => false,
+            );
+          },
             child: Container(
               width: 38,
               height: 38,
