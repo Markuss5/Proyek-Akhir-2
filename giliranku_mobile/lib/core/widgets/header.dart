@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:giliranku/core/theme/theme.dart';
 
-enum HeaderMode { home, page }
+enum HeaderMode { home, page, simple }
 
 class AppHeader extends StatelessWidget {
   final HeaderMode mode;
@@ -327,6 +327,73 @@ class _PageHeader extends StatelessWidget {
   }
 }
 
+class _SimpleHeader extends StatelessWidget {
+  final String title;
+  final VoidCallback onBack;
+
+  const _SimpleHeader({
+    required this.title,
+    required this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final topPad = MediaQuery.of(context).padding.top;
+
+    return Container(
+      height: topPad + 80,
+      padding: EdgeInsets.fromLTRB(16, topPad + 10, 16, 16),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFF0DB89E),
+            Color(0xFF0A6B5C),
+          ],
+        ),
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(24),
+        ),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: onBack,
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.arrow_back,
+                  color: Colors.white, size: 18),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.grid_view_rounded,
+                color: Colors.white, size: 18),
+          ),
+        ],
+      ),
+    );
+  }
+}
 // Kurva asimetris halus untuk page header
 class _PageWaveClipper extends CustomClipper<Path> {
   @override

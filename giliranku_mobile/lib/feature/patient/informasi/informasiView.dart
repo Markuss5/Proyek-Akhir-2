@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:giliranku/core/theme/theme.dart';
 import 'package:giliranku/core/widgets/header.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HospitalData {
   final String name;
@@ -65,6 +66,15 @@ class InformasiView extends StatefulWidget {
 
 class _InformasiViewState extends State<InformasiView> {
   final profile = rsudPorseaData;
+
+  // FUNCTION MAP 
+  Future<void> _openMaps() async {
+    final Uri url = Uri.parse(
+      'geo:0,0?q=RSUD+Porsea+Toba',
+    );
+
+    await launchUrl(url, mode: LaunchMode.externalApplication);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -208,7 +218,10 @@ class _InformasiViewState extends State<InformasiView> {
                         _buildContactItem(Icons.phone, profile.phone),
                         _buildContactItem(Icons.email, profile.email),
                         const SizedBox(height: 15),
-                        Container(
+                        InkWell(
+                        onTap: _openMaps,
+                        borderRadius: BorderRadius.circular(15),
+                        child: Container(
                           height: 140,
                           width: double.infinity,
                           decoration: BoxDecoration(
@@ -229,6 +242,7 @@ class _InformasiViewState extends State<InformasiView> {
                             ],
                           ),
                         ),
+                      )
                       ],
                     ),
                   ),
