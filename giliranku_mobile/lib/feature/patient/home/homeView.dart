@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:giliranku/feature/patient/informasi/informasiMenuView.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:giliranku/feature/patient/profil/patientProfilTab.dart';
+import 'package:giliranku/feature/patient/profil/patientProfilView.dart';
 import 'package:giliranku/feature/patient/notifikasi/notifikasiView.dart';
 import 'package:giliranku/feature/patient/antrian/antrian_view.dart';
 import 'package:giliranku/core/theme/theme.dart';
 import 'package:giliranku/core/widgets/navbar.dart';
 import 'package:giliranku/core/widgets/header.dart';
 
-/// MAIN ENTRY: HOME VIEW
-/// Menangani navigasi utama (Bottom Interaction) dan State Management Tab
 class HomeView extends StatefulWidget {
   final Map<String, dynamic>? patientData;
   const HomeView({super.key, this.patientData});
@@ -22,20 +20,18 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   int _currentIndex = 0;
 
-  // Fungsi untuk berpindah antar tab navigasi
   void _switchTab(int index) {
-    HapticFeedback.lightImpact(); // Memberikan feedback getar halus
+    HapticFeedback.lightImpact();
     setState(() => _currentIndex = index);
   }
 
   @override
   Widget build(BuildContext context) {
-    // List halaman utama yang diakses melalui Bottom Navbar
     final List<Widget> pages = [
       _BerandaTab(patientData: widget.patientData, onSwitchTab: _switchTab),
-      const InformasiMenuPage(),
+      InformasiMenuPage(onSwitchTab: _switchTab),
       const AntrianView(),
-      PatientProfilView(patientData: widget.patientData),
+      PatientProfilView(patientData: widget.patientData, onSwitchTab: _switchTab),
     ];
 
     return Scaffold(
@@ -49,17 +45,12 @@ class _HomeViewState extends State<HomeView> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-/// SECTION: BERANDA TAB
-/// Komponen utama yang menampilkan Header, Layanan, dan Info RS
-// ─────────────────────────────────────────────────────────────────────────────
 class _BerandaTab extends StatelessWidget {
   final Map<String, dynamic>? patientData;
   final void Function(int) onSwitchTab;
 
   const _BerandaTab({this.patientData, required this.onSwitchTab});
 
-  // Logika pengecekan status login pasien
   bool get _isLoggedIn => patientData != null && patientData!.containsKey('nik');
   String? get _nik     => _isLoggedIn ? patientData!['nik'] : null;
   String get _name     => _isLoggedIn ? (patientData!['patient_name'] ?? 'Pasien') : 'Tamu';
@@ -71,7 +62,6 @@ class _BerandaTab extends StatelessWidget {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // Header — AppHeader menangani SafeArea sendiri via MediaQuery
           SliverToBoxAdapter(
             child: AppHeader(
               mode: HeaderMode.home,
@@ -85,11 +75,9 @@ class _BerandaTab extends StatelessWidget {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
 
-                // Status buka
-                _OperasionalBadge(), // Indikator status buka RS
+                _OperasionalBadge(),
                 const SizedBox(height: 10),
 
-                // Kartu pengingat
                 _ReminderCard(
                   isLoggedIn: _isLoggedIn,
                   onTap: () => Navigator.push(context,
@@ -97,13 +85,11 @@ class _BerandaTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 22),
 
-                // Grid Menu: 4 Layanan Utama (2x2)
                 _SectionHeader(title: 'Layanan Utama', sub: 'Pilih layanan yang tersedia'),
                 const SizedBox(height: 0),
                 _MenuGrid(nik: _nik, onSwitchTab: onSwitchTab),
                 const SizedBox(height: 14),
 
-                // Footer Section: Informasi RSUD Porsea
                 _SectionHeader(title: 'Info Rumah Sakit', sub: 'RSUD Porsea'),
                 const SizedBox(height: 12),
                 _HospitalCard(),
@@ -116,11 +102,6 @@ class _BerandaTab extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-/// ATOMIC WIDGETS
-/// Komponen kecil yang bersifat reusable atau spesifik untuk tampilan Beranda
-// ─────────────────────────────────────────────────────────────────────────────
-// 1. Grid Menu Utama (Dikalibrasi untuk mencegah Overflow)
 class _OperasionalBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -156,7 +137,7 @@ class _OperasionalBadge extends StatelessWidget {
           const SizedBox(width: 6),
           const Expanded(
             child: Text(
-              'Senin–Sabtu  08:00 – 16:00 WIB',
+              'Senin - Sabtu, 08:00 - 16:00 WIB',
               style: TextStyle(
                   fontSize: 12,
                   color: AppColors.textSecondary,
@@ -171,9 +152,6 @@ class _OperasionalBadge extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SECTION HEADER
-// ─────────────────────────────────────────────────────────────────────────────
 class _SectionHeader extends StatelessWidget {
   final String title;
   final String sub;
@@ -198,10 +176,6 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MENU GRID — 2×2 layanan utama
-// childAspectRatio dikalibrasi agar tidak overflow
-// ─────────────────────────────────────────────────────────────────────────────
 class _MenuGrid extends StatelessWidget {
   final String? nik;
   final void Function(int) onSwitchTab;
@@ -210,7 +184,6 @@ class _MenuGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Konfigurasi data menu (Icon, Label, Aksi)
     final menus = [
       _MenuData(
         icon: Iconsax.calendar_add,
@@ -244,10 +217,9 @@ class _MenuGrid extends StatelessWidget {
       ),
     ];
 
-    // Kalkulasi rasio grid agar responsif di berbagai ukuran layar
     final screenW = MediaQuery.of(context).size.width;
-    final cardW   = (screenW - 40 - 12) / 2; // padding 20 kiri-kanan + gap 12
-    final cardH   = cardW * 0.72;             // proporsi tinggi card
+    final cardW   = (screenW - 40 - 12) / 2;
+    final cardH   = cardW * 0.72;
 
     return GridView.count(
       crossAxisCount: 2,
@@ -255,13 +227,12 @@ class _MenuGrid extends StatelessWidget {
       mainAxisSpacing: 10,
       childAspectRatio: cardW / cardH,
       physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true, // 🔥 WAJIB
+      shrinkWrap: true,
       children: menus.map((m) => _MenuCard(data: m)).toList(),
     );
   }
 }
 
-// ─── Menu card individual ─────────────────────────────────────────────────────
 class _MenuData {
   final IconData icon;
   final String label;
@@ -303,7 +274,6 @@ class _MenuCard extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // Dekorasi bulat di pojok kanan bawah
             Positioned(
               right: -14, bottom: -14,
               child: Container(
@@ -321,7 +291,6 @@ class _MenuCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Icon gradient
                   Container(
                     width: 38, height: 38,
                     decoration: BoxDecoration(
@@ -335,7 +304,6 @@ class _MenuCard extends StatelessWidget {
                     child: Icon(data.icon, color: Colors.white, size: 18),
                   ),
 
-                  // Label & deskripsi — di bawah
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -367,9 +335,6 @@ class _MenuCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// REMINDER CARD
-// ─────────────────────────────────────────────────────────────────────────────
 class _ReminderCard extends StatelessWidget {
   final bool isLoggedIn;
   final VoidCallback onTap;
@@ -440,9 +405,6 @@ class _ReminderCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HOSPITAL CARD — info kontak & jam operasional
-// ─────────────────────────────────────────────────────────────────────────────
 class _HospitalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -460,7 +422,6 @@ class _HospitalCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Header kartu
           Container(
            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -501,7 +462,6 @@ class _HospitalCard extends StatelessWidget {
             ),
           ),
 
-          // Info rows
           Padding(
             padding: const EdgeInsets.all(14),
             child: Column(
@@ -513,7 +473,7 @@ class _HospitalCard extends StatelessWidget {
                 const _Divider(),
                 _InfoRow(
                     icon: Iconsax.clock,
-                    value: 'Senin–Sabtu: 08:00–16:00 WIB',
+                    value: 'Senin-Sabtu: 08:00-16:00 WIB',
                     color: AppColors.gold),
                 const _Divider(),
                 _InfoRow(
@@ -560,7 +520,6 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-// Komponen Pembatas (Divider) Custom
 class _Divider extends StatelessWidget {
   const _Divider();
   @override

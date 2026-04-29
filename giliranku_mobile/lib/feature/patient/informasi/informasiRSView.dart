@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/theme/theme.dart';
 import 'package:giliranku/core/widgets/header.dart';
 import 'package:iconsax/iconsax.dart';
@@ -26,36 +27,21 @@ class HospitalData {
     required this.phone,
     required this.email,
   });
-}
 
-final HospitalData rsudPorseaData = HospitalData(
-  name: 'RSUD Porsea',
-  description:
-      'RSUD Porsea adalah pusat layanan kesehatan masyarakat yang berdedikasi memberikan pelayanan medis berkualitas tinggi di wilayah Toba. Kami mengutamakan kenyamanan dan keselamatan pasien melalui tenaga medis profesional.',
-  vision: 'Menjadi Rumah Sakit Pilihan Utama dengan Pelayanan Prima di Wilayah Toba.',
-  mission: [
-    'SDM Profesional: Meningkatkan kompetensi dan integritas tenaga kesehatan.',
-    'Sarana & Prasarana: Meningkatkan kualitas fasilitas pendukung pelayanan.',
-    'Manajemen Efisien: Menerapkan sistem manajemen yang transparan, efektif, dan akuntabel.',
-    'Kualitas Layanan: Menyelenggarakan perbaikan berkelanjutan terhadap mutu layanan untuk kepuasan pasien.',
-  ],
-  opHours: {
-    'Senin - Sabtu': '08:00 - 16:00 WIB',
-    'Minggu': 'Libur (Kecuali IGD)',
-    'IGD': 'Buka 24 Jam',
-  },
-  facilities: [
-    'Poliklinik Umum',
-    'Rawat Inap',
-    'IGD 24 Jam',
-    'Laboratorium',
-    'Radiologi',
-    'Farmasi',
-  ],
-  address: 'Jl. Patuan Nagari, Porsea, Kab. Toba, Sumatera Utara',
-  phone: '(0632) 41012',
-  email: 'info@rsudporsea.go.id',
-);
+  factory HospitalData.fromJson(Map<String, dynamic> json) {
+    return HospitalData(
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      vision: json['vision'] ?? '',
+      mission: List<String>.from(json['mission'] ?? []),
+      opHours: Map<String, String>.from(json['op_hours'] ?? {}),
+      facilities: List<String>.from(json['facilities'] ?? []),
+      address: json['address'] ?? '',
+      phone: json['phone'] ?? '',
+      email: json['email'] ?? '',
+    );
+  }
+}
 
 class InformasiView extends StatefulWidget {
   const InformasiView({super.key});
@@ -65,9 +51,25 @@ class InformasiView extends StatefulWidget {
 }
 
 class _InformasiViewState extends State<InformasiView> {
-  final profile = rsudPorseaData;
+  HospitalData? profile;
+  bool _isLoading = true;
 
-  // FUNCTION MAP 
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    final data = await ApiDataSource().getInformasi();
+    if (mounted) {
+      setState(() {
+        profile = data != null ? HospitalData.fromJson(data) : null;
+        _isLoading = false;
+      });
+    }
+  }
+
   Future<void> _openMaps() async {
     final Uri url = Uri.parse(
       'geo:0,0?q=RSUD+Porsea+Toba',
@@ -78,6 +80,16 @@ class _InformasiViewState extends State<InformasiView> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (profile == null) {
+      return const Scaffold(
+        body: Center(child: Text('Gagal memuat data informasi.')),
+      );
+    }
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: SingleChildScrollView(
@@ -97,14 +109,14 @@ class _InformasiViewState extends State<InformasiView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Tentang ${profile.name}',
+                        Text('Tentang ${profile!.name}',
                             style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textPrimary)),
                         const SizedBox(height: 10),
                         Text(
-                          profile.description,
+                          profile!.description,
                           style: const TextStyle(
                               color: AppColors.textSecondary,
                               height: 1.5,
@@ -125,12 +137,12 @@ class _InformasiViewState extends State<InformasiView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildSectionTitle('Visi'),
-                        Text(profile.vision,
+                        Text(profile!.vision,
                             style: const TextStyle(
                                 color: AppColors.textPrimary, height: 1.4)),
                         const SizedBox(height: 20),
                         _buildSectionTitle('Misi'),
-                        ...profile.mission.asMap().entries.map((e) {
+                        ...profile!.mission.asMap().entries.map((e) {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 8),
                             child: Text('${e.key + 1}. ${e.value}',
@@ -154,7 +166,7 @@ class _InformasiViewState extends State<InformasiView> {
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textPrimary)),
                         const SizedBox(height: 15),
-                        ...profile.opHours.entries.map((e) => Padding(
+                        ...profile!.opHours.entries.map((e) => Padding(
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Row(
                                 mainAxisAlignment:
@@ -193,12 +205,9 @@ class _InformasiViewState extends State<InformasiView> {
                           mainAxisSpacing: 10,
                           crossAxisSpacing: 10,
                           childAspectRatio: 3.0,
-                          children: [
-                            _buildFacilityChip(Icons.medical_services, 'Poliklinik'),
-                            _buildFacilityChip(Icons.bed, 'Rawat Inap'),
-                            _buildFacilityChip(Icons.flash_on, 'IGD 24 Jam'),
-                            _buildFacilityChip(Icons.biotech, 'Lab'),
-                          ],
+                          children: profile!.facilities
+                              .map((f) => _buildFacilityChip(Icons.medical_services, f))
+                              .toList(),
                         ),
                       ],
                     ),
@@ -214,9 +223,9 @@ class _InformasiViewState extends State<InformasiView> {
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textPrimary)),
                         const SizedBox(height: 15),
-                        _buildContactItem(Icons.location_on, profile.address),
-                        _buildContactItem(Icons.phone, profile.phone),
-                        _buildContactItem(Icons.email, profile.email),
+                        _buildContactItem(Icons.location_on, profile!.address),
+                        _buildContactItem(Icons.phone, profile!.phone),
+                        _buildContactItem(Icons.email, profile!.email),
                         const SizedBox(height: 15),
                         InkWell(
                         onTap: _openMaps,
@@ -255,15 +264,6 @@ class _InformasiViewState extends State<InformasiView> {
     );
   }
 
-  Widget _circle(double size, double opacity) => Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white.withOpacity(opacity),
-        ),
-      );
-
   Widget _buildWhiteCard({required Widget child}) {
     return Container(
       width: double.infinity,
@@ -273,7 +273,7 @@ class _InformasiViewState extends State<InformasiView> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
