@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/widgets/header.dart';
-import 'package:giliranku/feature/patient/antrian/karcis_view.dart'; // import file kedua
+import 'package:giliranku/feature/patient/antrian/karcis_view.dart';
 import 'package:iconsax/iconsax.dart';
 
+// ─────────────────────────────────────────────────────────────
+//  MODEL LOKAL
+// ─────────────────────────────────────────────────────────────
 
-//                      MODEL LOKAL                          
-/// Model untuk data jenis layanan / poliklinik dari API.
-/// Mendukung dua format key: 'id'/'poly_id' dan 'nama'/'poly_name'.
 class JenisLayanan {
   final int id;
   final String nama;
@@ -22,7 +22,19 @@ class JenisLayanan {
       );
 }
 
-/// Model hasil pendaftaran antrian yang ditampilkan di halaman karcis.
+class Dokter {
+  final int id;
+  final String nama;
+  const Dokter({required this.id, required this.nama});
+
+  factory Dokter.fromJson(Map<String, dynamic> j) => Dokter(
+        id: (j['id'] ?? 0) is int
+            ? (j['id'] ?? 0)
+            : int.tryParse('${j['id'] ?? 0}') ?? 0,
+        nama: j['nama'] ?? j['doctor_name'] ?? '',
+      );
+}
+
 class AntrianResult {
   final String noAntrian;
   final String kodeBooking;
@@ -53,10 +65,13 @@ class AntrianResult {
       );
 }
 
-// ║                       ANTRIAN VIEW                          ║
+// ─────────────────────────────────────────────────────────────
+//  ANTRIAN VIEW
+// ─────────────────────────────────────────────────────────────
 
 class AntrianView extends StatefulWidget {
-  const AntrianView({super.key});
+  final Map<String, dynamic>? patientData;
+  const AntrianView({super.key, this.patientData});
 
   @override
   State<AntrianView> createState() => _AntrianViewState();
@@ -66,28 +81,32 @@ class _AntrianViewState extends State<AntrianView>
     with TickerProviderStateMixin {
   final _api = ApiDataSource();
 
-  // ── Animasi ─────────────────────────────────────────────────
   late AnimationController _fadeCtrl;
   late Animation<double> _fadeAnim;
 
-  // ── State UI ─────────────────────────────────────────────────
-  bool _isPasienLama = true;
   bool _isLoading = false;
   bool _isLoadingLayanan = true;
+  bool _isLoadingDokter = false;
 
-  // ── Data Poliklinik ──────────────────────────────────────────
   List<JenisLayanan> _layananList = [];
+  List<Dokter> _dokterList = [];
   int? _selectedPoliID;
   String _selectedPoliNama = '';
+  int? _selectedDokterID;
+  String _selectedDokterNama = '';
 
-  // ── Controller Input ─────────────────────────────────────────
-  final _nikCtrl = TextEditingController();
-  final _namaCtrl = TextEditingController();
-  final _teleponCtrl = TextEditingController(text: '+62');
+  final _nikCtrl      = TextEditingController();
+  final _namaCtrl     = TextEditingController();
+  final _teleponCtrl  = TextEditingController(text: '+62');
+  final _tanggalCtrl  = TextEditingController();
 
-  // ── Pesan Error Validasi ─────────────────────────────────────
   String? _nikError;
   String? _namaError;
+  String? _tanggalError;
+
+  bool get _isLoggedIn =>
+      widget.patientData != null &&
+      widget.patientData!.containsKey('nik');
 
   // ════════════════════════════════════════════════════════════
   //  LIFECYCLE
@@ -99,6 +118,13 @@ class _AntrianViewState extends State<AntrianView>
     _fadeCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 500));
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
+
+    // Auto-fill jika sudah login
+    if (_isLoggedIn) {
+      _nikCtrl.text  = widget.patientData!['nik'] ?? '';
+      _namaCtrl.text = widget.patientData!['patient_name'] ?? '';
+    }
+
     _loadLayanan();
   }
 
@@ -108,6 +134,7 @@ class _AntrianViewState extends State<AntrianView>
     _nikCtrl.dispose();
     _namaCtrl.dispose();
     _teleponCtrl.dispose();
+    _tanggalCtrl.dispose();
     super.dispose();
   }
 
@@ -115,8 +142,6 @@ class _AntrianViewState extends State<AntrianView>
   //  DATA / API
   // ════════════════════════════════════════════════════════════
 
-  /// Memuat daftar poliklinik dari API [GET /api/v1/antrian/layanan].
-  /// Setelah berhasil, menjalankan animasi fade-in pada form.
   Future<void> _loadLayanan() async {
     try {
       final list = await _api.getJenisLayanan();
@@ -132,48 +157,56 @@ class _AntrianViewState extends State<AntrianView>
     }
   }
 
-  /// Memverifikasi NIK ke API [POST /api/v1/antrian/cek-nik].
-  /// Hanya dipanggil jika mode pasien lama.
-  /// Jika valid, mengisi otomatis field nama pasien dari respons API.
-  Future<bool> _verifyNIK() async {
-    if (!_isPasienLama) return true;
+    Future<void> _loadDokter(int poliId) async {
+    setState(() {
+      _isLoadingDokter = true;
+      _selectedDokterID = null;
+      _selectedDokterNama = '';
+      _dokterList = [];
+    });
     try {
-      final res = await _api.cekNIK(_nikCtrl.text.trim());
-      final data = res['data'] as Map<String, dynamic>? ?? {};
-      if (data['is_valid'] == true) {
-        final nama = data['nama_pasien'] as String?;
-        if (nama != null && nama.isNotEmpty && _namaCtrl.text.isEmpty) {
-          _namaCtrl.text = nama;
-        }
-        return true;
-      }
-      setState(() =>
-          _nikError = data['message'] as String? ?? 'NIK tidak terdaftar');
-      return false;
-    } catch (_) {
-      return true; // Lewati jika API error agar tidak memblokir pendaftaran
+      final res = await _api.getDokterByPoli(poliId);
+      if (!mounted) return;
+      
+      // Cast ke List dengan aman
+      final list = (res as List?)?.cast<Map<String, dynamic>>() ?? [];
+      
+      setState(() {
+        _dokterList = list.map((e) => Dokter.fromJson(e)).toList();
+        _isLoadingDokter = false;
+      });
+    } catch (e) {
+      setState(() => _isLoadingDokter = false);
+      _showSnack('Gagal memuat dokter: $e');
     }
   }
 
-  /// Memproses pendaftaran antrian [POST /api/v1/antrian].
-  /// Urutan: validasi form → verifikasi NIK → kirim data → tampilkan karcis.
   Future<void> _daftarAntrian() async {
     setState(() {
-      _nikError = null;
-      _namaError = null;
+      _nikError     = null;
+      _namaError    = null;
+      _tanggalError = null;
     });
 
     bool valid = true;
-    if (_nikCtrl.text.trim().length != 16) {
-      setState(() => _nikError = 'NIK harus 16 digit');
+    if (_nikCtrl.text.trim().length < 10) {
+      setState(() => _nikError = 'NIK/No. BPJS tidak valid');
       valid = false;
     }
     if (_namaCtrl.text.trim().isEmpty) {
       setState(() => _namaError = 'Nama tidak boleh kosong');
       valid = false;
     }
+    if (_tanggalCtrl.text.trim().isEmpty) {
+      setState(() => _tanggalError = 'Pilih tanggal kunjungan');
+      valid = false;
+    }
     if (_selectedPoliID == null) {
       _showSnack('Pilih poliklinik terlebih dahulu');
+      return;
+    }
+    if (_selectedDokterID == null) {
+      _showSnack('Pilih dokter terlebih dahulu');
       return;
     }
     if (!valid) return;
@@ -182,22 +215,18 @@ class _AntrianViewState extends State<AntrianView>
     HapticFeedback.mediumImpact();
 
     try {
-      final nikValid = await _verifyNIK();
-      if (!nikValid) {
-        setState(() => _isLoading = false);
-        return;
-      }
-
       final res = await _api.createAntrian({
-        'nik': _nikCtrl.text.trim(),
-        'nama_pasien': _namaCtrl.text.trim(),
-        'telepon': _teleponCtrl.text.trim(),
-        'poli_id': _selectedPoliID,
-        'is_pasien_lama': _isPasienLama,
-        'poliklinik_nama': _selectedPoliNama,
+        'nik'             : _nikCtrl.text.trim(),
+        'nama_pasien'     : _namaCtrl.text.trim(),
+        'telepon'         : _teleponCtrl.text.trim(),
+        'tanggal'         : _tanggalCtrl.text.trim(),
+        'poli_id'         : _selectedPoliID,
+        'dokter_id'       : _selectedDokterID,
+        'poliklinik_nama' : _selectedPoliNama,
+        'dokter_nama'     : _selectedDokterNama,
       });
 
-      final data = res['data'] as Map<String, dynamic>? ?? {};
+      final data   = res['data'] as Map<String, dynamic>? ?? {};
       final result = AntrianResult.fromJson(data);
 
       if (mounted) {
@@ -214,7 +243,6 @@ class _AntrianViewState extends State<AntrianView>
   //  NAVIGASI & HELPER
   // ════════════════════════════════════════════════════════════
 
-  /// Navigasi ke halaman karcis dengan transisi fade + slide ke atas.
   void _goToKarcis(AntrianResult result) {
     Navigator.of(context).push(PageRouteBuilder(
       pageBuilder: (_, a, __) => KarcisView(result: result),
@@ -230,6 +258,32 @@ class _AntrianViewState extends State<AntrianView>
       ),
       transitionDuration: const Duration(milliseconds: 400),
     ));
+  }
+
+  Future<void> _pilihTanggal() async {
+    final now   = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 30)),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: Color(0xFF0D9B86),
+            onPrimary: Colors.white,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked != null) {
+      setState(() {
+        _tanggalCtrl.text =
+            '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+        _tanggalError = null;
+      });
+    }
   }
 
   void _showSnack(String msg) {
@@ -270,8 +324,11 @@ class _AntrianViewState extends State<AntrianView>
                           padding: const EdgeInsets.all(20),
                           child: Column(
                             children: [
-                              _buildToggle(),
-                              const SizedBox(height: 24),
+                              // Banner auto-fill jika sudah login
+                              if (_isLoggedIn) ...[
+                                _buildLoggedInBanner(),
+                                const SizedBox(height: 16),
+                              ],
                               _buildFormCard(),
                               const SizedBox(height: 28),
                               _buildDaftarButton(),
@@ -292,69 +349,34 @@ class _AntrianViewState extends State<AntrianView>
   //  WIDGET BUILDER
   // ════════════════════════════════════════════════════════════
 
-  /// Toggle untuk memilih antara Pasien Lama / Pasien Baru.
-  Widget _buildToggle() {
+  Widget _buildLoggedInBanner() {
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 16,
-              offset: const Offset(0, 4))
+        color: const Color(0xFFE6F7F5),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+            color: const Color(0xFF0D9B86).withValues(alpha: 0.3), width: 1.5),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle_rounded,
+              color: Color(0xFF0D9B86), size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'NIK & nama diisi otomatis dari akun Anda',
+              style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF065F46),
+                  fontWeight: FontWeight.w600),
+            ),
+          ),
         ],
       ),
-      padding: const EdgeInsets.all(6),
-      child: Row(children: [
-        _toggleBtn('Pasien Lama', true),
-        _toggleBtn('Pasien Baru', false),
-      ]),
     );
   }
 
-  /// Tombol individual dalam toggle, aktif/nonaktif berdasarkan [isLama].
-  Widget _toggleBtn(String label, bool isLama) {
-    final active = _isPasienLama == isLama;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _isPasienLama = isLama;
-            _nikError = null;
-            _namaError = null;
-          });
-          HapticFeedback.lightImpact();
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeInOut,
-          padding: const EdgeInsets.symmetric(vertical: 13),
-          decoration: BoxDecoration(
-            color: active ? const Color(0xFF0D9B86) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: active
-                ? [
-                    BoxShadow(
-                        color: const Color(0xFF0D9B86).withValues(alpha: 0.35),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4))
-                  ]
-                : [],
-          ),
-          child: Center(
-            child: Text(label,
-                style: TextStyle(
-                    color: active ? Colors.white : const Color(0xFF6B7280),
-                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                    fontSize: 14)),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Card utama berisi seluruh input form (NIK, nama, telepon, dropdown poli).
   Widget _buildFormCard() {
     return Container(
       decoration: BoxDecoration(
@@ -368,40 +390,61 @@ class _AntrianViewState extends State<AntrianView>
         ],
       ),
       padding: const EdgeInsets.all(24),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _label('Data Pasien'),
-        const SizedBox(height: 16),
-        _field(
-          ctrl: _nikCtrl,
-          label: 'NIK (Nomor Induk Kependudukan)',
-          hint: 'Masukkan 16 digit NIK',
-          icon: Icons.badge_outlined,
-          keyboardType: TextInputType.number,
-          maxLength: 16,
-          errorText: _nikError,
-          formatters: [FilteringTextInputFormatter.digitsOnly],
-        ),
-        const SizedBox(height: 16),
-        _field(
-          ctrl: _namaCtrl,
-          label: 'Nama Lengkap',
-          hint: 'Masukkan nama lengkap',
-          icon: Icons.person_outline_rounded,
-          errorText: _namaError,
-        ),
-        const SizedBox(height: 16),
-        _field(
-          ctrl: _teleponCtrl,
-          label: 'Nomor Telepon',
-          hint: '+62',
-          icon: Icons.phone_outlined,
-          keyboardType: TextInputType.phone,
-        ),
-        const SizedBox(height: 20),
-        _label('Pilihan Poliklinik'),
-        const SizedBox(height: 12),
-        _buildDropdown(),
-      ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _label('Data Pasien'),
+          const SizedBox(height: 16),
+
+          // NIK / No. BPJS
+          _field(
+            ctrl: _nikCtrl,
+            label: 'NIK / No. BPJS',
+            hint: 'Masukkan NIK atau No. BPJS',
+            icon: Icons.badge_outlined,
+            keyboardType: TextInputType.number,
+            maxLength: 16,
+            errorText: _nikError,
+            readOnly: _isLoggedIn,
+            formatters: [FilteringTextInputFormatter.digitsOnly],
+          ),
+          const SizedBox(height: 16),
+
+          // Nama Lengkap
+          _field(
+            ctrl: _namaCtrl,
+            label: 'Nama Lengkap',
+            hint: 'Masukkan nama lengkap',
+            icon: Icons.person_outline_rounded,
+            errorText: _namaError,
+            readOnly: _isLoggedIn,
+          ),
+          const SizedBox(height: 16),
+
+          // Nomor Telepon
+          _field(
+            ctrl: _teleponCtrl,
+            label: 'Nomor Telepon',
+            hint: '+62',
+            icon: Icons.phone_outlined,
+            keyboardType: TextInputType.phone,
+          ),
+          const SizedBox(height: 16),
+
+          // Tanggal Kunjungan
+          _fieldTanggal(),
+          const SizedBox(height: 20),
+
+          _label('Pilihan Poliklinik'),
+          const SizedBox(height: 12),
+          _buildDropdownPoli(),
+          const SizedBox(height: 16),
+
+          _label('Pilih Dokter'),
+          const SizedBox(height: 12),
+          _buildDropdownDokter(),
+        ],
+      ),
     );
   }
 
@@ -412,7 +455,6 @@ class _AntrianViewState extends State<AntrianView>
           color: Color(0xFF374151),
           letterSpacing: 0.3));
 
-  /// Input field generik dengan prefix icon, validasi error, dan styling konsisten.
   Widget _field({
     required TextEditingController ctrl,
     required String label,
@@ -421,53 +463,134 @@ class _AntrianViewState extends State<AntrianView>
     TextInputType keyboardType = TextInputType.text,
     int? maxLength,
     String? errorText,
+    bool readOnly = false,
     List<TextInputFormatter>? formatters,
   }) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(label,
-          style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF6B7280))),
-      const SizedBox(height: 6),
-      TextField(
-        controller: ctrl,
-        keyboardType: keyboardType,
-        maxLength: maxLength,
-        inputFormatters: formatters,
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: const TextStyle(color: Color(0xFFBFC5CF), fontSize: 14),
-          prefixIcon: Icon(icon, color: const Color(0xFF9CA3AF), size: 20),
-          counterText: '',
-          errorText: errorText,
-          filled: true,
-          fillColor: const Color(0xFFF9FAFB),
-          border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none),
-          enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide:
-                  const BorderSide(color: Color(0xFFE5E7EB), width: 1.5)),
-          focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide:
-                  const BorderSide(color: Color(0xFF0D9B86), width: 2)),
-          errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide:
-                  const BorderSide(color: Color(0xFFEF4444), width: 1.5)),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF6B7280))),
+        const SizedBox(height: 6),
+        TextField(
+          controller: ctrl,
+          keyboardType: keyboardType,
+          maxLength: maxLength,
+          inputFormatters: formatters,
+          readOnly: readOnly,
+          style: TextStyle(
+            color: readOnly
+                ? const Color(0xFF6B7280)
+                : const Color(0xFF111827),
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle:
+                const TextStyle(color: Color(0xFFBFC5CF), fontSize: 14),
+            prefixIcon:
+                Icon(icon, color: const Color(0xFF9CA3AF), size: 20),
+            suffixIcon: readOnly
+                ? const Icon(Icons.lock_outline_rounded,
+                    color: Color(0xFFD1D5DB), size: 16)
+                : null,
+            counterText: '',
+            errorText: errorText,
+            filled: true,
+            fillColor: readOnly
+                ? const Color(0xFFF3F4F6)
+                : const Color(0xFFF9FAFB),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none),
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                    color: readOnly
+                        ? const Color(0xFFE5E7EB)
+                        : const Color(0xFFE5E7EB),
+                    width: 1.5)),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                    color: Color(0xFF0D9B86), width: 2)),
+            errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                    color: Color(0xFFEF4444), width: 1.5)),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
         ),
-      ),
-    ]);
+      ],
+    );
   }
 
-  /// Dropdown untuk memilih poliklinik.
-  /// Border berubah hijau saat pilihan sudah dibuat.
-  Widget _buildDropdown() {
+  Widget _fieldTanggal() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Tanggal Kunjungan',
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF6B7280))),
+        const SizedBox(height: 6),
+        GestureDetector(
+          onTap: _pilihTanggal,
+          child: Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9FAFB),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _tanggalError != null
+                    ? const Color(0xFFEF4444)
+                    : const Color(0xFFE5E7EB),
+                width: 1.5,
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_today_outlined,
+                    color: Color(0xFF9CA3AF), size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _tanggalCtrl.text.isEmpty
+                        ? 'Pilih tanggal kunjungan'
+                        : _tanggalCtrl.text,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: _tanggalCtrl.text.isEmpty
+                          ? const Color(0xFFBFC5CF)
+                          : const Color(0xFF111827),
+                      fontWeight: _tanggalCtrl.text.isEmpty
+                          ? FontWeight.w400
+                          : FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.keyboard_arrow_down_rounded,
+                    color: Color(0xFF9CA3AF)),
+              ],
+            ),
+          ),
+        ),
+        if (_tanggalError != null) ...[
+          const SizedBox(height: 6),
+          Text(_tanggalError!,
+              style: const TextStyle(
+                  fontSize: 12, color: Color(0xFFEF4444))),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDropdownPoli() {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFFF9FAFB),
@@ -486,7 +609,8 @@ class _AntrianViewState extends State<AntrianView>
           hint: const Padding(
             padding: EdgeInsets.only(left: 16),
             child: Text('Pilih poliklinik',
-                style: TextStyle(color: Color(0xFFBFC5CF), fontSize: 14)),
+                style:
+                    TextStyle(color: Color(0xFFBFC5CF), fontSize: 14)),
           ),
           icon: const Padding(
             padding: EdgeInsets.only(right: 12),
@@ -498,10 +622,12 @@ class _AntrianViewState extends State<AntrianView>
               .map((l) => DropdownMenuItem<int>(
                     value: l.id,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(l.nama,
                           style: const TextStyle(
-                              fontSize: 14, color: Color(0xFF111827))),
+                              fontSize: 14,
+                              color: Color(0xFF111827))),
                     ),
                   ))
               .toList(),
@@ -514,13 +640,114 @@ class _AntrianViewState extends State<AntrianView>
                           const JenisLayanan(id: 0, nama: 'Poli Umum'))
                   .nama;
             });
+            if (v != null) _loadDokter(v);
           },
         ),
       ),
     );
   }
 
-  /// Tombol submit pendaftaran. Menampilkan spinner saat proses loading.
+  Widget _buildDropdownDokter() {
+    if (_selectedPoliID == null) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF3F4F6),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.person_search_outlined,
+                color: Color(0xFFD1D5DB), size: 20),
+            SizedBox(width: 12),
+            Text('Pilih poliklinik dulu',
+                style: TextStyle(
+                    color: Color(0xFFBFC5CF), fontSize: 14)),
+          ],
+        ),
+      );
+    }
+
+    if (_isLoadingDokter) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9FAFB),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+        ),
+        child: const Row(
+          children: [
+            SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: Color(0xFF0D9B86)),
+            ),
+            SizedBox(width: 12),
+            Text('Memuat dokter...',
+                style: TextStyle(
+                    color: Color(0xFF9CA3AF), fontSize: 14)),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _selectedDokterID == null
+              ? const Color(0xFFE5E7EB)
+              : const Color(0xFF0D9B86),
+          width: 1.5,
+        ),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: _selectedDokterID,
+          isExpanded: true,
+          hint: const Padding(
+            padding: EdgeInsets.only(left: 16),
+            child: Text('Pilih dokter',
+                style:
+                    TextStyle(color: Color(0xFFBFC5CF), fontSize: 14)),
+          ),
+          icon: const Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: Icon(Icons.keyboard_arrow_down_rounded,
+                color: Color(0xFF9CA3AF)),
+          ),
+          borderRadius: BorderRadius.circular(12),
+          items: _dokterList
+              .map((d) => DropdownMenuItem<int>(
+                    value: d.id,
+                    child: Padding(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(d.nama,
+                          style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF111827))),
+                    ),
+                  ))
+              .toList(),
+          onChanged: (v) {
+            setState(() {
+              _selectedDokterID = v;
+              _selectedDokterNama = _dokterList
+                  .firstWhere((d) => d.id == v,
+                      orElse: () => const Dokter(id: 0, nama: '-'))
+                  .nama;
+            });
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _buildDaftarButton() {
     return SizedBox(
       width: double.infinity,
@@ -531,8 +758,8 @@ class _AntrianViewState extends State<AntrianView>
           backgroundColor: const Color(0xFF0D9B86),
           disabledBackgroundColor:
               const Color(0xFF0D9B86).withValues(alpha: 0.6),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16)),
           elevation: 0,
         ),
         child: _isLoading
@@ -558,13 +785,12 @@ class _AntrianViewState extends State<AntrianView>
     );
   }
 
-  /// Placeholder shimmer saat data layanan masih dimuat dari API.
   Widget _buildShimmer() {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
         children: List.generate(
-          4,
+          5,
           (i) => Container(
             margin: const EdgeInsets.only(bottom: 16),
             height: 60,

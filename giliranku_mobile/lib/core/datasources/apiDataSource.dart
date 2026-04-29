@@ -425,4 +425,6 @@ class ApiDataSource {
     ];
     return b[m];
   }
+
+  Future<Object?> getDokterByPoli(int poliId) async {}
 }
