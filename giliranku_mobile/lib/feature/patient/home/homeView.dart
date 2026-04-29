@@ -3,13 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:giliranku/feature/patient/antrian/Antrianmenu.dart';
 import 'package:giliranku/feature/patient/informasi/informasiMenuView.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:giliranku/feature/patient/profil/patientProfilTab.dart';
+import 'package:giliranku/feature/patient/profil/patientProfilView.dart';
 import 'package:giliranku/feature/patient/notifikasi/notifikasiView.dart';
 import 'package:giliranku/core/theme/theme.dart';
 import 'package:giliranku/core/widgets/navbar.dart';
 import 'package:giliranku/core/widgets/header.dart';
 
-/// MAIN ENTRY: HOME VIEW
 class HomeView extends StatefulWidget {
   final Map<String, dynamic>? patientData;
   const HomeView({super.key, this.patientData});
@@ -46,9 +45,6 @@ class _HomeViewState extends State<HomeView> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-/// BERANDA TAB
-// ─────────────────────────────────────────────────────────────────────────────
 class _BerandaTab extends StatelessWidget {
   final Map<String, dynamic>? patientData;
   final void Function(int) onSwitchTab;
@@ -77,8 +73,10 @@ class _BerandaTab extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 6, 20, 100),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
+
                 _OperasionalBadge(),
                 const SizedBox(height: 10),
+
                 _ReminderCard(
                   isLoggedIn: _isLoggedIn,
                   onTap: () => Navigator.push(context,
@@ -101,7 +99,6 @@ class _BerandaTab extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 class _OperasionalBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -137,7 +134,7 @@ class _OperasionalBadge extends StatelessWidget {
           const SizedBox(width: 6),
           const Expanded(
             child: Text(
-              'Senin–Sabtu  08:00 – 16:00 WIB',
+              'Senin - Sabtu, 08:00 - 16:00 WIB',
               style: TextStyle(
                   fontSize: 12,
                   color: AppColors.textSecondary,
@@ -152,7 +149,6 @@ class _OperasionalBadge extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 class _SectionHeader extends StatelessWidget {
   final String title;
   final String sub;
@@ -177,7 +173,6 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 class _MenuGrid extends StatelessWidget {
   final String? nik;
   final void Function(int) onSwitchTab;
@@ -339,7 +334,6 @@ class _MenuCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 class _ReminderCard extends StatelessWidget {
   final bool isLoggedIn;
   final VoidCallback onTap;
@@ -410,7 +404,6 @@ class _ReminderCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 class _HospitalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -477,7 +470,7 @@ class _HospitalCard extends StatelessWidget {
                 const _Divider(),
                 _InfoRow(
                     icon: Iconsax.clock,
-                    value: 'Senin–Sabtu: 08:00–16:00 WIB',
+                    value: 'Senin-Sabtu: 08:00-16:00 WIB',
                     color: AppColors.gold),
                 const _Divider(),
                 _InfoRow(

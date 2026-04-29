@@ -8,5 +8,12 @@ type Dokter struct {
 	PolyName       string `json:"poly_name,omitempty"`
 	Phone          string `json:"phone,omitempty"`
 	Status         bool   `json:"status"`
-	Schedule       string `json:"schedule,omitempty"` // e.g. "Senin, Kamis, Jumat"
+	Schedule       string `json:"schedule,omitempty"`
+	Senin   string `json:"senin,omitempty"`
+	Selasa  string `json:"selasa,omitempty"`
+	Rabu    string `json:"rabu,omitempty"`
+	Kamis   string `json:"kamis,omitempty"`
+	Jumat   string `json:"jumat,omitempty"`
+	Sabtu   string `json:"sabtu,omitempty"`
+	Minggu  string `json:"minggu,omitempty"`
 }

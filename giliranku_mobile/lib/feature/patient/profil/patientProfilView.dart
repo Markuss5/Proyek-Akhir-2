@@ -7,7 +7,8 @@ import 'package:giliranku/feature/patient/riwayat/riwayatView.dart';
 
 class PatientProfilView extends StatefulWidget {
   final Map<String, dynamic>? patientData;
-  const PatientProfilView({super.key, this.patientData});
+  final void Function(int)? onSwitchTab;
+  const PatientProfilView({super.key, this.patientData, this.onSwitchTab});
 
   @override
   State<PatientProfilView> createState() => _PatientProfilViewState();
@@ -36,18 +37,17 @@ class _PatientProfilViewState extends State<PatientProfilView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA), // Background disamakan dengan Menu
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
         top: false,
         child: Column(
           children: [
-            _buildHeader(),
+            _buildHeader(context),
             const SizedBox(height: 20),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 children: [
-                  // CARD PROFIL (Identik dengan desain Menu)
                   _buildMenuCard(
                     context,
                     isProfile: true,
@@ -65,12 +65,10 @@ class _PatientProfilViewState extends State<PatientProfilView> {
                     },
                   ),
 
-                  // INFORMASI MEDIS
                   if (_isLoggedIn) ...[
                     _buildMedisCard(),
                   ],
 
-                  // MENU RIWAYAT
                   _buildMenuCard(
                     context,
                     icon: Icons.history_rounded,
@@ -78,14 +76,13 @@ class _PatientProfilViewState extends State<PatientProfilView> {
                     subtitle: 'Lihat riwayat kunjungan',
                     onTap: () {
                       if (!_isLoggedIn) {
-                        _showLoginAlert(); // Memanggil alert custom bawaan kamu
+                        _showLoginAlert();
                         return;
                       }
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const RiwayatView()));
                     },
                   ),
 
-                  // MENU KELUAR / MASUK
                   _buildMenuCard(
                     context,
                     icon: _isLoggedIn ? Icons.logout_rounded : Icons.login_rounded,
@@ -110,8 +107,7 @@ class _PatientProfilViewState extends State<PatientProfilView> {
     );
   }
 
-  // --- HEADER (Gradien & Icon disamakan dengan Menu) ---
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     final topPad = MediaQuery.of(context).padding.top;
     return Container(
       padding: EdgeInsets.fromLTRB(20, topPad + 16, 20, 20),
@@ -126,7 +122,13 @@ class _PatientProfilViewState extends State<PatientProfilView> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              if (widget.onSwitchTab != null) {
+                widget.onSwitchTab!(0);
+              } else {
+                Navigator.pop(context);
+              }
+            },
             child: Container(
               width: 38,
               height: 38,
@@ -157,7 +159,6 @@ class _PatientProfilViewState extends State<PatientProfilView> {
     );
   }
 
-  // --- MENU CARD (Desain Identik dengan Pusat Informasi) ---
   Widget _buildMenuCard(
     BuildContext context, {
     required IconData icon,
@@ -205,7 +206,6 @@ class _PatientProfilViewState extends State<PatientProfilView> {
     );
   }
 
-  // --- KARTU MEDIS ---
   Widget _buildMedisCard() {
     return Container(
       width: double.infinity,
@@ -242,7 +242,6 @@ class _PatientProfilViewState extends State<PatientProfilView> {
     );
   }
 
-  // --- DIALOGS (CUSTOM BAWAAN KAMU) ---
   void _showLoginAlert() {
     showDialog(
       context: context,
@@ -305,7 +304,6 @@ class _PatientProfilViewState extends State<PatientProfilView> {
     );
   }
 
-  // --- LOGIKA LAINNYA ---
   Future<void> _openEditProfile() async {
     final result = await Navigator.push<Map<String, dynamic>>(
       context,

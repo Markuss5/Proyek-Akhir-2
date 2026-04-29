@@ -16,7 +16,9 @@ func NewDokterRepository(db *sql.DB) *DokterRepository {
 // FindByPolyID returns doctors assigned to a specific polyclinic
 func (r *DokterRepository) FindByPolyID(polyID int) ([]models.Dokter, error) {
 	query := `
-		SELECT c.id as category_id, c.namadokter, c."IdPoli", p."NamaPoli", d."NoTelp", d."Spesialisasi", c.options as schedule
+		SELECT c.id as category_id, c.namadokter, c."IdPoli", p."NamaPoli", d."NoTelp", d."Spesialisasi", c.options as schedule,
+		       COALESCE(c.senin,''), COALESCE(c.selasa,''), COALESCE(c.rabu,''),
+		       COALESCE(c.kamis,''), COALESCE(c.jumat,''), COALESCE(c.sabtu,''), COALESCE(c.minggu,'')
 		FROM category c
 		JOIN tbpoli p ON c."IdPoli" = p."IdPoli"
 		LEFT JOIN tbdaftardokter d ON c."IdDokter" = d."IdDokter"
@@ -37,7 +39,8 @@ func (r *DokterRepository) FindByPolyID(polyID int) ([]models.Dokter, error) {
 		var telp sql.NullString
 		var schedule sql.NullString
 
-		err := rows.Scan(&d.DoctorID, &d.DoctorName, &d.PolyID, &d.PolyName, &telp, &spesialisasi, &schedule)
+		err := rows.Scan(&d.DoctorID, &d.DoctorName, &d.PolyID, &d.PolyName, &telp, &spesialisasi, &schedule,
+			&d.Senin, &d.Selasa, &d.Rabu, &d.Kamis, &d.Jumat, &d.Sabtu, &d.Minggu)
 		if err != nil {
 			return nil, err
 		}
@@ -56,7 +59,9 @@ func (r *DokterRepository) FindByPolyID(polyID int) ([]models.Dokter, error) {
 // FindAll returns all active doctors
 func (r *DokterRepository) FindAll() ([]models.Dokter, error) {
 	query := `
-		SELECT c.id as category_id, c.namadokter, c."IdPoli", p."NamaPoli", d."NoTelp", d."Spesialisasi", c.options as schedule
+		SELECT c.id as category_id, c.namadokter, c."IdPoli", p."NamaPoli", d."NoTelp", d."Spesialisasi", c.options as schedule,
+		       COALESCE(c.senin,''), COALESCE(c.selasa,''), COALESCE(c.rabu,''),
+		       COALESCE(c.kamis,''), COALESCE(c.jumat,''), COALESCE(c.sabtu,''), COALESCE(c.minggu,'')
 		FROM category c
 		JOIN tbpoli p ON c."IdPoli" = p."IdPoli"
 		LEFT JOIN tbdaftardokter d ON c."IdDokter" = d."IdDokter"
@@ -77,7 +82,8 @@ func (r *DokterRepository) FindAll() ([]models.Dokter, error) {
 		var telp sql.NullString
 		var schedule sql.NullString
 
-		err := rows.Scan(&d.DoctorID, &d.DoctorName, &d.PolyID, &d.PolyName, &telp, &spesialisasi, &schedule)
+		err := rows.Scan(&d.DoctorID, &d.DoctorName, &d.PolyID, &d.PolyName, &telp, &spesialisasi, &schedule,
+			&d.Senin, &d.Selasa, &d.Rabu, &d.Kamis, &d.Jumat, &d.Sabtu, &d.Minggu)
 		if err != nil {
 			return nil, err
 		}
@@ -95,7 +101,9 @@ func (r *DokterRepository) FindAll() ([]models.Dokter, error) {
 
 func (r *DokterRepository) FindByID(id int) (*models.Dokter, error) {
 	query := `
-		SELECT c.id as category_id, c.namadokter, c."IdPoli", p."NamaPoli", d."NoTelp", d."Spesialisasi", c.options as schedule
+		SELECT c.id as category_id, c.namadokter, c."IdPoli", p."NamaPoli", d."NoTelp", d."Spesialisasi", c.options as schedule,
+		       COALESCE(c.senin,''), COALESCE(c.selasa,''), COALESCE(c.rabu,''),
+		       COALESCE(c.kamis,''), COALESCE(c.jumat,''), COALESCE(c.sabtu,''), COALESCE(c.minggu,'')
 		FROM category c
 		JOIN tbpoli p ON c."IdPoli" = p."IdPoli"
 		LEFT JOIN tbdaftardokter d ON c."IdDokter" = d."IdDokter"
@@ -107,7 +115,8 @@ func (r *DokterRepository) FindByID(id int) (*models.Dokter, error) {
 	var telp sql.NullString
 	var schedule sql.NullString
 
-	err := r.DB.QueryRow(query, id).Scan(&d.DoctorID, &d.DoctorName, &d.PolyID, &d.PolyName, &telp, &spesialisasi, &schedule)
+	err := r.DB.QueryRow(query, id).Scan(&d.DoctorID, &d.DoctorName, &d.PolyID, &d.PolyName, &telp, &spesialisasi, &schedule,
+		&d.Senin, &d.Selasa, &d.Rabu, &d.Kamis, &d.Jumat, &d.Sabtu, &d.Minggu)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil

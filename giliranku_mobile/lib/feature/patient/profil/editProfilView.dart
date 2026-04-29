@@ -82,10 +82,19 @@ class _EditProfilViewState extends State<EditProfilView> {
     if (!mounted) return;
 
     if (updated != null) {
-      _showSnack('Profil berhasil diperbarui', const Color(0xFF2F9E8F));
-      Navigator.pop(context, updated); // Return updated data
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profil berhasil diperbarui'),
+          backgroundColor: Color(0xFF2F9E8F),
+        ),
+      );
     } else {
-      _showSnack('Gagal memperbarui profil', Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal memperbarui profil'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -104,7 +113,7 @@ class _EditProfilViewState extends State<EditProfilView> {
         foregroundColor: Colors.white,
         title: const Text(
           'Edit Profil',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.white),
         ),
         elevation: 0,
       ),
@@ -113,22 +122,18 @@ class _EditProfilViewState extends State<EditProfilView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // NIK (read-only)
             _buildReadOnlyField('NIK', widget.patientData['nik'] ?? '-'),
             const SizedBox(height: 16),
 
-            // No. RM (read-only)
             _buildReadOnlyField(
               'No. Rekam Medis',
               widget.patientData['no_rm'] ?? '-',
             ),
             const SizedBox(height: 16),
 
-            // Nama
             _buildTextField('Nama Lengkap', _nameCtrl),
             const SizedBox(height: 16),
 
-            // Jenis Kelamin
             _buildDropdown(
               'Jenis Kelamin',
               _selectedJenisKelamin,
@@ -144,7 +149,6 @@ class _EditProfilViewState extends State<EditProfilView> {
             ),
             const SizedBox(height: 16),
 
-            // Phone
             _buildTextField(
               'No. Telepon',
               _phoneCtrl,
@@ -152,7 +156,6 @@ class _EditProfilViewState extends State<EditProfilView> {
             ),
             const SizedBox(height: 16),
 
-            // Email
             _buildTextField(
               'Email',
               _emailCtrl,
@@ -160,7 +163,6 @@ class _EditProfilViewState extends State<EditProfilView> {
             ),
             const SizedBox(height: 16),
 
-            // BPJS
             _buildTextField(
               'No. BPJS (Opsional)',
               _bpjsCtrl,
@@ -168,7 +170,6 @@ class _EditProfilViewState extends State<EditProfilView> {
             ),
             const SizedBox(height: 16),
 
-            // Golongan Darah
             _buildDropdown(
               'Golongan Darah',
               _selectedGolDarah,
@@ -179,11 +180,9 @@ class _EditProfilViewState extends State<EditProfilView> {
             ),
             const SizedBox(height: 16),
 
-            // Alamat
             _buildTextField('Alamat', _alamatCtrl, maxLines: 3),
             const SizedBox(height: 30),
 
-            // Save Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

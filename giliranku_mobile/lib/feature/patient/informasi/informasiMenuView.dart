@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/feature/patient/informasi/informasiView.dart';
-import 'package:giliranku/feature/patient/informasi/informasi_dokter.dart';
+import 'package:giliranku/feature/patient/informasi/informasiRSView.dart';
+import 'package:giliranku/feature/patient/informasi/informasiDokterView.dart';
 import 'package:giliranku/feature/patient/informasi/informasiPoliklinikView.dart';
-import 'package:giliranku/feature/patient/home/homeView.dart';
 
 class InformasiMenuPage extends StatelessWidget {
-  const InformasiMenuPage({super.key});
+  final void Function(int)? onSwitchTab;
+  const InformasiMenuPage({super.key, this.onSwitchTab});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +16,6 @@ class InformasiMenuPage extends StatelessWidget {
         top: false,
         child: Column(
           children: [
-            // HEADER MENU 
             _buildMenuHeader(context),
 
             const SizedBox(height: 20),
@@ -78,7 +77,6 @@ class InformasiMenuPage extends StatelessWidget {
     );
   }
 
-  // HEADER KHUSUS MENU
   Widget _buildMenuHeader(BuildContext context) {
     final topPad = MediaQuery.of(context).padding.top;
 
@@ -99,14 +97,13 @@ class InformasiMenuPage extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Button BACK
           GestureDetector(
           onTap: () {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeView()),
-              (route) => false,
-            );
+            if (onSwitchTab != null) {
+              onSwitchTab!(0);
+            } else {
+              Navigator.pop(context);
+            }
           },
             child: Container(
               width: 38,
@@ -122,7 +119,6 @@ class InformasiMenuPage extends StatelessWidget {
 
           const SizedBox(width: 12),
 
-          //  TITLE
           const Expanded(
             child: Text(
               "Pusat Informasi",
@@ -134,7 +130,6 @@ class InformasiMenuPage extends StatelessWidget {
             ),
           ),
 
-          //  ICON MENU
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
