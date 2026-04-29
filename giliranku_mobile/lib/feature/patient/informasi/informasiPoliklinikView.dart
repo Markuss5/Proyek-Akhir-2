@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/widgets/header.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -15,75 +16,36 @@ class _InformasiPoliklinikViewState
   final TextEditingController _searchController =
       TextEditingController();
 
-  final List<Map<String, dynamic>> poliList = [
-    {
-      "nama": "Poli Umum",
-      "desc": "Pemeriksaan kesehatan umum dan konsultasi rutin.",
-      "icon": Icons.medical_services_outlined,
-    },
-    {
-      "nama": "Poli Anak",
-      "desc": "Layanan kesehatan spesialis anak dan imunisasi.",
-      "icon": Icons.child_care,
-    },
-    {
-      "nama": "Poli Dalam",
-      "desc": "Penanganan masalah kesehatan organ dalam tubuh.",
-      "icon": Icons.local_hospital,
-    },
-    {
-      "nama": "Poli Jiwa",
-      "desc": "Layanan konsultasi kesehatan mental dan psikiatri.",
-      "icon": Icons.psychology,
-    },
-    {
-      "nama": "Poli Paru",
-      "desc": "Spesialis gangguan pernapasan dan kesehatan paru-paru.",
-      "icon": Icons.air,
-    },
-    {
-      "nama": "Poli Jantung",
-      "desc": "Pemeriksaan ritme dan kesehatan fungsi jantung.",
-      "icon": Icons.favorite,
-    },
-    {
-      "nama": "Orthopedi",
-      "desc": "Layanan spesialis tulang, sendi, dan ligamen.",
-      "icon": Icons.accessibility_new,
-    },
-    {
-      "nama": "Poli Gigi & Endodonti",
-      "desc": "Perawatan saluran akar dan estetika gigi khusus.",
-      "icon": Icons.mood,
-    },
-    {
-      "nama": "Mikrobiologi Klinik",
-      "desc": "Layanan pengujian dan diagnosis infeksi bakteri/virus.",
-      "icon": Icons.biotech,
-    },
-    {
-      "nama": "Poli Bedah",
-      "desc": "Konsultasi pra dan pasca tindakan pembedahan.",
-      "icon": Icons.content_cut,
-    },
-    {
-      "nama": "Poli Kandungan",
-      "desc": "Layanan kesehatan reproduksi dan pemeriksaan kehamilan.",
-      "icon": Icons.pregnant_woman,
-    },
-    {
-      "nama": "Poli Syaraf",
-      "desc": "Penanganan gangguan neurologi dan sistem saraf pusat.",
-      "icon": Icons.monitor_heart,
-    },
-  ];
+  List<Map<String, dynamic>> poliList = [];
+  bool _isLoading = true;
 
-  String keyword = "";
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    final data = await ApiDataSource().fetchPoliklinik();
+    if (mounted) {
+      setState(() {
+        poliList = data;
+        _isLoading = false;
+      });
+    }
+  }
+
+  String keyword = '';
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     final filteredList = poliList.where((item) {
-      return item["nama"]
+      return (item['poly_name'] ?? '')
           .toString()
           .toLowerCase()
           .contains(keyword.toLowerCase());
@@ -95,7 +57,6 @@ class _InformasiPoliklinikViewState
         top: false,
         child: Column(
           children: [
-            // HEADER
             AppHeader(
               mode: HeaderMode.page,
               title: 'Daftar Poliklinik',
@@ -103,10 +64,8 @@ class _InformasiPoliklinikViewState
               pageIcon: Iconsax.hospital,
             ),
 
-            // 🔍 SEARCH
             _buildSearchBox(),
 
-            // 📋 LIST
             Expanded(
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(
@@ -118,9 +77,9 @@ class _InformasiPoliklinikViewState
                   final poli = filteredList[index];
 
                   return _buildPoliItem(
-                    nama: poli["nama"],
-                    desc: poli["desc"],
-                    icon: poli["icon"],
+                    nama: poli['poly_name'] ?? '',
+                    desc: poli['kode_poli'] != null ? 'Kode: ${poli['kode_poli']}' : '',
+                    icon: Icons.local_hospital_outlined,
                   );
                 },
               ),
