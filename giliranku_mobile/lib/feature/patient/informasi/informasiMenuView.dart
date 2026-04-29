@@ -134,7 +134,7 @@ class InformasiMenuPage extends StatelessWidget {
             ),
           ),
 
-          // 🔲 ICON MENU
+          //  ICON MENU
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
