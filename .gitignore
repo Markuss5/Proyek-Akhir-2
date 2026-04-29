@@ -3,14 +3,15 @@
 .dart_tool/
 .packages
 pubspec.lock
+lib/core/constants/apiConstants.dart
 
 # Go
 bin/
 vendor/
+.env
 
 # VSCode
 .vscode/
 
 # OS
 .DS_Store
-gliranku-backend/.env
