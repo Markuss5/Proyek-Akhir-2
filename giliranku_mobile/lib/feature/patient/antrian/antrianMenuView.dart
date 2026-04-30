@@ -2,25 +2,167 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:giliranku/feature/patient/antrian/antrianUmumView.dart';
 import 'package:giliranku/feature/patient/antrian/antrianBPJSView.dart';
+import 'package:giliranku/core/theme/theme.dart';
+import 'package:giliranku/feature/auth/loginView.dart';
 import 'package:iconsax/iconsax.dart';
 
 class AntrianMenuView extends StatelessWidget {
   final void Function(int)? onSwitchTab;
   final Map<String, dynamic>? patientData;
+
   const AntrianMenuView({super.key, this.onSwitchTab, this.patientData});
 
+  bool get _isLoggedIn =>
+      patientData != null && patientData!.containsKey('nik');
+
+    void _cekLoginDanNavigasi(BuildContext context, VoidCallback onLanjut) {
+      print('patientData: $patientData');    
+      print('_isLoggedIn: $_isLoggedIn');      
+      
+      if (_isLoggedIn) {
+        onLanjut();
+        return;
+      }
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 32, 24, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.lock_outline_rounded,
+                  color: AppColors.primary,
+                  size: 36,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Title
+              const Text(
+                'Login Diperlukan',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF111827),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Subtitle
+              const Text(
+                'Anda harus login terlebih dahulu untuk dapat mengambil nomor antrian.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF6B7280),
+                  height: 1.6,
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              // Login button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginView()),
+                  );
+                },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0D9B86),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.login_rounded, color: Colors.white, size: 18),
+                      SizedBox(width: 8),
+                      Text(
+                        'Login Sekarang',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Cancel button
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: TextButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: const Text(
+                    'Batal',
+                    style: TextStyle(
+                      color: Color(0xFF6B7280),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _keBpjs(BuildContext context) {
-  HapticFeedback.lightImpact();
-  Navigator.of(context).push(
-    MaterialPageRoute(builder: (_) => const AntrianBpjsView()),
-  );
-}
+    HapticFeedback.lightImpact();
+    _cekLoginDanNavigasi(context, () {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => AntrianBpjsView(patientData: patientData),
+        ),
+      );
+    });
+  }
 
   void _keUmum(BuildContext context) {
     HapticFeedback.lightImpact();
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => AntrianView(patientData: patientData)),
-    );
+    _cekLoginDanNavigasi(context, () {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => AntrianView(patientData: patientData),
+        ),
+      );
+    });
   }
 
   @override
@@ -118,16 +260,13 @@ class AntrianMenuView extends StatelessWidget {
                 color: Colors.white.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.arrow_back,
-                  color: Colors.white, size: 18),
+              child: const Icon(Icons.arrow_back, color: Colors.white, size: 18),
             ),
           ),
-
           const SizedBox(width: 12),
-
           const Expanded(
             child: Text(
-              "Ambil Antrian",
+              'Ambil Antrian',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,

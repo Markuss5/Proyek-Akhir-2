@@ -168,33 +168,36 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
   }
 
   Widget _buildLoggedInBanner() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE6F7F5),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-            color: const Color(0xFF0D9B86).withValues(alpha: 0.3),
-            width: 1.5),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.check_circle_rounded,
-              color: Color(0xFF0D9B86), size: 20),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'NIK diisi otomatis dari akun Anda',
-              style: TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF065F46),
-                  fontWeight: FontWeight.w600),
+  return Container(
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: const Color(0xFFE6F7F4),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: const Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.check_circle_rounded,
+          color: Color(0xFF0D9B86),
+          size: 22,
+        ),
+        SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            'NIK otomatis dari akun.\nUbah jika ingin menggunakan NIK lain.',
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.4,
+              color: Color(0xFF065F46),
+              fontWeight: FontWeight.w500,
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  ); // ← ini yang tadi kurang
+}
 
   Widget _buildInfoBpjs() {
     return Container(
