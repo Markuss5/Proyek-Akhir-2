@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku/core/repositories/notifikasiRepository.dart';
+import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/models/notifikasiModel.dart';
 import 'package:giliranku/core/widgets/header.dart';
 import 'package:iconsax/iconsax.dart';
@@ -14,9 +15,14 @@ class NotifikasiView extends StatefulWidget {
 }
 
 class _NotifikasiViewState extends State<NotifikasiView> {
-  String _activeFilter = 'Semua';
+  String _activeFilter = 'Akan Datang';
   List<NotifikasiModel> _notifications = [];
   bool _isLoading = true;
+
+  bool _isSelecting = false;
+  final Set<int> _selectedIds = {};
+
+  late final _refreshTimer = _startRefreshTimer();
 
   @override
   void initState() {
@@ -24,102 +30,213 @@ class _NotifikasiViewState extends State<NotifikasiView> {
     _loadNotifications();
   }
 
+  @override
+  void dispose() {
+    _refreshTimer.cancel();
+    super.dispose();
+  }
+
+  _startRefreshTimer() {
+    return Stream.periodic(const Duration(seconds: 30)).listen((_) {
+      if (mounted) _loadNotifications();
+    });
+  }
+
   Future<void> _loadNotifications() async {
     if (widget.nik == null) {
       setState(() => _isLoading = false);
       return;
     }
-    setState(() => _isLoading = true);
+    if (!_isLoading) {
+    } else {
+      setState(() => _isLoading = true);
+    }
     try {
       final data = await NotifikasiRepository().getByNik(widget.nik!);
+      if (!mounted) return;
       setState(() {
         _notifications = data;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }
 
   List<NotifikasiModel> get _filteredNotifications {
-    if (_activeFilter == 'Belum Dibaca') {
-      return _notifications.where((n) => !n.isSent).toList();
-    }
-    return _notifications;
-  }
-
-  // Group notifications by relative date
-  Map<String, List<NotifikasiModel>> get _groupedNotifications {
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final weekAgo = today.subtract(const Duration(days: 7));
-
-    final Map<String, List<NotifikasiModel>> groups = {};
-
-    for (final n in _filteredNotifications) {
-      final date = n.scheduledDate.toLocal();
-      final d = DateTime(date.year, date.month, date.day);
-
-      String label;
-      if (d == today || d == today.subtract(const Duration(days: 1))) {
-        label = 'Hari Ini';
-      } else if (d.isAfter(weekAgo)) {
-        label = 'Minggu Ini';
-      } else {
-        label = 'Sebelumnya';
-      }
-
-      groups.putIfAbsent(label, () => []);
-      groups[label]!.add(n);
+    if (_activeFilter == 'Akan Datang') {
+      return _notifications.where((n) => !n.scheduledDate.toLocal().isBefore(now)).toList();
+    } else {
+      return _notifications.where((n) => n.scheduledDate.toLocal().isBefore(now)).toList();
     }
-
-    return groups;
   }
 
-           @override
-            Widget build(BuildContext context) {
-              return Scaffold(
-                backgroundColor: Colors.grey[100],
-                body: Column(
-                  children: [
-                    // AppBar-style header
-                    AppHeader(
-                  mode: HeaderMode.page,
-                  title: 'Notifikasi',
-                  pageIcon: Iconsax.notification,
-                ),
+  bool get _isSelesaiTab => _activeFilter == 'Selesai';
 
-          // Filter chips
+  void _toggleSelect(int id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+        if (_selectedIds.isEmpty) _isSelecting = false;
+      } else {
+        _selectedIds.add(id);
+      }
+    });
+  }
+
+  void _startSelection(int id) {
+    if (!_isSelesaiTab) return;
+    setState(() {
+      _isSelecting = true;
+      _selectedIds.add(id);
+    });
+  }
+
+  void _cancelSelection() {
+    setState(() {
+      _isSelecting = false;
+      _selectedIds.clear();
+    });
+  }
+
+  void _selectAll() {
+    setState(() {
+      _selectedIds.addAll(_filteredNotifications.map((n) => n.notificationId));
+    });
+  }
+
+  Future<void> _deleteSelected() async {
+    if (_selectedIds.isEmpty) return;
+
+    final count = _selectedIds.length;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Hapus Notifikasi', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Text('Hapus $count notifikasi yang dipilih?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    int deleted = 0;
+    for (final id in _selectedIds.toList()) {
+      final success = await ApiDataSource().deleteNotifikasi(id);
+      if (success) deleted++;
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _notifications.removeWhere((n) => _selectedIds.contains(n.notificationId));
+      _selectedIds.clear();
+      _isSelecting = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$deleted notifikasi berhasil dihapus'),
+        backgroundColor: const Color(0xFF2F9E8F),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      body: Column(
+        children: [
+          AppHeader(
+            mode: HeaderMode.page,
+            title: 'Notifikasi',
+            pageIcon: Iconsax.notification,
+          ),
+
           Container(
             color: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            child: Row(
-              children: [
-                _buildFilterChip('Semua'),
-                const SizedBox(width: 12),
-                _buildFilterChip('Belum Dibaca'),
-              ],
-            ),
+            child: _isSelecting
+                ? Row(
+                    children: [
+                      GestureDetector(
+                        onTap: _cancelSelection,
+                        child: const Icon(Icons.close, color: Colors.black54),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        '${_selectedIds.length} dipilih',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: _selectAll,
+                        child: const Text(
+                          'Pilih Semua',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Color(0xFF2F9E8F),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      GestureDetector(
+                        onTap: _deleteSelected,
+                        child: Icon(Icons.delete_outline, color: Colors.red.shade400, size: 22),
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      _buildFilterChip('Akan Datang'),
+                      const SizedBox(width: 12),
+                      _buildFilterChip('Selesai'),
+                    ],
+                  ),
           ),
 
-          // Notification list
           Expanded(
             child: _isLoading
                 ? const Center(
                     child: CircularProgressIndicator(color: Color(0xFF2F9E8F)),
                   )
-                : _filteredNotifications.isEmpty
-                ? _buildEmptyState()
                 : RefreshIndicator(
                     onRefresh: _loadNotifications,
                     color: const Color(0xFF2F9E8F),
-                    child: ListView(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 8,
-                      ),
-                      children: _buildGroupedList(),
-                    ),
+                    child: _filteredNotifications.isEmpty
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.4,
+                                child: _buildEmptyState(),
+                              ),
+                            ],
+                          )
+                        : ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                            itemCount: _filteredNotifications.length,
+                            itemBuilder: (context, index) {
+                              final n = _filteredNotifications[index];
+                              return _buildNotificationCard(n);
+                            },
+                          ),
                   ),
           ),
         ],
@@ -127,37 +244,18 @@ class _NotifikasiViewState extends State<NotifikasiView> {
     );
   }
 
-  List<Widget> _buildGroupedList() {
-    final groups = _groupedNotifications;
-    final List<Widget> widgets = [];
-    for (final label in ['Hari Ini', 'Minggu Ini', 'Sebelumnya', 'Lainnya']) {
-      if (groups.containsKey(label)) {
-        widgets.add(
-          Padding(
-            padding: const EdgeInsets.only(top: 16, bottom: 8),
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[600],
-              ),
-            ),
-          ),
-        );
-        for (final n in groups[label]!) {
-          widgets.add(_buildNotificationCard(n));
-        }
-      }
-    }
-    return widgets;
-  }
-
   Widget _buildFilterChip(String label) {
     final isActive = _activeFilter == label;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _activeFilter = label),
+        onTap: () {
+          setState(() {
+            _activeFilter = label;
+            _isSelecting = false;
+            _selectedIds.clear();
+          });
+          _loadNotifications();
+        },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
@@ -182,19 +280,22 @@ class _NotifikasiViewState extends State<NotifikasiView> {
   Widget _buildNotificationCard(NotifikasiModel notification) {
     final message = notification.message;
     final scheduledDate = notification.scheduledDate.toLocal();
-    final isSent = notification.isSent;
+    final isSelected = _selectedIds.contains(notification.notificationId);
 
     String title = 'Pengingat Kontrol';
     String body = message;
-    if (message.contains('H-7')) {
-      title = 'Pengingat Pemeriksaan Rutin';
+    if (message.contains('H-0')) {
+      title = 'Kontrol 1 Jam Lagi!';
+      body = 'Segera menuju RSUD Porsea untuk melakukan kontrol rutin.';
+    } else if (message.contains('H-7')) {
+      title = 'Pengingat Kontrol Lanjutan';
       body = 'Waktu pemeriksaan rutin Anda akan segera tiba.';
     } else if (message.contains('H-3')) {
       title = 'Pengingat Kontrol Lanjutan';
-      body = 'Waktunya melakukan kontrol lanjutan sesuai anjuran dokter.';
+      body = 'Waktu pemeriksaan rutin Anda akan segera tiba.';
     } else if (message.contains('H-1')) {
-      title = 'Pengingat Pemeriksaan Berkala';
-      body = 'Anda dijadwalkan untuk pemeriksaan besok.';
+      title = 'Pengingat Kontrol Lanjutan';
+      body = 'Anda dijadwalkan untuk melakukan pemeriksaan besok.';
     }
 
     final timeStr = '${scheduledDate.day} ${_monthName(scheduledDate.month)}';
@@ -202,88 +303,113 @@ class _NotifikasiViewState extends State<NotifikasiView> {
         '${scheduledDate.day}/${scheduledDate.month}/${scheduledDate.year} '
         '${scheduledDate.hour.toString().padLeft(2, '0')}:${scheduledDate.minute.toString().padLeft(2, '0')}';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isSent
-              ? Colors.grey.withValues(alpha: 0.2)
-              : const Color(0xFF2F9E8F).withValues(alpha: 0.3),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFFD7EDEB),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.medical_services_outlined,
-              color: Color(0xFF2F9E8F),
-              size: 22,
-            ),
+    final isPast = scheduledDate.isBefore(DateTime.now());
+
+    return GestureDetector(
+      onLongPress: _isSelesaiTab && !_isSelecting
+          ? () => _startSelection(notification.notificationId)
+          : null,
+      onTap: _isSelecting && _isSelesaiTab
+          ? () => _toggleSelect(notification.notificationId)
+          : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFE8F5F3) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF2F9E8F)
+                : isPast
+                    ? Colors.grey.withValues(alpha: 0.2)
+                    : const Color(0xFF2F9E8F).withValues(alpha: 0.3),
+            width: isSelected ? 1.5 : 1.0,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_isSelecting && _isSelesaiTab) ...[
+              Padding(
+                padding: const EdgeInsets.only(top: 10, right: 12),
+                child: Icon(
+                  isSelected ? Icons.check_circle : Icons.circle_outlined,
+                  color: isSelected ? const Color(0xFF2F9E8F) : Colors.grey[400],
+                  size: 22,
+                ),
+              ),
+            ] else ...[
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD7EDEB),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.medical_services_outlined,
+                  color: Color(0xFF2F9E8F),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                    ),
-                    Text(
-                      timeStr,
-                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  body,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(
-                      isSent ? Icons.check_circle : Icons.calendar_today,
-                      size: 14,
-                      color: isSent ? Colors.green : const Color(0xFF2F9E8F),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      dateLabel,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isSent ? Colors.green : const Color(0xFF2F9E8F),
+                      Text(
+                        timeStr,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    body,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                      height: 1.4,
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        isPast ? Icons.check_circle : Icons.calendar_today,
+                        size: 14,
+                        color: isPast ? Colors.green : const Color(0xFF2F9E8F),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        dateLabel,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isPast ? Colors.green : const Color(0xFF2F9E8F),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -302,7 +428,9 @@ class _NotifikasiViewState extends State<NotifikasiView> {
           Text(
             widget.nik == null
                 ? 'Masuk untuk melihat notifikasi'
-                : 'Belum ada notifikasi',
+                : _activeFilter == 'Akan Datang'
+                    ? 'Belum ada jadwal kontrol'
+                    : 'Notifikasi anda masih kosong',
             style: TextStyle(fontSize: 16, color: Colors.grey[400]),
           ),
         ],
@@ -312,18 +440,8 @@ class _NotifikasiViewState extends State<NotifikasiView> {
 
   String _monthName(int month) {
     const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'Mei',
-      'Jun',
-      'Jul',
-      'Agu',
-      'Sep',
-      'Okt',
-      'Nov',
-      'Des',
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
     ];
     return months[month - 1];
   }

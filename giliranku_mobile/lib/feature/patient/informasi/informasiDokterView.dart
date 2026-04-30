@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/widgets/header.dart';
+import 'package:giliranku/core/theme/theme.dart';
 import 'package:iconsax/iconsax.dart';
 
 const _days = [
@@ -180,6 +181,7 @@ class _InformasiDokterPageState extends State<InformasiDokterPage> {
     final String specialty = doctor['poly_name'] ?? '';
     final dayKey = _days[_selectedDayIndex]['key']!;
     final String time = (doctor[dayKey] ?? '').toString().trim();
+    final int kuota = int.tryParse('${doctor['kuota_non_jkn'] ?? 0}') ?? 0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -250,22 +252,18 @@ class _InformasiDokterPageState extends State<InformasiDokterPage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.1),
+                        color: kuota < 10 
+                            ? AppColors.warning.withValues(alpha: 0.1) 
+                            : Colors.green.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.check_circle, size: 14, color: Colors.green),
-                          SizedBox(width: 4),
-                          Text(
-                            'Tersedia',
-                            style: TextStyle(
-                              color: Colors.green,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'Sisa kuota: $kuota',
+                        style: TextStyle(
+                          color: kuota < 10 ? AppColors.warning : Colors.green,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],

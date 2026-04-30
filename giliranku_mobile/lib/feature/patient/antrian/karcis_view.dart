@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:giliranku/feature/patient/antrian/antrian_view.dart';
-
-// ╔══════════════════════════════════════════════════════════════╗
-// ║                        KARCIS VIEW                          ║
-// ╚══════════════════════════════════════════════════════════════╝
+import 'package:giliranku/feature/patient/antrian/antrianUmumView.dart';
 
 class KarcisView extends StatefulWidget {
   final AntrianResult result;
@@ -19,14 +15,9 @@ class _KarcisViewState extends State<KarcisView>
   late AnimationController _checkCtrl;
   late Animation<double> _checkScale;
 
-  // ════════════════════════════════════════════════════════════
-  //  LIFECYCLE
-  // ════════════════════════════════════════════════════════════
-
   @override
   void initState() {
     super.initState();
-    // Animasi elastik pada ikon centang saat halaman pertama dibuka
     _checkCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 700));
     _checkScale =
@@ -43,10 +34,6 @@ class _KarcisViewState extends State<KarcisView>
     _checkCtrl.dispose();
     super.dispose();
   }
-
-  // ════════════════════════════════════════════════════════════
-  //  BUILD UTAMA
-  // ════════════════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
@@ -83,11 +70,6 @@ class _KarcisViewState extends State<KarcisView>
     );
   }
 
-  // ════════════════════════════════════════════════════════════
-  //  WIDGET BUILDER
-  // ════════════════════════════════════════════════════════════
-
-  /// Banner konfirmasi di atas halaman dengan ikon centang animasi elastik.
   Widget _buildBanner() {
     return Container(
       width: double.infinity,
@@ -132,8 +114,6 @@ class _KarcisViewState extends State<KarcisView>
     );
   }
 
-  /// Kartu karcis utama: nomor antrian, kode booking,
-  /// detail info (poli, dokter, tanggal, waktu, pembayaran), dan QR code.
   Widget _buildKarcisCard() {
     return Container(
       width: double.infinity,
@@ -148,7 +128,6 @@ class _KarcisViewState extends State<KarcisView>
         ],
       ),
       child: Column(children: [
-        // -- Header: Nomor Antrian --
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 32),
@@ -173,7 +152,6 @@ class _KarcisViewState extends State<KarcisView>
                     letterSpacing: -2,
                     height: 1)),
             const SizedBox(height: 16),
-            // Kode booking dalam pill
             Container(
               padding:
                   const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -201,7 +179,6 @@ class _KarcisViewState extends State<KarcisView>
 
         _dashedDivider(),
 
-        // -- Body: Detail Info --
         Padding(
           padding: const EdgeInsets.all(24),
           child: Column(children: [
@@ -222,7 +199,6 @@ class _KarcisViewState extends State<KarcisView>
           ]),
         ),
 
-        // -- Footer: QR Code --
         Container(
           margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
           padding: const EdgeInsets.all(20),
@@ -255,8 +231,6 @@ class _KarcisViewState extends State<KarcisView>
     );
   }
 
-  /// Divider garis putus-putus dengan setengah lingkaran di kiri-kanan
-  /// untuk efek visual seperti tiket fisik.
   Widget _dashedDivider() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -284,7 +258,6 @@ class _KarcisViewState extends State<KarcisView>
     );
   }
 
-  /// Baris info dengan icon, label di kiri, dan nilai di kanan.
   Widget _infoRow(IconData icon, String label, String value) {
     return Row(children: [
       Container(
@@ -310,7 +283,6 @@ class _KarcisViewState extends State<KarcisView>
     ]);
   }
 
-  /// Box tips kuning — mengingatkan pasien datang 15 menit lebih awal.
   Widget _buildTip() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -341,7 +313,6 @@ class _KarcisViewState extends State<KarcisView>
     );
   }
 
-  /// Tombol aksi: Simpan PDF dan Kembali ke Beranda.
   Widget _buildActions() {
     return Column(children: [
       SizedBox(
@@ -383,11 +354,6 @@ class _KarcisViewState extends State<KarcisView>
   }
 }
 
-// ╔══════════════════════════════════════════════════════════════╗
-// ║                         PAINTERS                            ║
-// ╚══════════════════════════════════════════════════════════════╝
-
-/// Painter untuk garis putus-putus horizontal pada divider tiket.
 class _DashPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -405,8 +371,6 @@ class _DashPainter extends CustomPainter {
   bool shouldRepaint(_) => false;
 }
 
-/// Painter untuk simulasi QR code statis menggunakan grid 7×7.
-/// Hanya untuk keperluan tampilan/placeholder — bukan QR code fungsional.
 class _QRPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

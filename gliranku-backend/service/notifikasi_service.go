@@ -74,3 +74,7 @@ func (s *NotifikasiService) ProcessPendingNotifications() (int, error) {
 	}
 	return count, nil
 }
+
+func (s *NotifikasiService) DeleteNotifikasi(id int) error {
+	return s.NotifikasiRepo.Delete(id)
+}

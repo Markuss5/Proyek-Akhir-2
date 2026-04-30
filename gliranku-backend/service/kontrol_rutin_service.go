@@ -25,12 +25,7 @@ func NewKontrolRutinService(
 	}
 }
 
-// CreateKontrolRutin creates a routine control and auto-generates 3 notifications:
-// - 7 days before the control date
-// - 3 days before the control date
-// - 1 day before the control date
 func (s *KontrolRutinService) CreateKontrolRutin(nik string, controlDate time.Time, notes *string) (*models.KontrolRutin, error) {
-	// Validate patient exists
 	pasien, err := s.PasienRepo.FindByNIK(nik)
 	if err != nil {
 		return nil, fmt.Errorf("gagal mencari data pasien: %w", err)
@@ -39,7 +34,6 @@ func (s *KontrolRutinService) CreateKontrolRutin(nik string, controlDate time.Ti
 		return nil, fmt.Errorf("pasien dengan NIK %s tidak ditemukan", nik)
 	}
 
-	// Create the kontrol rutin record
 	kr := &models.KontrolRutin{
 		ControlDate: controlDate,
 		Notes:       notes,
@@ -51,12 +45,10 @@ func (s *KontrolRutinService) CreateKontrolRutin(nik string, controlDate time.Ti
 		return nil, fmt.Errorf("gagal membuat jadwal kontrol: %w", err)
 	}
 
-	// Auto-generate 3 notifications at 7, 3, and 1 day(s) before
 	reminderDays := []int{7, 3, 1}
 	for _, daysBefore := range reminderDays {
 		scheduledDate := controlDate.AddDate(0, 0, -daysBefore)
 
-		// Only create notification if the scheduled date is today or in the future
 		if scheduledDate.Before(time.Now().Truncate(24 * time.Hour)) {
 			continue
 		}
@@ -76,8 +68,27 @@ func (s *KontrolRutinService) CreateKontrolRutin(nik string, controlDate time.Ti
 
 		_, err := s.NotifikasiRepo.Create(notif)
 		if err != nil {
-			// Log but don't fail the main operation
 			fmt.Printf("Warning: gagal membuat notifikasi %d hari sebelum: %v\n", daysBefore, err)
+		}
+	}
+
+	oneHourBefore := controlDate.Add(-1 * time.Hour)
+	if oneHourBefore.After(time.Now()) {
+		message := fmt.Sprintf(
+			"Jadwal kontrol rutin Anda 1 jam lagi (pukul %s). Segera menuju RSUD Porsea.",
+			controlDate.Format("15:04"),
+		)
+
+		notif := &models.Notifikasi{
+			Message:       message,
+			ScheduledDate: oneHourBefore,
+			IsSent:        false,
+			NIK:           nik,
+		}
+
+		_, err := s.NotifikasiRepo.Create(notif)
+		if err != nil {
+			fmt.Printf("Warning: gagal membuat notifikasi 1 jam sebelum: %v\n", err)
 		}
 	}
 

@@ -117,8 +117,6 @@ class _HomeHeader extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const Spacer(),
-                          const _GlassIconBtn(icon: Iconsax.notification),
                         ],
                       ),
                     ),

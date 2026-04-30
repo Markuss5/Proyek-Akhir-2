@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/widgets/header.dart';
-import 'package:giliranku/feature/patient/antrian/antrian_view.dart';
+import 'package:giliranku/feature/patient/antrian/antrianUmumView.dart';
 import 'package:giliranku/feature/patient/antrian/karcis_view.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -33,10 +33,6 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
       widget.patientData != null &&
       widget.patientData!.containsKey('nik');
 
-  // ════════════════════════════════════════════════════════════
-  //  LIFECYCLE
-  // ════════════════════════════════════════════════════════════
-
   @override
   void initState() {
     super.initState();
@@ -58,10 +54,6 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
     _rujukanCtrl.dispose();
     super.dispose();
   }
-
-  // ════════════════════════════════════════════════════════════
-  //  AKSI
-  // ════════════════════════════════════════════════════════════
 
   Future<void> _daftarAntrian() async {
     setState(() {
@@ -131,10 +123,6 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
     ));
   }
 
-  // ════════════════════════════════════════════════════════════
-  //  BUILD
-  // ════════════════════════════════════════════════════════════
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -178,10 +166,6 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
       ),
     );
   }
-
-  // ════════════════════════════════════════════════════════════
-  //  WIDGET BUILDER
-  // ════════════════════════════════════════════════════════════
 
   Widget _buildLoggedInBanner() {
     return Container(

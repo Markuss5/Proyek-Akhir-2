@@ -25,7 +25,6 @@ class _PatientProfilViewState extends State<PatientProfilView> {
         : null;
   }
 
-  // LOGIKA STATUS LOGIN
   bool get _isLoggedIn => _data != null && _data!.containsKey('nik');
   String get _name => _isLoggedIn ? (_data!['patient_name'] ?? 'Pasien') : 'Tamu';
   String get _nik => _isLoggedIn ? (_data!['nik'] ?? '-') : '-';
@@ -143,16 +142,12 @@ class _PatientProfilViewState extends State<PatientProfilView> {
           const Expanded(
             child: Text(
               "Profil",
-              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold
+              ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.settings, color: Colors.white, size: 18),
           ),
         ],
       ),

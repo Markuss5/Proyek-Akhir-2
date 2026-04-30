@@ -16,7 +16,7 @@ type KontrolRutinResponse struct {
 func FromKontrolRutin(kr models.KontrolRutin) KontrolRutinResponse {
 	return KontrolRutinResponse{
 		ControlID:   kr.ControlID,
-		ControlDate: kr.ControlDate.Format("2006-01-02"),
+		ControlDate: kr.ControlDate.Format(time.RFC3339),
 		Notes:       kr.Notes,
 		CreatedAt:   kr.CreatedAt,
 		NIK:         kr.NIK,

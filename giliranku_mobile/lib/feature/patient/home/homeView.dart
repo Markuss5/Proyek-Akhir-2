@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:giliranku/feature/patient/antrian/Antrianmenu.dart';
+import 'package:giliranku/feature/patient/antrian/antrianMenuView.dart';
 import 'package:giliranku/feature/patient/informasi/informasiMenuView.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:giliranku/feature/patient/profil/patientProfilView.dart';
@@ -8,6 +8,7 @@ import 'package:giliranku/feature/patient/notifikasi/notifikasiView.dart';
 import 'package:giliranku/core/theme/theme.dart';
 import 'package:giliranku/core/widgets/navbar.dart';
 import 'package:giliranku/core/widgets/header.dart';
+import 'package:giliranku/core/datasources/apiDataSource.dart';
 
 class HomeView extends StatefulWidget {
   final Map<String, dynamic>? patientData;
@@ -29,9 +30,9 @@ class _HomeViewState extends State<HomeView> {
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       _BerandaTab(patientData: widget.patientData, onSwitchTab: _switchTab),
-      const InformasiMenuPage(),
-      AntrianMenuView(),
-      PatientProfilView(patientData: widget.patientData),
+      InformasiMenuPage(onSwitchTab: _switchTab),
+      AntrianMenuView(onSwitchTab: _switchTab, patientData: widget.patientData),
+      PatientProfilView(patientData: widget.patientData, onSwitchTab: _switchTab),
     ];
 
     return Scaffold(
@@ -45,15 +46,39 @@ class _HomeViewState extends State<HomeView> {
   }
 }
 
-class _BerandaTab extends StatelessWidget {
+class _BerandaTab extends StatefulWidget {
   final Map<String, dynamic>? patientData;
   final void Function(int) onSwitchTab;
 
   const _BerandaTab({this.patientData, required this.onSwitchTab});
 
-  bool get _isLoggedIn => patientData != null && patientData!.containsKey('nik');
-  String? get _nik     => _isLoggedIn ? patientData!['nik'] : null;
-  String get _name     => _isLoggedIn ? (patientData!['patient_name'] ?? 'Pasien') : 'Tamu';
+  @override
+  State<_BerandaTab> createState() => _BerandaTabState();
+}
+
+class _BerandaTabState extends State<_BerandaTab> {
+  bool get _isLoggedIn => widget.patientData != null && widget.patientData!.containsKey('nik');
+  String? get _nik     => _isLoggedIn ? widget.patientData!['nik'] : null;
+  String get _name     => _isLoggedIn ? (widget.patientData!['patient_name'] ?? 'Pasien') : 'Tamu';
+
+  Map<String, dynamic>? _infoData;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchInfo();
+  }
+
+  Future<void> _fetchInfo() async {
+    final info = await ApiDataSource().getInformasi();
+    if (mounted) {
+      setState(() {
+        _infoData = info;
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +99,11 @@ class _BerandaTab extends StatelessWidget {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
 
-                _OperasionalBadge(),
+                if (!_isLoading && _infoData != null)
+                  _OperasionalBadge(infoData: _infoData!)
+                else
+                  const SizedBox(height: 48, child: Center(child: CircularProgressIndicator())),
+                
                 const SizedBox(height: 10),
 
                 _ReminderCard(
@@ -85,11 +114,14 @@ class _BerandaTab extends StatelessWidget {
                 const SizedBox(height: 22),
                 const _SectionHeader(title: 'Layanan Utama', sub: 'Pilih layanan yang tersedia'),
                 const SizedBox(height: 10),
-                _MenuGrid(nik: _nik, onSwitchTab: onSwitchTab),
+                _MenuGrid(nik: _nik, onSwitchTab: widget.onSwitchTab),
                 const SizedBox(height: 14),
                 const _SectionHeader(title: 'Info Rumah Sakit', sub: 'RSUD Porsea'),
                 const SizedBox(height: 12),
-                _HospitalCard(),
+                if (!_isLoading && _infoData != null)
+                  _HospitalCard(infoData: _infoData!)
+                else
+                  const SizedBox(height: 150, child: Center(child: CircularProgressIndicator())),
               ]),
             ),
           ),
@@ -100,8 +132,49 @@ class _BerandaTab extends StatelessWidget {
 }
 
 class _OperasionalBadge extends StatelessWidget {
+  final Map<String, dynamic> infoData;
+  const _OperasionalBadge({required this.infoData});
+
   @override
   Widget build(BuildContext context) {
+    final opHours = infoData['op_hours'] as Map<String, dynamic>?;
+    final now = DateTime.now();
+    final isSunday = now.weekday == DateTime.sunday;
+    
+    final String todaySchedule = isSunday 
+        ? (opHours?['Minggu'] ?? 'Libur (Kecuali IGD)')
+        : (opHours?['Senin - Sabtu'] ?? '08:00 - 16:00 WIB');
+    
+    bool isOpen = false;
+    if (!todaySchedule.toLowerCase().contains('libur')) {
+      try {
+        final parts = todaySchedule.split('-');
+        if (parts.length >= 2) {
+          final start = parts[0].trim().split(':');
+          final endStr = parts[1].replaceAll('WIB', '').trim().split(':');
+          
+          final startH = int.parse(start[0]);
+          final startM = int.parse(start[1]);
+          final endH = int.parse(endStr[0]);
+          final endM = int.parse(endStr[1]);
+
+          final nowTime = now.hour * 60 + now.minute;
+          final startTime = startH * 60 + startM;
+          final endTime = endH * 60 + endM;
+
+          isOpen = nowTime >= startTime && nowTime <= endTime;
+        } else {
+          isOpen = true; // fallback
+        }
+      } catch (_) {
+        isOpen = true;
+      }
+    }
+
+    final statusText = isOpen ? 'Sedang Buka' : 'Rumah Sakit Sedang Tutup';
+    final statusColor = isOpen ? const Color(0xFF22C55E) : AppColors.error;
+    final String dayPrefix = isSunday ? 'Minggu' : 'Senin - Sabtu';
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
@@ -119,23 +192,23 @@ class _OperasionalBadge extends StatelessWidget {
         children: [
           Container(
             width: 8, height: 8,
-            decoration: const BoxDecoration(
-                color: Color(0xFF22C55E), shape: BoxShape.circle),
+            decoration: BoxDecoration(
+                color: statusColor, shape: BoxShape.circle),
           ),
           const SizedBox(width: 8),
-          const Text('Sedang Buka',
+          Text(statusText,
               style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF22C55E))),
+                  color: statusColor)),
           const SizedBox(width: 6),
           const Text('·',
               style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
           const SizedBox(width: 6),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Senin - Sabtu, 08:00 - 16:00 WIB',
-              style: TextStyle(
+              '$dayPrefix, $todaySchedule',
+              style: const TextStyle(
                   fontSize: 12,
                   color: AppColors.textSecondary,
                   fontWeight: FontWeight.w500),
@@ -405,8 +478,22 @@ class _ReminderCard extends StatelessWidget {
 }
 
 class _HospitalCard extends StatelessWidget {
+  final Map<String, dynamic> infoData;
+  const _HospitalCard({required this.infoData});
+
   @override
   Widget build(BuildContext context) {
+    final String name = infoData['name'] ?? 'RSUD Porsea';
+    final String address = infoData['address'] ?? 'Jl. Patuan Nagari, Porsea, Kab. Toba';
+    final String phone = infoData['phone'] ?? '(0632) 41012';
+    
+    final opHoursMap = infoData['op_hours'] as Map<String, dynamic>?;
+    final now = DateTime.now();
+    final isSunday = now.weekday == DateTime.sunday;
+    final String opHours = isSunday 
+        ? 'Minggu: ${opHoursMap?['Minggu'] ?? 'Libur'}'
+        : 'Senin-Sabtu: ${opHoursMap?['Senin - Sabtu'] ?? '08:00-16:00 WIB'}';
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -443,18 +530,20 @@ class _HospitalCard extends StatelessWidget {
                   child: const Icon(Iconsax.hospital, color: Colors.white, size: 18),
                 ),
                 const SizedBox(width: 11),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('RSUD Porsea',
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary)),
-                    Text('Rumah Sakit Umum Daerah',
-                        style: TextStyle(
-                            fontSize: 11, color: AppColors.textSecondary)),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name,
+                          style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary)),
+                      const Text('Rumah Sakit Umum Daerah',
+                          style: TextStyle(
+                              fontSize: 11, color: AppColors.textSecondary)),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -465,18 +554,18 @@ class _HospitalCard extends StatelessWidget {
               children: [
                 _InfoRow(
                     icon: Iconsax.location,
-                    value: 'Jl. Sutomo No.5, Porsea, Toba',
+                    value: address,
                     color: AppColors.primary),
                 const _Divider(),
                 _InfoRow(
                     icon: Iconsax.clock,
-                    value: 'Senin-Sabtu: 08:00-16:00 WIB',
+                    value: opHours,
                     color: AppColors.gold),
                 const _Divider(),
                 _InfoRow(
                     icon: Iconsax.call,
-                    value: '(0632) 331088',
-                    color: Color(0xFF3B82F6)),
+                    value: phone,
+                    color: const Color(0xFF3B82F6)),
               ],
             ),
           ),

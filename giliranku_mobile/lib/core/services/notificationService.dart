@@ -15,20 +15,16 @@ class NotificationService {
 
   bool _initialized = false;
 
-  /// Initialize the notification service. Call this once at app startup.
   Future<void> initialize() async {
     if (_initialized) return;
 
-    // Initialize timezone data
     tz.initializeTimeZones();
     final String timeZoneName = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(timeZoneName));
 
-    // Android initialization settings
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    // iOS initialization settings
     const DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings(
           requestAlertPermission: true,
@@ -46,7 +42,6 @@ class NotificationService {
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
 
-    // Request permission on Android 13+
     if (Platform.isAndroid) {
       final AndroidFlutterLocalNotificationsPlugin? androidPlugin =
           _notificationsPlugin
@@ -61,12 +56,10 @@ class NotificationService {
     debugPrint('notifikasiService initialized');
   }
 
-  /// Handle notification tap
   void _onNotificationTapped(NotificationResponse response) {
     debugPrint('Notification tapped: ${response.payload}');
   }
 
-  /// Show a notification immediately (for past-due or test).
   Future<void> showNow({
     required int id,
     required String title,
@@ -111,9 +104,6 @@ class NotificationService {
     debugPrint('Notification $id shown immediately');
   }
 
-  /// Schedule a notification at a specific date and time.
-  /// If the scheduled time is in the past but TODAY, show it immediately.
-  /// If it's a past day entirely, skip it.
   Future<void> scheduleNotification({
     required int id,
     required String title,
@@ -127,9 +117,7 @@ class NotificationService {
       tz.local,
     );
 
-    // If scheduled time already passed
     if (scheduledTZDate.isBefore(now)) {
-      // If it's still today, show immediately
       if (scheduledTZDate.year == now.year &&
           scheduledTZDate.month == now.month &&
           scheduledTZDate.day == now.day) {
@@ -137,7 +125,6 @@ class NotificationService {
         await showNow(id: id, title: title, body: body, payload: payload);
         return;
       }
-      // Past day entirely — skip
       debugPrint('Skipping notification $id: scheduled date is in the past');
       return;
     }
@@ -187,8 +174,6 @@ class NotificationService {
     );
   }
 
-  /// Schedule the 3 kontrol rutin reminders: H-7, H-3, H-1
-  /// Notifications fire at 09:00 AM on each reminder day.
   Future<void> scheduleKontrolRutinReminders({
     required int controlId,
     required DateTime controlDate,
@@ -198,7 +183,6 @@ class NotificationService {
     final List<int> reminderDays = [7, 3, 1];
 
     for (final int daysBefore in reminderDays) {
-      // Set notification time to exact 24 hours before (keep the hour/minute intact)
       final DateTime reminderDate = DateTime(
         controlDate.year,
         controlDate.month,
@@ -207,8 +191,7 @@ class NotificationService {
         controlDate.minute,
       );
 
-      // Unique ID per control per reminder tier (safely within 32-bit int limit for Android)
-      final int baseId = controlId % 100000000; // Take last 8 digits
+      final int baseId = controlId % 100000000;
       final int notifId = baseId * 10 + daysBefore;
 
       String body;
@@ -232,19 +215,36 @@ class NotificationService {
         payload: 'kontrol_rutin_$controlId',
       );
     }
+
+    final DateTime oneHourBefore = controlDate.subtract(const Duration(hours: 1));
+    final int baseId = controlId % 100000000;
+    final int oneHourNotifId = baseId * 10;
+
+    String oneHourBody =
+        'Jadwal kontrol rutin Anda di RSUD Porsea 1 jam lagi (${_formatDate(controlDate)}, ${controlDate.hour.toString().padLeft(2, '0')}:${controlDate.minute.toString().padLeft(2, '0')}).';
+
+    if (notes != null && notes.isNotEmpty) {
+      oneHourBody += ' Catatan: $notes';
+    }
+
+    await scheduleNotification(
+      id: oneHourNotifId,
+      title: 'Pengingat Kontrol Rutin - 1 Jam Lagi',
+      body: oneHourBody,
+      scheduledDate: oneHourBefore,
+      payload: 'kontrol_rutin_$controlId',
+    );
   }
 
-  /// Cancel all notifications for a specific control
   Future<void> cancelKontrolRutinReminders(int controlId) async {
     final int baseId = controlId % 100000000;
-    for (final int daysBefore in [7, 3, 1]) {
-      final int notifId = baseId * 10 + daysBefore;
+    for (final int suffix in [7, 3, 1, 0]) {
+      final int notifId = baseId * 10 + suffix;
       await _notificationsPlugin.cancel(notifId);
     }
     debugPrint('Cancelled all reminders for control $controlId');
   }
 
-  /// Cancel all pending notifications
   Future<void> cancelAll() async {
     await _notificationsPlugin.cancelAll();
   }

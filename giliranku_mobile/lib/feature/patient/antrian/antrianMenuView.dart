@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:giliranku/core/widgets/header.dart';
-import 'package:giliranku/feature/patient/antrian/antrian_view.dart';
-import 'package:giliranku/feature/patient/antrian/antrian_bpjs_view.dart';
+import 'package:giliranku/feature/patient/antrian/antrianUmumView.dart';
+import 'package:giliranku/feature/patient/antrian/antrianBPJSView.dart';
 import 'package:iconsax/iconsax.dart';
 
 class AntrianMenuView extends StatelessWidget {
-  const AntrianMenuView({super.key});
+  final void Function(int)? onSwitchTab;
+  final Map<String, dynamic>? patientData;
+  const AntrianMenuView({super.key, this.onSwitchTab, this.patientData});
 
   void _keBpjs(BuildContext context) {
   HapticFeedback.lightImpact();
@@ -18,7 +19,7 @@ class AntrianMenuView extends StatelessWidget {
   void _keUmum(BuildContext context) {
     HapticFeedback.lightImpact();
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const AntrianView()),
+      MaterialPageRoute(builder: (_) => AntrianView(patientData: patientData)),
     );
   }
 
@@ -30,12 +31,7 @@ class AntrianMenuView extends StatelessWidget {
         top: false,
         child: Column(
           children: [
-            AppHeader(
-              mode: HeaderMode.page,
-              title: 'Ambil Antrian',
-              subtitle: 'RSUD Porsea',
-              pageIcon: Iconsax.ticket,
-            ),
+            _buildMenuHeader(context),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -61,23 +57,21 @@ class AntrianMenuView extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
 
-                    // Kartu BPJS
                     _TipeCard(
                       icon: Iconsax.shield_tick,
                       title: 'Pasien BPJS',
                       subtitle: 'Peserta JKN / KIS',
                       color: const Color(0xFF0D9B86),
-                      onTap: () => _keBpjs(context), // ← belum ada halamannya
+                      onTap: () => _keBpjs(context),
                     ),
                     const SizedBox(height: 12),
 
-                    // Kartu Umum
                     _TipeCard(
                       icon: Iconsax.people,
                       title: 'Pasien Umum',
                       subtitle: 'Pembayaran mandiri',
                       color: const Color(0xFF6366F1),
-                      onTap: () => _keUmum(context), // ← ke AntrianView
+                      onTap: () => _keUmum(context),
                     ),
                   ],
                 ),
@@ -85,6 +79,63 @@ class AntrianMenuView extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMenuHeader(BuildContext context) {
+    final topPad = MediaQuery.of(context).padding.top;
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(20, topPad + 16, 20, 20),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFF0DB89E),
+            Color(0xFF0A6B5C),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(24),
+        ),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () {
+              if (onSwitchTab != null) {
+                onSwitchTab!(0);
+              } else {
+                Navigator.pop(context);
+              }
+            },
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.arrow_back,
+                  color: Colors.white, size: 18),
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          const Expanded(
+            child: Text(
+              "Ambil Antrian",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

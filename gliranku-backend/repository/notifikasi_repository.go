@@ -104,3 +104,9 @@ func (r *NotifikasiRepository) MarkAsSent(id int) error {
 	_, err := r.DB.Exec(query, time.Now(), id)
 	return err
 }
+
+func (r *NotifikasiRepository) Delete(id int) error {
+	query := `DELETE FROM notifikasi WHERE notificationid = $1`
+	_, err := r.DB.Exec(query, id)
+	return err
+}

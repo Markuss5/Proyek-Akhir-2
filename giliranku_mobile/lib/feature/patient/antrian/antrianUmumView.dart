@@ -5,10 +5,6 @@ import 'package:giliranku/core/widgets/header.dart';
 import 'package:giliranku/feature/patient/antrian/karcis_view.dart';
 import 'package:iconsax/iconsax.dart';
 
-// ─────────────────────────────────────────────────────────────
-//  MODEL LOKAL
-// ─────────────────────────────────────────────────────────────
-
 class JenisLayanan {
   final int id;
   final String nama;
@@ -25,13 +21,17 @@ class JenisLayanan {
 class Dokter {
   final int id;
   final String nama;
-  const Dokter({required this.id, required this.nama});
+  final int kuotaNonJKN;
+  const Dokter({required this.id, required this.nama, this.kuotaNonJKN = 0});
 
   factory Dokter.fromJson(Map<String, dynamic> j) => Dokter(
-        id: (j['id'] ?? 0) is int
-            ? (j['id'] ?? 0)
-            : int.tryParse('${j['id'] ?? 0}') ?? 0,
-        nama: j['nama'] ?? j['doctor_name'] ?? '',
+        id: (j['doctor_id'] ?? j['id'] ?? 0) is int
+            ? (j['doctor_id'] ?? j['id'] ?? 0)
+            : int.tryParse('${j['doctor_id'] ?? j['id'] ?? 0}') ?? 0,
+        nama: j['doctor_name'] ?? j['nama'] ?? '',
+        kuotaNonJKN: (j['kuota_non_jkn'] ?? 0) is int
+            ? (j['kuota_non_jkn'] ?? 0)
+            : int.tryParse('${j['kuota_non_jkn'] ?? 0}') ?? 0,
       );
 }
 
@@ -64,10 +64,6 @@ class AntrianResult {
         pembayaran: j['pembayaran'] ?? 'Umum',
       );
 }
-
-// ─────────────────────────────────────────────────────────────
-//  ANTRIAN VIEW
-// ─────────────────────────────────────────────────────────────
 
 class AntrianView extends StatefulWidget {
   final Map<String, dynamic>? patientData;
@@ -108,10 +104,6 @@ class _AntrianViewState extends State<AntrianView>
       widget.patientData != null &&
       widget.patientData!.containsKey('nik');
 
-  // ════════════════════════════════════════════════════════════
-  //  LIFECYCLE
-  // ════════════════════════════════════════════════════════════
-
   @override
   void initState() {
     super.initState();
@@ -119,10 +111,13 @@ class _AntrianViewState extends State<AntrianView>
         vsync: this, duration: const Duration(milliseconds: 500));
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
 
-    // Auto-fill jika sudah login
     if (_isLoggedIn) {
       _nikCtrl.text  = widget.patientData!['nik'] ?? '';
       _namaCtrl.text = widget.patientData!['patient_name'] ?? '';
+      final phone = widget.patientData!['phone'] as String?;
+      if (phone != null && phone.isNotEmpty) {
+        _teleponCtrl.text = phone;
+      }
     }
 
     _loadLayanan();
@@ -138,13 +133,9 @@ class _AntrianViewState extends State<AntrianView>
     super.dispose();
   }
 
-  // ════════════════════════════════════════════════════════════
-  //  DATA / API
-  // ════════════════════════════════════════════════════════════
-
   Future<void> _loadLayanan() async {
     try {
-      final list = await _api.getJenisLayanan();
+      final list = await _api.fetchPoliklinik();
       if (!mounted) return;
       setState(() {
         _layananList = list.map((e) => JenisLayanan.fromJson(e)).toList();
@@ -165,11 +156,8 @@ class _AntrianViewState extends State<AntrianView>
       _dokterList = [];
     });
     try {
-      final res = await _api.getDokterByPoli(poliId);
+      final list = await _api.getDokterByPoli(poliId);
       if (!mounted) return;
-      
-      // Cast ke List dengan aman
-      final list = (res as List?)?.cast<Map<String, dynamic>>() ?? [];
       
       setState(() {
         _dokterList = list.map((e) => Dokter.fromJson(e)).toList();
@@ -239,10 +227,6 @@ class _AntrianViewState extends State<AntrianView>
     }
   }
 
-  // ════════════════════════════════════════════════════════════
-  //  NAVIGASI & HELPER
-  // ════════════════════════════════════════════════════════════
-
   void _goToKarcis(AntrianResult result) {
     Navigator.of(context).push(PageRouteBuilder(
       pageBuilder: (_, a, __) => KarcisView(result: result),
@@ -296,10 +280,6 @@ class _AntrianViewState extends State<AntrianView>
     ));
   }
 
-  // ════════════════════════════════════════════════════════════
-  //  BUILD UTAMA
-  // ════════════════════════════════════════════════════════════
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -324,11 +304,6 @@ class _AntrianViewState extends State<AntrianView>
                           padding: const EdgeInsets.all(20),
                           child: Column(
                             children: [
-                              // Banner auto-fill jika sudah login
-                              if (_isLoggedIn) ...[
-                                _buildLoggedInBanner(),
-                                const SizedBox(height: 16),
-                              ],
                               _buildFormCard(),
                               const SizedBox(height: 28),
                               _buildDaftarButton(),
@@ -345,38 +320,7 @@ class _AntrianViewState extends State<AntrianView>
     );
   }
 
-  // ════════════════════════════════════════════════════════════
-  //  WIDGET BUILDER
-  // ════════════════════════════════════════════════════════════
-
-  Widget _buildLoggedInBanner() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE6F7F5),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-            color: const Color(0xFF0D9B86).withValues(alpha: 0.3), width: 1.5),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.check_circle_rounded,
-              color: Color(0xFF0D9B86), size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'NIK & nama diisi otomatis dari akun Anda',
-              style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF065F46),
-                  fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
+  
   Widget _buildFormCard() {
     return Container(
       decoration: BoxDecoration(
@@ -396,7 +340,6 @@ class _AntrianViewState extends State<AntrianView>
           _label('Data Pasien'),
           const SizedBox(height: 16),
 
-          // NIK / No. BPJS
           _field(
             ctrl: _nikCtrl,
             label: 'NIK / No. BPJS',
@@ -405,23 +348,19 @@ class _AntrianViewState extends State<AntrianView>
             keyboardType: TextInputType.number,
             maxLength: 16,
             errorText: _nikError,
-            readOnly: _isLoggedIn,
             formatters: [FilteringTextInputFormatter.digitsOnly],
           ),
           const SizedBox(height: 16),
 
-          // Nama Lengkap
           _field(
             ctrl: _namaCtrl,
             label: 'Nama Lengkap',
             hint: 'Masukkan nama lengkap',
             icon: Icons.person_outline_rounded,
             errorText: _namaError,
-            readOnly: _isLoggedIn,
           ),
           const SizedBox(height: 16),
 
-          // Nomor Telepon
           _field(
             ctrl: _teleponCtrl,
             label: 'Nomor Telepon',
@@ -431,7 +370,6 @@ class _AntrianViewState extends State<AntrianView>
           ),
           const SizedBox(height: 16),
 
-          // Tanggal Kunjungan
           _fieldTanggal(),
           const SizedBox(height: 20),
 
@@ -661,7 +599,7 @@ class _AntrianViewState extends State<AntrianView>
             Icon(Icons.person_search_outlined,
                 color: Color(0xFFD1D5DB), size: 20),
             SizedBox(width: 12),
-            Text('Pilih poliklinik dulu',
+            Text('Pilih poliklinik terlebih dahulu',
                 style: TextStyle(
                     color: Color(0xFFBFC5CF), fontSize: 14)),
           ],
@@ -727,10 +665,36 @@ class _AntrianViewState extends State<AntrianView>
                     child: Padding(
                       padding:
                           const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(d.nama,
-                          style: const TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF111827))),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(d.nama,
+                                style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xFF111827))),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: d.kuotaNonJKN > 0
+                                  ? const Color(0xFFD1FAE5)
+                                  : const Color(0xFFFEE2E2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Kuota: ${d.kuotaNonJKN}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: d.kuotaNonJKN > 0
+                                    ? const Color(0xFF065F46)
+                                    : const Color(0xFF991B1B),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ))
               .toList(),

@@ -95,3 +95,21 @@ func (ctrl *NotifikasiController) ProcessPending(c *gin.Context) {
 
 	utils.Success(c, http.StatusOK, "Notifikasi pending berhasil diproses", gin.H{"processed_count": count})
 }
+
+// DELETE /api/v1/notifikasi/:id
+func (ctrl *NotifikasiController) Delete(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		utils.Error(c, http.StatusBadRequest, "ID tidak valid")
+		return
+	}
+
+	err = ctrl.Service.DeleteNotifikasi(id)
+	if err != nil {
+		utils.Error(c, http.StatusInternalServerError, "Gagal menghapus notifikasi")
+		return
+	}
+
+	utils.Success(c, http.StatusOK, "Notifikasi berhasil dihapus", nil)
+}

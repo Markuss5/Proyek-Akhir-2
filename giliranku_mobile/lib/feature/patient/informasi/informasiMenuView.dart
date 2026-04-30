@@ -126,18 +126,9 @@ class InformasiMenuPage extends StatelessWidget {
                 color: Colors.white,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                
               ),
             ),
-          ),
-
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.grid_view_rounded,
-                color: Colors.white, size: 18),
           ),
         ],
       ),

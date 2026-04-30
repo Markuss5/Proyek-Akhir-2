@@ -6,7 +6,6 @@ import 'package:giliranku/core/models/pasienModel.dart';
 import 'package:giliranku/core/models/kontrolRutinModel.dart';
 import 'package:giliranku/core/models/notifikasiModel.dart';
 
-/// The single class responsible for all outbound HTTP calls.
 class ApiDataSource {
   static final ApiDataSource _instance = ApiDataSource._internal();
   factory ApiDataSource() => _instance;
@@ -17,8 +16,6 @@ class ApiDataSource {
 
   Uri _uri(String endpoint) => Uri.parse('${ApiConstants.baseUrl}$endpoint');
   Map<String, String> get _jsonHeaders => {'Content-Type': 'application/json'};
-
-  // ══ PASIEN ════════════════════════════════════════════════════════════════
 
   Future<PasienModel?> loginPasien(String nik, String name) async {
     try {
@@ -82,8 +79,6 @@ class ApiDataSource {
     return null;
   }
 
-  // ══ INFORMASI ═════════════════════════════════════════════════════════════
-
   Future<Map<String, dynamic>?> getInformasi() async {
     try {
       final res = await _client.get(_uri(ApiConstants.informasi)).timeout(_timeout);
@@ -111,8 +106,6 @@ class ApiDataSource {
       return false;
     }
   }
-
-  // ══ POLIKLINIK & DOKTER ═══════════════════════════════════════════════════
 
   Future<List<Map<String, dynamic>>> fetchPoliklinik() async {
     try {
@@ -209,8 +202,6 @@ class ApiDataSource {
     }
   }
 
-  // ══ KONTROL RUTIN ═════════════════════════════════════════════════════════
-
   Future<List<KontrolRutinModel>> fetchAllKontrolRutin() async {
     try {
       final res = await _client
@@ -289,8 +280,6 @@ class ApiDataSource {
     return false;
   }
 
-  // ══ NOTIFIKASI ════════════════════════════════════════════════════════════
-
   Future<List<NotifikasiModel>> fetchNotifikasiByNik(String nik) async {
     try {
       final res = await _client
@@ -309,7 +298,17 @@ class ApiDataSource {
     return [];
   }
 
-  // ══ PASIEN LOOKUP FOR NIK VALIDATION ══════════════════════════════════════
+  Future<bool> deleteNotifikasi(int id) async {
+    try {
+      final res = await _client
+          .delete(_uri('${ApiConstants.notifikasi}/$id'))
+          .timeout(_timeout);
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('ApiDataSource.deleteNotifikasi: $e');
+    }
+    return false;
+  }
 
   Future<bool> nikExists(String nik) async {
     try {
@@ -323,10 +322,6 @@ class ApiDataSource {
     return false;
   }
 
-  // ══ ANTRIAN ═══════════════════════════════════════════════════════════════
-
-  /// GET /api/antrian/layanan
-  /// Sesuai sequence 1.1 → tampilkan jenis layanan
   Future<List<Map<String, dynamic>>> getJenisLayanan() async {
     try {
       final res = await _client
@@ -341,7 +336,6 @@ class ApiDataSource {
     } catch (e) {
       debugPrint('ApiDataSource.getJenisLayanan: $e');
     }
-    // Fallback dummy — UI tetap jalan walau backend belum aktif
     return [
       {'id': 1, 'nama': 'Poli Umum', 'kode': 'PU'},
       {'id': 2, 'nama': 'Poli Gigi', 'kode': 'PG'},
@@ -352,8 +346,6 @@ class ApiDataSource {
     ];
   }
 
-  /// POST /api/antrian/cek-nik
-  /// Sesuai sequence 2A.1 → verifikasi NIK pasien lama
   Future<Map<String, dynamic>> cekNIK(String nik) async {
     try {
       final res = await _client
@@ -369,12 +361,9 @@ class ApiDataSource {
     } catch (e) {
       debugPrint('ApiDataSource.cekNIK: $e');
     }
-    // Fallback: anggap valid supaya tidak block pendaftaran
     return {'success': true, 'data': <String, dynamic>{'is_valid': true}};
   }
 
-  /// POST /api/antrian
-  /// Sesuai sequence 4.1 → buat antrian baru
   Future<Map<String, dynamic>> createAntrian(
       Map<String, dynamic> body) async {
     try {
@@ -394,7 +383,6 @@ class ApiDataSource {
       throw Exception(msg);
     } catch (e) {
       debugPrint('ApiDataSource.createAntrian: $e');
-      // Fallback dummy response saat backend belum jalan
       final now = DateTime.now();
       final urut =
           (now.millisecondsSinceEpoch % 99 + 1).toString().padLeft(3, '0');
@@ -416,8 +404,6 @@ class ApiDataSource {
     }
   }
 
-  // ══ HELPERS ═══════════════════════════════════════════════════════════════
-
   String _bulan(int m) {
     const b = <String>[
       '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
@@ -426,5 +412,20 @@ class ApiDataSource {
     return b[m];
   }
 
-  Future<Object?> getDokterByPoli(int poliId) async {}
+  Future<List<Map<String, dynamic>>> getDokterByPoli(int poliId) async {
+    try {
+      final res = await _client
+          .get(_uri('${ApiConstants.dokter}?poly_id=$poliId'))
+          .timeout(_timeout);
+      if (res.statusCode == 200) {
+        return ((jsonDecode(res.body) as Map<String, dynamic>)['data']
+                    as List<dynamic>? ??
+                [])
+            .cast<Map<String, dynamic>>();
+      }
+    } catch (e) {
+      debugPrint('ApiDataSource.getDokterByPoli: $e');
+    }
+    return [];
+  }
 }

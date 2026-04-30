@@ -69,6 +69,7 @@ func SetupRoutes(
 		notifikasi.GET("/pending", notifikasiCtrl.GetPending)
 		notifikasi.PUT("/:id/mark-sent", notifikasiCtrl.MarkAsSent)
 		notifikasi.POST("/process", notifikasiCtrl.ProcessPending)
+		notifikasi.DELETE("/:id", notifikasiCtrl.Delete)
 	}
 
 	// GET  /api/v1/antrian/layanan  → tampilkan jenis layanan

@@ -18,7 +18,7 @@ func FromNotifikasi(n models.Notifikasi) NotifikasiResponse {
 	return NotifikasiResponse{
 		NotificationID: n.NotificationID,
 		Message:        n.Message,
-		ScheduledDate:  n.ScheduledDate.Format("2006-01-02"),
+		ScheduledDate:  n.ScheduledDate.Format(time.RFC3339),
 		IsSent:         n.IsSent,
 		SentAt:         n.SentAt,
 		NIK:            n.NIK,
