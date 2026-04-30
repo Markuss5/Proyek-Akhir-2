@@ -15,6 +15,10 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   final TextEditingController _nikCtrl = TextEditingController();
   final TextEditingController _namaCtrl = TextEditingController();
+
+  final FocusNode _nikFocus = FocusNode();
+  final FocusNode _namaFocus = FocusNode();
+
   bool _isLoading = false;
 
   final _pasienRepo = PasienRepository();
@@ -41,7 +45,7 @@ class _LoginViewState extends State<LoginView> {
     if (!mounted) return;
 
     if (patient == null) {
-      _showError('Tidak dapat terhubung ke server. Pastikan backend berjalan.');
+      _showError('Tidak dapat terhubung ke server.');
       return;
     }
     if (patient.nik.isEmpty) {
@@ -49,9 +53,7 @@ class _LoginViewState extends State<LoginView> {
       return;
     }
 
-    // Persist session so re-opens skip login
     await _sessionService.savePatient(patient);
-    // Resync local notifications in background
     _kontrolRepo.resyncNotifications(nik);
 
     if (!mounted) return;
@@ -62,7 +64,6 @@ class _LoginViewState extends State<LoginView> {
   }
 
   Future<void> _lewatkan() async {
-    // Save guest session — next launch lands on HomeView directly
     await _sessionService.saveGuest();
     if (!mounted) return;
     Navigator.pushReplacement(
@@ -79,178 +80,205 @@ class _LoginViewState extends State<LoginView> {
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), backgroundColor: Colors.red),
+    );
   }
 
   @override
   void dispose() {
     _nikCtrl.dispose();
     _namaCtrl.dispose();
+    _nikFocus.dispose();
+    _namaFocus.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Container(color: Colors.grey[200]),
-          Container(
-            height: 300,
-            decoration: const BoxDecoration(
-              color: Color(0xFF25A699),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(80),
-                bottomRight: Radius.circular(80),
-              ),
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                const SizedBox(height: 60),
-                Image.asset(
-                  'assets/images/logo.png',
-                  height: 80,
-                  errorBuilder: (_, _, _) => const Icon(
-                    Icons.local_hospital,
-                    size: 80,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 48),
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF25A699),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(40),
-                        topRight: Radius.circular(40),
-                      ),
+      backgroundColor: const Color(0xFF25A699),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Transform.translate(
+                    offset: const Offset(0, -25),
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      height: 120,
                     ),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          _buildInput(
-                            controller: _nikCtrl,
-                            title: 'Nomor Induk Kependudukan',
-                            hint: 'Masukkan 16 digit NIK',
-                            keyboardType: TextInputType.number,
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(26),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Masuk",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
                           ),
-                          const SizedBox(height: 20),
-                          _buildInput(
-                            controller: _namaCtrl,
-                            title: 'Nama Lengkap',
-                            hint: 'Masukkan Nama Lengkap',
-                          ),
-                          const SizedBox(height: 30),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 16,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
+                        ),
+
+                        const SizedBox(height: 4),
+
+                        const Text(
+                          "Silakan isi data untuk melanjutkan",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        _buildInput(
+                          controller: _nikCtrl,
+                          focusNode: _nikFocus,
+                          nextFocus: _namaFocus,
+                          hint: 'NIK (16 digit)',
+                          icon: Icons.credit_card,
+                          keyboardType: TextInputType.number,
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        _buildInput(
+                          controller: _namaCtrl,
+                          focusNode: _namaFocus,
+                          hint: 'Nama lengkap',
+                          icon: Icons.person,
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // 🔥 BUTTON FIX (BIRU + TEXT JELAS)
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            onPressed:
+                                _isLoading ? null : _masukPasien,
+                            child: _isLoading
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : const Text(
+                                    "Masuk",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  onPressed: _isLoading ? null : _masukPasien,
-                                  child: _isLoading
-                                      ? const SizedBox(
-                                          height: 20,
-                                          width: 20,
-                                          child: CircularProgressIndicator(
-                                            color: Colors.white,
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : const Text('Masuk'),
-                                ),
-                              ),
-                              const SizedBox(width: 15),
-                              Expanded(
-                                child: OutlinedButton(
-                                  style: OutlinedButton.styleFrom(
-                                    backgroundColor: Colors.white,
-                                    foregroundColor: const Color(0xFF25A699),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 16,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                  ),
-                                  onPressed: _lewatkan,
-                                  child: const Text('Lewatkan'),
-                                ),
-                              ),
-                            ],
                           ),
-                          const SizedBox(height: 16),
-                          GestureDetector(
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 14),
+                              side: const BorderSide(
+                                  color: Color(0xFF25A699)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            onPressed: _lewatkan,
+                            child: const Text("Lewatkan"),
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        Center(
+                          child: GestureDetector(
                             onTap: _masukSebagaiAdmin,
                             child: const Text(
-                              'Masuk Sebagai Admin',
+                              "Masuk sebagai Admin",
                               style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.white,
+                                color: Colors.grey,
                                 decoration: TextDecoration.underline,
-                                decorationColor: Colors.white,
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildInput({
     required TextEditingController controller,
-    required String title,
     required String hint,
+    required IconData icon,
+    required FocusNode focusNode,
+    FocusNode? nextFocus,
     TextInputType keyboardType = TextInputType.text,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w500,
-          ),
+    return TextField(
+      controller: controller,
+      focusNode: focusNode,
+      keyboardType: keyboardType,
+      textInputAction:
+          nextFocus != null ? TextInputAction.next : TextInputAction.done,
+      onSubmitted: (_) {
+        if (nextFocus != null) {
+          FocusScope.of(context).requestFocus(nextFocus);
+        } else {
+          FocusScope.of(context).unfocus();
+        }
+      },
+      style: const TextStyle(color: Colors.black),
+      cursorColor: const Color(0xFF25A699),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.grey),
+        prefixIcon: Icon(icon, color: const Color(0xFF25A699)),
+        filled: true,
+        fillColor: Colors.grey[100],
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
         ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          keyboardType: keyboardType,
-          decoration: InputDecoration(
-            hintText: hint,
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide.none,
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
