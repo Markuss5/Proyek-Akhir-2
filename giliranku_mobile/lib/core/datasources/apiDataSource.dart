@@ -428,4 +428,22 @@ class ApiDataSource {
     }
     return [];
   }
+
+  Future<dynamic> getRiwayatAntrian(String nik) async {
+    try {
+      // Mengambil data riwayat berdasarkan NIK pasien
+      final res = await _client
+          .get(_uri('/antrian/riwayat/$nik'))
+          .timeout(_timeout);
+
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body) as Map<String, dynamic>;
+        return body['data']; // Mengembalikan List riwayat dari key 'data'
+      }
+      return [];
+    } catch (e) {
+      debugPrint('ApiDataSource.getRiwayatAntrian: $e');
+      return [];
+    }
+  }
 }
