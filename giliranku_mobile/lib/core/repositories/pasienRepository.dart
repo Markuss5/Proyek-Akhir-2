@@ -15,4 +15,20 @@ class PasienRepository {
 
   Future<PasienModel?> updateProfile(Map<String, dynamic> data) =>
       _api.updateProfile(data);
+      
+  /// Mengambil riwayat antrian pasien berdasarkan NIK
+  Future<List<Map<String, dynamic>>> getRiwayatAntrian(String nik) async {
+    try {
+      // Memanggil fungsi getRiwayatAntrian yang ada di ApiDataSource
+      final response = await _api.getRiwayatAntrian(nik);
+      
+      if (response is List) {
+        return List<Map<String, dynamic>>.from(response);
+      }
+      return [];
+    } catch (e) {
+      // Mengembalikan list kosong jika terjadi error saat fetch data
+      return [];
+    }
+  }
 }
