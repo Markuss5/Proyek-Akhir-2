@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku/feature/auth/loginView.dart';
 import 'package:giliranku/core/services/sessionService.dart';
+import 'package:giliranku/feature/admin/adminHeader.dart';
 
 class AdminProfilView extends StatelessWidget {
   const AdminProfilView({super.key});
@@ -44,40 +45,9 @@ class AdminProfilView extends StatelessWidget {
       backgroundColor: Colors.grey[100],
       body: Column(
         children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              Transform.scale(
-                scaleX: 1.5,
-                child: Container(
-                  height: 200,
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF25A699),
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(180),
-                      bottomRight: Radius.circular(180),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 50),
-                child: Image.asset(
-                  'assets/images/logo.png',
-                  width: 160,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, _, _) => const Text(
-                    'GiliranKu',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            AdminHeader(
+            type: AdminHeaderType.page,
+            pageTitle: "Profil Admin",
           ),
           const SizedBox(height: 10),
           Padding(

@@ -335,6 +335,7 @@ class _MenuCard extends StatelessWidget {
         data.onTap();
       },
       child: Container(
+        clipBehavior: Clip.hardEdge, 
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(18),
@@ -342,7 +343,8 @@ class _MenuCard extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: data.colors.first.withValues(alpha: 0.10),
-              blurRadius: 14, offset: const Offset(0, 4),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
