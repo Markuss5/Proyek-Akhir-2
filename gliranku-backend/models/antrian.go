@@ -23,3 +23,15 @@ type KunjunganStatPoli struct {
 	PolyName string `json:"poly_name"`
 	Jumlah   int    `json:"jumlah"`
 }
+
+type AntrianResponseExtended struct {
+	NoAntrian    string
+	KodeBooking  string
+	Poliklinik   string
+	Dokter       string
+	Tanggal      time.Time
+	WaktuMulai   string
+	WaktuSelesai string
+	Pembayaran   string
+	Status       string
+}

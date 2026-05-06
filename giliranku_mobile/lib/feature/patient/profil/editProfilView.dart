@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku/core/repositories/pasienRepository.dart';
+import 'package:giliranku/core/services/sessionService.dart';
 
 class EditProfilView extends StatefulWidget {
   final Map<String, dynamic> patientData;
@@ -56,6 +57,22 @@ class _EditProfilViewState extends State<EditProfilView> {
     super.dispose();
   }
 
+  Future<void> _refreshData() async {
+    final updatedData = await SessionService().getPatientMap();
+    if (updatedData != null && mounted) {
+      setState(() {
+        final d = updatedData;
+        _nameCtrl.text = d['patient_name'] ?? '';
+        _phoneCtrl.text = d['phone'] ?? '';
+        _emailCtrl.text = d['email'] ?? '';
+        _bpjsCtrl.text = d['no_bpjs'] ?? '';
+        _alamatCtrl.text = d['alamat'] ?? '';
+        _selectedGolDarah = d['golongan_darah'];
+        _selectedJenisKelamin = d['jenis_kelamin'];
+      });
+    }
+  }
+
   Future<void> _saveProfile() async {
     if (_nameCtrl.text.trim().isEmpty) {
       _showSnack('Nama tidak boleh kosong', Colors.red);
@@ -82,13 +99,21 @@ class _EditProfilViewState extends State<EditProfilView> {
     if (!mounted) return;
 
     if (updated != null) {
+      await SessionService().savePatient(updated);
+      
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Profil berhasil diperbarui'),
           backgroundColor: Color(0xFF2F9E8F),
         ),
       );
+      
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) Navigator.pop(context, updated.toMap());
+      });
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Gagal memperbarui profil'),
@@ -216,10 +241,10 @@ class _EditProfilViewState extends State<EditProfilView> {
             ),
             const SizedBox(height: 20),
           ],
-        ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildReadOnlyField(String label, String value) {
     return Container(

@@ -92,8 +92,12 @@ class _InformasiViewState extends State<InformasiView> {
     }
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      body: SingleChildScrollView(
-        child: Column(
+      body: RefreshIndicator(
+        onRefresh: _fetchData,
+        color: AppColors.primary,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
           children: [
             AppHeader(
             mode: HeaderMode.page,
@@ -261,6 +265,7 @@ class _InformasiViewState extends State<InformasiView> {
           ],
         ),
       ),
+    ),
     );
   }
 

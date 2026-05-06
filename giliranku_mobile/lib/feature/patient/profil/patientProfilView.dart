@@ -25,6 +25,16 @@ class _PatientProfilViewState extends State<PatientProfilView> {
         : null;
   }
 
+  Future<void> _refreshProfile() async {
+    if (!_isLoggedIn) return;
+    final updatedData = await SessionService().getPatientMap();
+    if (updatedData != null && mounted) {
+      setState(() {
+        _data = Map<String, dynamic>.from(updatedData);
+      });
+    }
+  }
+
   bool get _isLoggedIn => _data != null && _data!.containsKey('nik');
   String get _name => _isLoggedIn ? (_data!['patient_name'] ?? 'Pasien') : 'Tamu';
   String get _nik => _isLoggedIn ? (_data!['nik'] ?? '-') : '-';
@@ -44,60 +54,65 @@ class _PatientProfilViewState extends State<PatientProfilView> {
             _buildHeader(context),
             const SizedBox(height: 20),
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                children: [
-                  _buildMenuCard(
-                    context,
-                    isProfile: true,
-                    icon: Icons.person_rounded,
-                    title: _name,
-                    subtitle: _isLoggedIn 
-                        ? 'Lihat dan edit profil Anda' 
-                        : 'Masuk untuk melihat data lengkap',
-                    onTap: () {
-                      if (_isLoggedIn) {
-                        _openEditProfile();
-                      } else {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginView()));
-                      }
-                    },
-                  ),
-
-                  if (_isLoggedIn) ...[
-                    _buildMedisCard(),
+              child: RefreshIndicator(
+                onRefresh: _refreshProfile,
+                color: AppColors.primary,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  children: [
+                    _buildMenuCard(
+                      context,
+                      isProfile: true,
+                      icon: Icons.person_rounded,
+                      title: _name,
+                      subtitle: _isLoggedIn 
+                          ? 'Lihat dan edit profil Anda' 
+                          : 'Masuk untuk melihat data lengkap',
+                      onTap: () {
+                        if (_isLoggedIn) {
+                          _openEditProfile();
+                        } else {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginView()));
+                        }
+                      },
+                    ),
+  
+                    if (_isLoggedIn) ...[
+                      _buildMedisCard(),
+                    ],
+  
+                    _buildMenuCard(
+                      context,
+                      icon: Icons.history_rounded,
+                      title: 'Riwayat Antrian',
+                      subtitle: 'Lihat riwayat kunjungan anda',
+                      onTap: () {
+                        if (!_isLoggedIn) {
+                          _showLoginAlert();
+                          return;
+                        }
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const RiwayatView()));
+                      },
+                    ),
+  
+                    _buildMenuCard(
+                      context,
+                      icon: _isLoggedIn ? Icons.logout_rounded : Icons.login_rounded,
+                      title: _isLoggedIn ? 'Keluar' : 'Masuk',
+                      subtitle: _isLoggedIn ? 'Logout dari akun' : 'Masuk ke akun Anda',
+                      iconColor: _isLoggedIn ? Colors.red : const Color(0xFF0D9B86),
+                      onTap: () {
+                        if (_isLoggedIn) {
+                          _showLogoutDialog();
+                        } else {
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginView()));
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 30),
                   ],
-
-                  _buildMenuCard(
-                    context,
-                    icon: Icons.history_rounded,
-                    title: 'Riwayat Antrian',
-                    subtitle: 'Lihat riwayat kunjungan',
-                    onTap: () {
-                      if (!_isLoggedIn) {
-                        _showLoginAlert();
-                        return;
-                      }
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const RiwayatView()));
-                    },
-                  ),
-
-                  _buildMenuCard(
-                    context,
-                    icon: _isLoggedIn ? Icons.logout_rounded : Icons.login_rounded,
-                    title: _isLoggedIn ? 'Keluar' : 'Masuk',
-                    subtitle: _isLoggedIn ? 'Logout dari akun' : 'Masuk ke akun Anda',
-                    iconColor: _isLoggedIn ? Colors.red : const Color(0xFF0D9B86),
-                    onTap: () {
-                      if (_isLoggedIn) {
-                        _showLogoutDialog();
-                      } else {
-                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginView()));
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 30),
-                ],
+                ),
               ),
             ),
           ],

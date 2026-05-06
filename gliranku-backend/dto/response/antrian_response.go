@@ -8,6 +8,7 @@ type AntrianResponse struct {
 	Tanggal     string `json:"tanggal"`
 	Waktu       string `json:"waktu"`
 	Pembayaran  string `json:"pembayaran"`
+	Status      string `json:"status"`
 }
 
 type CekNIKResponse struct {

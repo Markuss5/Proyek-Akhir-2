@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:giliranku/core/widgets/header.dart';
-// Menggunakan PasienRepository sesuai struktur folder Anda
 import 'package:giliranku/core/repositories/pasienRepository.dart'; 
 import 'package:giliranku/core/services/sessionService.dart';
 
@@ -28,12 +27,10 @@ class _RiwayatViewState extends State<RiwayatView> {
     
     setState(() => _isLoading = true);
 
-    // 1. Ambil NIK dari session user yang sedang login
     final patientData = await SessionService().getPatientMap();
     _nik = patientData?['nik'];
 
     if (_nik != null) {
-      // 2. Memanggil repository pasien untuk mengambil data dari PostgreSQL
       final data = await PasienRepository().getRiwayatAntrian(_nik!);
       
       if (mounted) {
@@ -78,15 +75,14 @@ class _RiwayatViewState extends State<RiwayatView> {
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 20),
                                 child: QueueCard(
-                                  // Pastikan key ini sesuai dengan kolom di database PostgreSQL Anda
-                                  poliName: item['poly_name'] ?? 'Poli Umum',
-                                  doctorName: item['doctor_name'] ?? '-',
-                                  date: item['tanggal_periksa'] ?? '-',
-                                  code: item['kode_antrian'] ?? '-',
-                                  time: item['jam_praktik'] ?? '-',
-                                  queueNo: item['nomor_antrian']?.toString() ?? '-',
+                                  poliName: item['poliklinik'] ?? 'Poli Umum',
+                                  doctorName: item['dokter'] ?? '-',
+                                  date: item['tanggal'] ?? '-',
+                                  code: item['kode_booking'] ?? '-',
+                                  time: item['waktu'] ?? '-',
+                                  queueNo: item['no_antrian']?.toString() ?? '-',
                                   status: item['status'] ?? 'Menunggu',
-                                  icon: item['tipe_pasien'] == 'BPJS' 
+                                  icon: item['pembayaran'] == 'BPJS' 
                                       ? Icons.health_and_safety_outlined 
                                       : Icons.medical_services_outlined,
                                 ),
@@ -134,7 +130,6 @@ class SChild extends StatelessWidget {
   Widget build(BuildContext context) => SizedBox(height: height);
 }
 
-// Widget QueueCard (Gunakan versi yang sudah Anda buat di UI sebelumnya)
 class QueueCard extends StatelessWidget {
   final String poliName;
   final String doctorName;
@@ -159,7 +154,6 @@ class QueueCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Masukkan desain Container kartu antrian Anda di sini
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

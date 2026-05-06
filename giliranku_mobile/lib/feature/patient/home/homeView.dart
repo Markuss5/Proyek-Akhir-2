@@ -35,12 +35,21 @@ class _HomeViewState extends State<HomeView> {
       PatientProfilView(patientData: widget.patientData, onSwitchTab: _switchTab),
     ];
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: pages[_currentIndex],
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: _currentIndex,
-        onTap: _switchTab,
+    return PopScope(
+      canPop: _currentIndex == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_currentIndex != 0) {
+          _switchTab(0);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: pages[_currentIndex],
+        bottomNavigationBar: AppBottomNav(
+          currentIndex: _currentIndex,
+          onTap: _switchTab,
+        ),
       ),
     );
   }
@@ -84,9 +93,13 @@ class _BerandaTabState extends State<_BerandaTab> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
+      body: RefreshIndicator(
+        onRefresh: _fetchInfo,
+        color: AppColors.primary,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics()),
+          slivers: [
           SliverToBoxAdapter(
             child: AppHeader(
               mode: HeaderMode.home,
@@ -114,7 +127,11 @@ class _BerandaTabState extends State<_BerandaTab> {
                 const SizedBox(height: 22),
                 const _SectionHeader(title: 'Layanan Utama', sub: 'Pilih layanan yang tersedia'),
                 const SizedBox(height: 10),
-                _MenuGrid(nik: _nik, onSwitchTab: widget.onSwitchTab),
+                _MenuGrid(
+                  nik: _nik,
+                  patientData: widget.patientData,
+                  onSwitchTab: widget.onSwitchTab,
+                ),
                 const SizedBox(height: 14),
                 const _SectionHeader(title: 'Info Rumah Sakit', sub: 'RSUD Porsea'),
                 const SizedBox(height: 12),
@@ -127,6 +144,7 @@ class _BerandaTabState extends State<_BerandaTab> {
           ),
         ],
       ),
+    ),
     );
   }
 }
@@ -164,7 +182,7 @@ class _OperasionalBadge extends StatelessWidget {
 
           isOpen = nowTime >= startTime && nowTime <= endTime;
         } else {
-          isOpen = true; // fallback
+          isOpen = true;
         }
       } catch (_) {
         isOpen = true;
@@ -248,9 +266,10 @@ class _SectionHeader extends StatelessWidget {
 
 class _MenuGrid extends StatelessWidget {
   final String? nik;
+  final Map<String, dynamic>? patientData;
   final void Function(int) onSwitchTab;
 
-  const _MenuGrid({this.nik, required this.onSwitchTab});
+  const _MenuGrid({this.nik, this.patientData, required this.onSwitchTab});
 
   @override
   Widget build(BuildContext context) {
@@ -260,10 +279,7 @@ class _MenuGrid extends StatelessWidget {
         label: 'Ambil Antrian',
         desc: 'Daftar online',
         colors: [const Color(0xFF0D9B86), const Color(0xFF0FC49E)],
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => AntrianMenuView()),
-        ),
+        onTap: () => onSwitchTab(2),
       ),
       _MenuData(
         icon: Iconsax.notification_status,

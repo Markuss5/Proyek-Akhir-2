@@ -162,12 +162,18 @@ class _InformasiDokterPageState extends State<InformasiDokterPage> {
                         ),
                       )
                     : Expanded(
-                        child: ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                          itemCount: _filteredDoctors.length,
-                          itemBuilder: (context, index) {
-                            return _buildDoctorCard(_filteredDoctors[index]);
-                          },
+                        child: RefreshIndicator(
+                          onRefresh: _fetchData,
+                          color: const Color(0xFF25A699),
+                          child: ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
+                            itemCount: _filteredDoctors.length,
+                            itemBuilder: (context, index) {
+                              return _buildDoctorCard(_filteredDoctors[index]);
+                            },
+                          ),
                         ),
                       ),
           ],

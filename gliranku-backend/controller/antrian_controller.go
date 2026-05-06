@@ -121,3 +121,22 @@ func (c *AntrianController) GetKunjunganStats(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{"success": true, "data": data})
 }
+
+func (c *AntrianController) GetRiwayat(ctx *gin.Context) {
+	nik := ctx.Param("nik")
+	if nik == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"success": false, "message": "NIK harus diisi"})
+		return
+	}
+
+	result, err := c.service.GetRiwayatAntrian(nik)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Gagal memuat riwayat antrian"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    result,
+	})
+}

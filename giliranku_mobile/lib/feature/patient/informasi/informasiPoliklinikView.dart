@@ -67,21 +67,26 @@ class _InformasiPoliklinikViewState
             _buildSearchBox(),
 
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20, vertical: 8),
-                itemCount: filteredList.length,
-                separatorBuilder: (_, __) =>
-                    const Divider(height: 1, color: Color(0xFFEAEAEA)),
-                itemBuilder: (context, index) {
-                  final poli = filteredList[index];
-
-                  return _buildPoliItem(
-                    nama: poli['poly_name'] ?? '',
-                    desc: poli['kode_poli'] != null ? 'Kode: ${poli['kode_poli']}' : '',
-                    icon: Icons.local_hospital_outlined,
-                  );
-                },
+              child: RefreshIndicator(
+                onRefresh: _fetchData,
+                color: const Color(0xFF25A699),
+                child: ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 8),
+                  itemCount: filteredList.length,
+                  separatorBuilder: (_, __) =>
+                      const Divider(height: 1, color: Color(0xFFEAEAEA)),
+                  itemBuilder: (context, index) {
+                    final poli = filteredList[index];
+  
+                    return _buildPoliItem(
+                      nama: poli['poly_name'] ?? '',
+                      desc: poli['kode_poli'] != null ? 'Kode: ${poli['kode_poli']}' : '',
+                      icon: Icons.local_hospital_outlined,
+                    );
+                  },
+                ),
               ),
             ),
           ],

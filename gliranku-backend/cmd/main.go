@@ -11,14 +11,11 @@ import (
 )
 
 func main() {
-	// Load environment variables
 	config.LoadEnv()
 
-	// Connect to database
 	db := config.ConnectDB()
 	defer db.Close()
 
-	// Initialize repositories
 	pasienRepo := repository.NewPasienRepository(db)
 	kontrolRutinRepo := repository.NewKontrolRutinRepository(db)
 	notifikasiRepo := repository.NewNotifikasiRepository(db)
@@ -27,7 +24,6 @@ func main() {
 	informasiRepo := repository.NewInformasiRepository(db)
 	antrianRepo := repository.NewAntrianRepository(db)
 
-	// Initialize services
 	pasienService := service.NewPasienService(pasienRepo)
 	kontrolRutinService := service.NewKontrolRutinService(kontrolRutinRepo, notifikasiRepo, pasienRepo)
 	notifikasiService := service.NewNotifikasiService(notifikasiRepo, pasienRepo)
@@ -36,7 +32,6 @@ func main() {
 	informasiService := service.NewInformasiService(informasiRepo)
 	antrianService := service.NewAntrianService(antrianRepo)
 
-	// Initialize controllers
 	pasienCtrl := controller.NewPasienController(pasienService)
 	kontrolRutinCtrl := controller.NewKontrolRutinController(kontrolRutinService)
 	notifikasiCtrl := controller.NewNotifikasiController(notifikasiService)
@@ -44,8 +39,8 @@ func main() {
 	dokterCtrl := controller.NewDokterController(dokterRepo, dokterService)
 	informasiCtrl := controller.NewInformasiController(informasiService)
 	antrianCtrl := controller.NewAntrianController(antrianService)
+	kioskCtrl := controller.NewKioskController(antrianService)
 
-	// Setup Gin router
 	r := gin.Default()
 	r.SetTrustedProxies(nil)
 
@@ -53,10 +48,8 @@ func main() {
 		c.JSON(200, gin.H{"message": "GiliranKu Backend API"})
 	})
 
-	// Register routes
-	routes.SetupRoutes(r, kontrolRutinCtrl, notifikasiCtrl, poliCtrl, dokterCtrl, pasienCtrl, informasiCtrl, antrianCtrl)
+	routes.SetupRoutes(r, kontrolRutinCtrl, notifikasiCtrl, poliCtrl, dokterCtrl, pasienCtrl, informasiCtrl, antrianCtrl, kioskCtrl)
 
-	// Start server
 	port := config.GetEnv("PORT", "8080")
 	r.Run(":" + port)
 }

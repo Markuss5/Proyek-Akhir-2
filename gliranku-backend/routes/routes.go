@@ -15,6 +15,7 @@ func SetupRoutes(
 	pasienCtrl *controller.PasienController,
 	informasiCtrl *controller.InformasiController,
 	antrianCtrl *controller.AntrianController,
+	kioskCtrl controller.KioskController,
 ) {
 	api := r.Group("/api/v1")
 
@@ -73,5 +74,14 @@ func SetupRoutes(
 		antrian.GET("/kunjungan-stats", antrianCtrl.GetKunjunganStats)
 		antrian.POST("/cek-nik", antrianCtrl.CekNIK)
 		antrian.POST("", antrianCtrl.CreateAntrian)
+		antrian.GET("/riwayat/:nik", antrianCtrl.GetRiwayat)
+	}
+
+	kiosk := api.Group("/kiosk")
+	{
+		kiosk.POST("/farmasi", kioskCtrl.CreatePharmacyTicket)
+		kiosk.GET("/booking/:code", kioskCtrl.GetBooking)
+		kiosk.POST("/pdf", kioskCtrl.UploadPDF)
+		kiosk.POST("/bpjs", kioskCtrl.CreateBpjsTicket)
 	}
 }

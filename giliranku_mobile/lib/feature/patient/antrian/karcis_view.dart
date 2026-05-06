@@ -198,35 +198,6 @@ class _KarcisViewState extends State<KarcisView>
                 widget.result.pembayaran),
           ]),
         ),
-
-        Container(
-          margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF9FAFB),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
-          ),
-          child: Column(children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
-              ),
-              padding: const EdgeInsets.all(10),
-              child: CustomPaint(painter: _QRPainter()),
-            ),
-            const SizedBox(height: 10),
-            const Text('Tunjukkan QR Code ini ke petugas',
-                style: TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF6B7280),
-                    fontWeight: FontWeight.w500)),
-          ]),
-        ),
       ]),
     );
   }
