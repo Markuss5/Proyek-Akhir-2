@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:giliranku/feature/admin/dashboard/adminDashboardView.dart';
+import 'package:giliranku/feature/admin/beranda/adminBerandaView.dart';
 import 'package:giliranku/core/services/sessionService.dart';
 
 class AdminLoginView extends StatefulWidget {
@@ -35,9 +35,10 @@ class _AdminLoginViewState extends State<AdminLoginView> {
       setState(() => _errorMessage = null);
       await SessionService().saveAdmin();
       if (!mounted) return;
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const AdminDashboardView()),
+        MaterialPageRoute(builder: (_) => const AdminBerandaView()),
+        (route) => false, // clears the entire back stack
       );
     } else {
       setState(() => _errorMessage = 'Email atau kata sandi salah');
@@ -142,7 +143,6 @@ class _AdminLoginViewState extends State<AdminLoginView> {
 
                         const SizedBox(height: 20),
 
-                        // 🔥 BUTTON MASUK
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -162,7 +162,6 @@ class _AdminLoginViewState extends State<AdminLoginView> {
 
                         const SizedBox(height: 10),
 
-                        // 🔥 BUTTON KEMBALI (GANTI ICON BACK)
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton(

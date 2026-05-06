@@ -14,6 +14,8 @@ type AntrianService interface {
 	GetPoliklinik() ([]response.LayananResponse, error)
 	VerifyNIK(nik string) (*response.CekNIKResponse, error)
 	CreateAntrian(req request.AntrianRequest) (*response.AntrianResponse, error)
+	GetDashboardStats() (int, int, int, error)
+	GetKunjunganStats(period string) ([]models.KunjunganStatPoli, error)
 }
 
 type antrianService struct {
@@ -24,7 +26,6 @@ func NewAntrianService(repo repository.AntrianRepository) AntrianService {
 	return &antrianService{repo: repo}
 }
 
-// 1.1.1 - GetJenisLayanan → SELECT * FROM poliklinik
 func (s *antrianService) GetPoliklinik() ([]response.LayananResponse, error) {
 	polis, err := s.repo.FetchPoliklinik()
 	if err != nil {
@@ -40,8 +41,6 @@ func (s *antrianService) GetPoliklinik() ([]response.LayananResponse, error) {
 	return result, nil
 }
 
-// 2A.2 - VerifyNIK → SELECT pasien WHERE nik=?
-// → 2A.2.5 Validasi Kepesertaan BPJS
 func (s *antrianService) VerifyNIK(nik string) (*response.CekNIKResponse, error) {
 	pasien, err := s.repo.CheckNIK(nik)
 	if err != nil {
@@ -54,7 +53,6 @@ func (s *antrianService) VerifyNIK(nik string) (*response.CekNIKResponse, error)
 		}, nil
 	}
 
-	// 2A.2.5 - Validasi Kepesertaan BPJS
 	isBPJS := pasien.NoBPJS != nil && *pasien.NoBPJS != ""
 
 	return &response.CekNIKResponse{
@@ -65,20 +63,14 @@ func (s *antrianService) VerifyNIK(nik string) (*response.CekNIKResponse, error)
 	}, nil
 }
 
-// 4.2.1 - CreateAntrian
-// → 4.2.2 GetLastQueueNumber → SELECT MAX(no_antrian)
-// → 4.2.6 Generate nomor baru (terakhir + 1)
-// → 4.3.1 SaveAntrian → INSERT INTO antrian
 func (s *antrianService) CreateAntrian(req request.AntrianRequest) (*response.AntrianResponse, error) {
 	tanggal := time.Now()
 
-	// 4.2.3 - SELECT MAX(no_antrian)
 	lastNumber, err := s.repo.GetLastQueueNumber(req.PoliID, tanggal)
 	if err != nil {
 		return nil, fmt.Errorf("gagal mendapatkan nomor antrian: %w", err)
 	}
 
-	// 4.2.6 - Generate nomor baru (nomor = terakhir + 1)
 	nomorUrut := lastNumber + 1
 	noAntrian := fmt.Sprintf("A-%03d", nomorUrut)
 	kodeBooking := repository.GenerateKodeBooking(tanggal, nomorUrut)
@@ -103,12 +95,10 @@ func (s *antrianService) CreateAntrian(req request.AntrianRequest) (*response.An
 		Status:       "menunggu",
 	}
 
-	// 4.3.1 - INSERT INTO antrian
 	if err := s.repo.SaveAntrian(antrian); err != nil {
 		return nil, fmt.Errorf("gagal menyimpan antrian: %w", err)
 	}
 
-	// Ambil nama poli untuk response
 	namaPoliklinik := fmt.Sprintf("Poli %d", req.PoliID)
 	polis, _ := s.repo.FetchPoliklinik()
 	for _, p := range polis {
@@ -118,7 +108,6 @@ func (s *antrianService) CreateAntrian(req request.AntrianRequest) (*response.An
 		}
 	}
 
-	// 4.4 - Data antrian + kode booking
 	return &response.AntrianResponse{
 		NoAntrian:   noAntrian,
 		KodeBooking: kodeBooking,
@@ -128,4 +117,12 @@ func (s *antrianService) CreateAntrian(req request.AntrianRequest) (*response.An
 		Waktu:       "09:00 - 12:00",
 		Pembayaran:  pembayaran,
 	}, nil
+}
+
+func (s *antrianService) GetDashboardStats() (int, int, int, error) {
+	return s.repo.GetDashboardStats()
+}
+
+func (s *antrianService) GetKunjunganStats(period string) ([]models.KunjunganStatPoli, error) {
+	return s.repo.GetKunjunganStats(period)
 }

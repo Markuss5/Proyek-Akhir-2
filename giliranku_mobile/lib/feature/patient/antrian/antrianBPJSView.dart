@@ -145,10 +145,6 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       children: [
-                        if (_isLoggedIn) ...[
-                          _buildLoggedInBanner(),
-                          const SizedBox(height: 16),
-                        ],
                         _buildInfoBpjs(),
                         const SizedBox(height: 16),
                         _buildFormCard(),
@@ -166,38 +162,6 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
       ),
     );
   }
-
-  Widget _buildLoggedInBanner() {
-  return Container(
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      color: const Color(0xFFE6F7F4),
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: const Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(
-          Icons.check_circle_rounded,
-          color: Color(0xFF0D9B86),
-          size: 22,
-        ),
-        SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            'NIK otomatis dari akun.\nUbah jika ingin menggunakan NIK lain.',
-            style: TextStyle(
-              fontSize: 13,
-              height: 1.4,
-              color: Color(0xFF065F46),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    ),
-  ); // ← ini yang tadi kurang
-}
 
   Widget _buildInfoBpjs() {
     return Container(
@@ -256,7 +220,6 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
             keyboardType: TextInputType.number,
             maxLength: 16,
             errorText: _nikError,
-            readOnly: _isLoggedIn,
             formatters: [FilteringTextInputFormatter.digitsOnly],
           ),
           const SizedBox(height: 16),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/feature/admin/adminHeader.dart';
 
 class AdminKunjunganView extends StatefulWidget {
@@ -12,74 +13,63 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
   int _selectedPeriode = 0;
   int _selectedBar = -1;
 
-  final List<String> _periode = ["Harian", "Mingguan", "Bulanan"];
+  final List<String> _periode = ['Harian', 'Mingguan', 'Bulanan'];
+  final List<String> _periodKeys = ['daily', 'weekly', 'monthly'];
 
-  final List<Map<String, dynamic>> _statistik = [
-    {
-      "judul": "Pasien Hari Ini",
-      "angka": "67",
-      "icon": Icons.people_alt_rounded,
-      "color": const Color(0xFF2A9D8F),
-      "bg": const Color(0xFFE6F7F5),
-    },
-    {
-      "judul": "Rata-rata / Hari",
-      "angka": "48",
-      "icon": Icons.trending_up_rounded,
-      "color": const Color(0xFF5C6BC0),
-      "bg": const Color(0xFFEEF0FF),
-    },
-    {
-      "judul": "Apotek",
-      "angka": "64",
-      "icon": Icons.local_pharmacy_rounded,
-      "color": const Color(0xFFFF7043),
-      "bg": const Color(0xFFFFF0EC),
-    },
-  ];
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _perPoliStats = [];
 
-  final List<String> _poliLabels = [
-    "Poli\nUmum",
-    "Poli\nParu",
-    "Poli\nJantung",
-    "Poli\nAnak",
-    "Apotek",
-  ];
+  int get _totalKunjungan =>
+      _perPoliStats.fold(0, (s, e) => s + (e['jumlah'] as int? ?? 0));
 
-  final List<double> _dataChart = [14, 8, 12, 9, 24];
+  @override
+  void initState() {
+    super.initState();
+    _fetchStats();
+  }
 
-  final List<Map<String, dynamic>> _detailPoli = [
-    {
-      "nama": "Poli Umum",
-      "jumlah": "14 Pasien",
-      "icon": Icons.medical_services_rounded,
-      "color": const Color(0xFF2A9D8F),
-    },
-    {
-      "nama": "Poli Paru",
-      "jumlah": "8 Pasien",
-      "icon": Icons.air_rounded,
-      "color": const Color(0xFF5C6BC0),
-    },
-    {
-      "nama": "Poli Jantung",
-      "jumlah": "12 Pasien",
-      "icon": Icons.favorite_rounded,
-      "color": const Color(0xFFE53935),
-    },
-    {
-      "nama": "Poli Anak",
-      "jumlah": "9 Pasien",
-      "icon": Icons.child_care_rounded,
-      "color": const Color(0xFFFF9800),
-    },
-    {
-      "nama": "Apotek",
-      "jumlah": "24 Pasien",
-      "icon": Icons.local_pharmacy_rounded,
-      "color": const Color(0xFF66BB6A),
-    },
-  ];
+  Future<void> _fetchStats() async {
+    setState(() {
+      _isLoading = true;
+      _selectedBar = -1;
+    });
+    final period = _periodKeys[_selectedPeriode];
+    final data = await ApiDataSource().fetchKunjunganStats(period);
+    if (mounted) {
+      setState(() {
+        _perPoliStats = data;
+        _isLoading = false;
+      });
+    }
+  }
+
+  IconData _iconForPoli(String name) {
+    final n = name.toLowerCase();
+    if (n.contains('paru')) return Icons.air_rounded;
+    if (n.contains('jantung')) return Icons.favorite_rounded;
+    if (n.contains('anak')) return Icons.child_care_rounded;
+    if (n.contains('apotek') || n.contains('farmasi')) {
+      return Icons.local_pharmacy_rounded;
+    }
+    if (n.contains('gigi')) return Icons.sentiment_satisfied_rounded;
+    if (n.contains('kandungan') || n.contains('obgyn')) {
+      return Icons.pregnant_woman_rounded;
+    }
+    return Icons.medical_services_rounded;
+  }
+
+  Color _colorForIndex(int i) {
+    const colors = [
+      Color(0xFF2A9D8F),
+      Color(0xFF5C6BC0),
+      Color(0xFFE53935),
+      Color(0xFFFF9800),
+      Color(0xFF66BB6A),
+      Color(0xFF00ACC1),
+      Color(0xFFAB47BC),
+    ];
+    return colors[i % colors.length];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,49 +77,40 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
       backgroundColor: const Color(0xFFF4F6F9),
       body: Column(
         children: [
-          // ── Header (Opsi B) ──────────────────────────────────────
           const AdminHeader(
             type: AdminHeaderType.page,
-            pageTitle: "Laporan Kunjungan RS",
+            pageTitle: 'Laporan Kunjungan RS',
           ),
-
-          // ── Content ──────────────────────────────────────────────
           Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Padding(
+            child: RefreshIndicator(
+              onRefresh: _fetchStats,
+              color: const Color(0xFF2A9D8F),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Summary cards overlap header
                     const SizedBox(height: 16),
                     _buildSummaryCards(),
-                    const SizedBox(height: 16), 
+                    const SizedBox(height: 16),
                     const Text(
-                      "Statistik Kunjungan",
+                      'Statistik Kunjungan',
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1A2E),
-                      ),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1A1A2E)),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "Kunjungan pasien per poliklinik & layanan",
+                      'Kunjungan pasien per poliklinik & layanan',
                       style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                     ),
                     const SizedBox(height: 16),
-
-                    // Periode filter
                     _buildPeriodeFilter(),
                     const SizedBox(height: 16),
-
-                    // Chart card
                     _buildChartCard(),
                     const SizedBox(height: 16),
-
-                    // Detail per poli
                     _buildDetailCard(),
                     const SizedBox(height: 28),
                   ],
@@ -142,8 +123,35 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
     );
   }
 
-  // ── Summary Cards ────────────────────────────────────────────────
   Widget _buildSummaryCards() {
+    final avg = _perPoliStats.isEmpty
+        ? 0
+        : (_totalKunjungan / _perPoliStats.length).round();
+
+    final summaryItems = [
+      {
+        'judul': 'Total Kunjungan',
+        'angka': '$_totalKunjungan',
+        'icon': Icons.people_alt_rounded,
+        'color': const Color(0xFF2A9D8F),
+        'bg': const Color(0xFFE6F7F5),
+      },
+      {
+        'judul': 'Rata-rata / Poli',
+        'angka': '$avg',
+        'icon': Icons.trending_up_rounded,
+        'color': const Color(0xFF5C6BC0),
+        'bg': const Color(0xFFEEF0FF),
+      },
+      {
+        'judul': 'Periode',
+        'angka': _periode[_selectedPeriode],
+        'icon': Icons.calendar_today_rounded,
+        'color': const Color(0xFFFF7043),
+        'bg': const Color(0xFFFFF0EC),
+      },
+    ];
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -158,19 +166,16 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
         ],
       ),
       child: Row(
-        children: _statistik.asMap().entries.map((entry) {
+        children: summaryItems.asMap().entries.map((entry) {
           final item = entry.value;
-          final isLast = entry.key == _statistik.length - 1;
+          final isLast = entry.key == summaryItems.length - 1;
           return Expanded(
             child: Row(
               children: [
                 Expanded(child: _buildStatItem(item)),
                 if (!isLast)
                   Container(
-                    width: 1,
-                    height: 40,
-                    color: Colors.grey.shade100,
-                  ),
+                      width: 1, height: 40, color: Colors.grey.shade100),
               ],
             ),
           );
@@ -196,22 +201,19 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
           Text(
             item['angka'] as String,
             style: TextStyle(
-              fontSize: 22,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: item['color'] as Color,
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            item['judul'] as String,
-            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-          ),
+          Text(item['judul'] as String,
+              style: TextStyle(fontSize: 10, color: Colors.grey[600])),
         ],
       ),
     );
   }
 
-  // ── Periode Filter ───────────────────────────────────────────────
   Widget _buildPeriodeFilter() {
     return Row(
       children: List.generate(_periode.length, (index) {
@@ -219,12 +221,18 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
         return Padding(
           padding: const EdgeInsets.only(right: 10),
           child: GestureDetector(
-            onTap: () => setState(() => _selectedPeriode = index),
+            onTap: () {
+              setState(() => _selectedPeriode = index);
+              _fetchStats();
+            },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 9),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 9),
               decoration: BoxDecoration(
-                color: isActive ? const Color(0xFF2A9D8F) : Colors.white,
+                color: isActive
+                    ? const Color(0xFF2A9D8F)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(22),
                 border: Border.all(
                   color: isActive
@@ -234,8 +242,8 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
                 boxShadow: isActive
                     ? [
                         BoxShadow(
-                          color:
-                              const Color(0xFF2A9D8F).withValues(alpha: 0.25),
+                          color: const Color(0xFF2A9D8F)
+                              .withValues(alpha: 0.25),
                           blurRadius: 8,
                           offset: const Offset(0, 3),
                         )
@@ -257,9 +265,28 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
     );
   }
 
-  // ── Chart Card ───────────────────────────────────────────────────
   Widget _buildChartCard() {
-    const double maxValue = 24;
+    if (_isLoading) {
+      return const SizedBox(
+          height: 160,
+          child: Center(child: CircularProgressIndicator()));
+    }
+    if (_perPoliStats.isEmpty) {
+      return Container(
+        height: 160,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text('Belum ada data kunjungan',
+            style: TextStyle(color: Colors.grey[500])),
+      );
+    }
+
+    final maxValue = _perPoliStats
+        .map((e) => (e['jumlah'] as int? ?? 0).toDouble())
+        .fold(1.0, (a, b) => a > b ? a : b);
 
     return Container(
       width: double.infinity,
@@ -278,32 +305,26 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Chart header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Grafik Kunjungan",
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A1A2E),
-                    ),
-                  ),
+                  const Text('Grafik Kunjungan',
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1A1A2E))),
                   const SizedBox(height: 2),
-                  Text(
-                    _periode[_selectedPeriode],
-                    style: TextStyle(
-                        fontSize: 12, color: const Color(0xFF2A9D8F)),
-                  ),
+                  Text(_periode[_selectedPeriode],
+                      style: const TextStyle(
+                          fontSize: 12, color: Color(0xFF2A9D8F))),
                 ],
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: const Color(0xFFE6F7F5),
                   borderRadius: BorderRadius.circular(20),
@@ -311,38 +332,35 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
                 child: Row(
                   children: [
                     Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(0xFF2A9D8F),
-                      ),
-                    ),
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFF2A9D8F))),
                     const SizedBox(width: 5),
-                    const Text(
-                      "Aktif",
-                      style: TextStyle(
-                        color: Color(0xFF2A9D8F),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    const Text('Live',
+                        style: TextStyle(
+                            color: Color(0xFF2A9D8F),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
-
-          // Bars
           SizedBox(
             height: 240,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(_dataChart.length, (index) {
-                final value = _dataChart[index];
-                final barHeight = (value / maxValue) * 140;
+              children: List.generate(_perPoliStats.length, (index) {
+                final stat = _perPoliStats[index];
+                final value = (stat['jumlah'] as int? ?? 0).toDouble();
+                final barHeight = maxValue > 0
+                    ? (value / maxValue) * 140
+                    : 0.0;
                 final isSelected = _selectedBar == index;
+                final color = _colorForIndex(index);
 
                 return Expanded(
                   child: GestureDetector(
@@ -352,7 +370,6 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        // Tooltip
                         AnimatedOpacity(
                           duration: const Duration(milliseconds: 150),
                           opacity: isSelected ? 1 : 0,
@@ -365,17 +382,14 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              "${value.toInt()}",
+                              '${value.toInt()}',
                               style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
-
-                        // Bar
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
                           width: 36,
@@ -387,11 +401,11 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
                               colors: isSelected
                                   ? [
                                       const Color(0xFFFF9800),
-                                      const Color(0xFFFF7043),
+                                      const Color(0xFFFF7043)
                                     ]
                                   : [
-                                      const Color(0xFF2A9D8F),
-                                      const Color(0xFF1E7B6E),
+                                      color,
+                                      color.withValues(alpha: 0.7)
                                     ],
                             ),
                             borderRadius: const BorderRadius.only(
@@ -400,14 +414,12 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 10),
-
-                        // Label
                         SizedBox(
                           height: 36,
                           child: Text(
-                            _poliLabels[index],
+                            (stat['poly_name'] as String? ?? '')
+                                .replaceAll('Poli ', 'Poli\n'),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 10,
@@ -427,12 +439,10 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
               }),
             ),
           ),
-
-          // Legend hint
           const SizedBox(height: 8),
           Center(
             child: Text(
-              "Tap bar untuk melihat detail",
+              'Tap bar untuk melihat detail',
               style: TextStyle(fontSize: 11, color: Colors.grey[400]),
             ),
           ),
@@ -441,8 +451,10 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
     );
   }
 
-  // ── Detail Card ──────────────────────────────────────────────────
+  // ── Detail Card ────────────────────────────────────────────────────────────
   Widget _buildDetailCard() {
+    if (_isLoading) return const SizedBox.shrink();
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -457,7 +469,6 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
       ),
       child: Column(
         children: [
-          // Header detail
           Container(
             padding: const EdgeInsets.fromLTRB(18, 20, 18, 14),
             decoration: const BoxDecoration(
@@ -467,99 +478,100 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
                 topRight: Radius.circular(20),
               ),
             ),
-            child: Row(
-              children: const [
+            child: const Row(
+              children: [
                 Icon(Icons.bar_chart_rounded, color: Colors.white, size: 18),
                 SizedBox(width: 8),
-                Text(
-                  "Detail per Poli & Layanan",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
+                Text('Detail per Poli & Layanan',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14)),
               ],
             ),
           ),
+          if (_perPoliStats.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(24),
+              child: Text('Belum ada data kunjungan',
+                  style: TextStyle(color: Colors.grey)),
+            )
+          else
+            ListView.separated(
+              padding: const EdgeInsets.only(top: 12),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _perPoliStats.length,
+              separatorBuilder: (_, __) => Divider(
+                height: 1,
+                color: Colors.grey.shade100,
+                indent: 18,
+                endIndent: 18,
+              ),
+              itemBuilder: (_, index) {
+                final stat = _perPoliStats[index];
+                final color = _colorForIndex(index);
+                final jumlah = stat['jumlah'] as int? ?? 0;
+                final maxJ = _perPoliStats
+                    .map((e) => e['jumlah'] as int? ?? 0)
+                    .fold(1, (a, b) => a > b ? a : b);
 
-          // Rows
-          ListView.separated(
-          padding: const EdgeInsets.only(top: 12), 
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-            itemCount: _detailPoli.length,
-            separatorBuilder: (_, __) => Divider(
-              height: 1,
-              color: Colors.grey.shade100,
-              indent: 18,
-              endIndent: 18,
-            ),
-            itemBuilder: (_, index) {
-              final item = _detailPoli[index];
-              final color = item['color'] as Color;
-              return Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 18, vertical: 14),
-                child: Row(
-                  children: [
-                    // Icon
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(item['icon'] as IconData,
-                          color: color, size: 18),
-                    ),
-                    const SizedBox(width: 12),
-
-                    // Name
-                    Expanded(
-                      child: Text(
-                        item['nama'] as String,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 18, vertical: 14),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                      ),
-                    ),
-
-                    // Progress bar + count
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          item['jumlah'] as String,
-                          style: TextStyle(
+                        child: Icon(
+                            _iconForPoli(
+                                stat['poly_name'] as String? ?? ''),
                             color: color,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
+                            size: 18),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          stat['poly_name'] as String? ?? '-',
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w500),
                         ),
-                        const SizedBox(height: 5),
-                        SizedBox(
-                          width: 80,
-                          height: 5,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: LinearProgressIndicator(
-                              value: _dataChart[index] / 24,
-                              backgroundColor: Colors.grey.shade100,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(color),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '$jumlah Pasien',
+                            style: TextStyle(
+                                color: color,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 5),
+                          SizedBox(
+                            width: 80,
+                            height: 5,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: LinearProgressIndicator(
+                                value: jumlah / maxJ,
+                                backgroundColor: Colors.grey.shade100,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(color),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           const SizedBox(height: 4),
         ],
       ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:giliranku/core/theme/theme.dart';
 import 'package:giliranku/feature/splash/splashView.dart';
 import 'package:giliranku/feature/patient/home/homeView.dart';
-import 'package:giliranku/feature/admin/dashboard/adminDashboardView.dart';
+import 'package:giliranku/feature/admin/beranda/adminBerandaView.dart';
 import 'package:giliranku/core/services/sessionService.dart';
 import 'package:giliranku/core/services/notificationService.dart';
 
@@ -15,7 +15,7 @@ void main() async {
   Widget homeWidget = const SplashView();
 
   if (sessionType == SessionType.admin) {
-    homeWidget = const AdminDashboardView();
+    homeWidget = const AdminBerandaView();
   } else if (sessionType == SessionType.patient) {
     final patientData = await SessionService().getPatientMap();
     homeWidget = HomeView(patientData: patientData);

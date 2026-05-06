@@ -431,19 +431,50 @@ class ApiDataSource {
 
   Future<dynamic> getRiwayatAntrian(String nik) async {
     try {
-      // Mengambil data riwayat berdasarkan NIK pasien
       final res = await _client
           .get(_uri('/antrian/riwayat/$nik'))
           .timeout(_timeout);
 
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body) as Map<String, dynamic>;
-        return body['data']; // Mengembalikan List riwayat dari key 'data'
+        return body['data'];
       }
       return [];
     } catch (e) {
       debugPrint('ApiDataSource.getRiwayatAntrian: $e');
       return [];
     }
+  }
+
+  Future<Map<String, dynamic>?> fetchDashboardStats() async {
+    try {
+      final res = await _client
+          .get(_uri(ApiConstants.antrianDashboardStats))
+          .timeout(_timeout);
+      if (res.statusCode == 200) {
+        return (jsonDecode(res.body) as Map<String, dynamic>)['data']
+            as Map<String, dynamic>?;
+      }
+    } catch (e) {
+      debugPrint('ApiDataSource.fetchDashboardStats: $e');
+    }
+    return null;
+  }
+
+  Future<List<Map<String, dynamic>>> fetchKunjunganStats(String period) async {
+    try {
+      final res = await _client
+          .get(_uri('${ApiConstants.antrianKunjunganStats}?period=$period'))
+          .timeout(_timeout);
+      if (res.statusCode == 200) {
+        return ((jsonDecode(res.body) as Map<String, dynamic>)['data']
+                    as List<dynamic>? ??
+                [])
+            .cast<Map<String, dynamic>>();
+      }
+    } catch (e) {
+      debugPrint('ApiDataSource.fetchKunjunganStats: $e');
+    }
+    return [];
   }
 }

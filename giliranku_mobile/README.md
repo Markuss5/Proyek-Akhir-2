@@ -1,17 +1,44 @@
-# gliranku_mobile
+# GiliranKu Mobile
 
-A new Flutter project.
+GiliranKu Mobile is the patient-facing mobile application for the RSUD Porsea Hospital Queue and Information System. It provides patients with an easy way to view hospital information, doctors' schedules, and manage their routine check-up queues and reminders.
+
+## Features
+- **Authentication**: Secure login using NIK and Password.
+- **Hospital Information**: View real-time operational hours, doctors' schedules, and available polyclinics.
+- **Queue Management**: Register for general or BPJS queues and monitor queue statuses.
+- **Notifications**: Automated reminders for routine follow-up check-ups (Kontrol Rutin).
+
+## Architecture
+The application follows a Clean Architecture approach:
+- `lib/core/`: Contains shared resources, including API constants, models, datasources, services, UI components (widgets), and theme definitions.
+- `lib/feature/`: Contains domain-specific modules such as `auth`, `home`, `patient`, and `notifikasi`.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Prerequisites
+- Flutter SDK (>=3.11.4)
+- Dart SDK
 
-A few resources to get you started if this is your first Flutter project:
+### Installation
+1. Navigate to the `giliranku_mobile` directory:
+   ```bash
+   cd giliranku_mobile
+   ```
+2. Install dependencies:
+   ```bash
+   flutter pub get
+   ```
+3. Run the application:
+   ```bash
+   flutter run
+   ```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Configuration
+Update the `lib/core/constants/apiConstants.dart` file to configure your local or production backend URLs.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Dependencies
+- `provider`: State management
+- `http`: API communication
+- `flutter_local_notifications` & `timezone`: Local push notifications
+- `shared_preferences`: Local persistent storage
+- `iconsax`: UI icons

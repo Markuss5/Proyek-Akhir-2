@@ -17,3 +17,9 @@ type Antrian struct {
 	IsPasienLama bool      `json:"is_pasien_lama"`
 	Status       string    `json:"status"`
 }
+
+type KunjunganStatPoli struct {
+	PolyID   int    `json:"poly_id"`
+	PolyName string `json:"poly_name"`
+	Jumlah   int    `json:"jumlah"`
+}

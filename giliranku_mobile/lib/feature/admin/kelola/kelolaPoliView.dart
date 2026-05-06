@@ -11,12 +11,21 @@ class KelolaPoliView extends StatefulWidget {
 
 class _KelolaPoliViewState extends State<KelolaPoliView> {
   List<Map<String, dynamic>> _poliList = [];
+  List<Map<String, dynamic>> _filtered = [];
   bool _isLoading = true;
+  final _searchCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _fetchData();
+    _searchCtrl.addListener(_applyFilter);
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchData() async {
@@ -24,14 +33,30 @@ class _KelolaPoliViewState extends State<KelolaPoliView> {
     final data = await ApiDataSource().fetchPoliklinik();
     setState(() {
       _poliList = data;
+      _applyFilter();
       _isLoading = false;
+    });
+  }
+
+  void _applyFilter() {
+    final q = _searchCtrl.text.toLowerCase();
+    setState(() {
+      _filtered = q.isEmpty
+          ? List.from(_poliList)
+          : _poliList.where((p) {
+              final name = (p['poly_name'] ?? '').toString().toLowerCase();
+              final kode = (p['kode_poli'] ?? '').toString().toLowerCase();
+              return name.contains(q) || kode.contains(q);
+            }).toList();
     });
   }
 
   void _showFormDialog({Map<String, dynamic>? poli}) {
     final isEdit = poli != null;
-    final namaController = TextEditingController(text: isEdit ? poli['poly_name'] : '');
-    final kodeController = TextEditingController(text: isEdit ? (poli['kode_poli'] ?? '') : '');
+    final namaController =
+        TextEditingController(text: isEdit ? poli['poly_name'] : '');
+    final kodeController =
+        TextEditingController(text: isEdit ? (poli['kode_poli'] ?? '') : '');
 
     showDialog(
       context: context,
@@ -62,28 +87,27 @@ class _KelolaPoliViewState extends State<KelolaPoliView> {
                 'kode_poli': kodeController.text,
                 'poly_name': namaController.text,
               };
-
               Navigator.pop(ctx);
               setState(() => _isLoading = true);
-
               bool success;
               if (isEdit) {
-                success = await ApiDataSource().updatePoli(poli['poly_id'], req);
+                success =
+                    await ApiDataSource().updatePoli(poli['poly_id'], req);
               } else {
                 success = await ApiDataSource().createPoli(req);
               }
-
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(success ? 'Berhasil disimpan' : 'Gagal menyimpan'),
-                    backgroundColor: success ? Colors.green : Colors.red,
-                  ),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(
+                      success ? 'Berhasil disimpan' : 'Gagal menyimpan'),
+                  backgroundColor: success ? Colors.green : Colors.red,
+                ));
               }
               _fetchData();
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white),
             child: const Text('Simpan'),
           ),
         ],
@@ -98,23 +122,26 @@ class _KelolaPoliViewState extends State<KelolaPoliView> {
         title: const Text('Hapus Poli?'),
         content: Text('Anda yakin ingin menghapus $name?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Batal')),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
               setState(() => _isLoading = true);
               final success = await ApiDataSource().deletePoli(id);
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(success ? 'Poli berhasil dihapus' : 'Gagal menghapus poli'),
-                    backgroundColor: success ? Colors.green : Colors.red,
-                  ),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(success
+                      ? 'Poli berhasil dihapus'
+                      : 'Gagal menghapus poli'),
+                  backgroundColor: success ? Colors.green : Colors.red,
+                ));
               }
               _fetchData();
             },
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+            child:
+                const Text('Hapus', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -125,37 +152,83 @@ class _KelolaPoliViewState extends State<KelolaPoliView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _poliList.length,
-              itemBuilder: (context, index) {
-                final item = _poliList[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    title: Text(item['poly_name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('Kode: ${item['kode_poli'] ?? '-'}'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _showFormDialog(poli: item),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _confirmDelete(item['poly_id'], item['poly_name']),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: TextField(
+              controller: _searchCtrl,
+              decoration: InputDecoration(
+                hintText: 'Cari poli atau kode…',
+                prefixIcon:
+                    const Icon(Icons.search, color: AppColors.primary),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade200),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade200),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.primary),
+                ),
+              ),
             ),
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _filtered.isEmpty
+                    ? const Center(
+                        child: Text('Tidak ada data',
+                            style: TextStyle(color: Colors.grey)))
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _filtered.length,
+                        itemBuilder: (context, index) {
+                          final item = _filtered[index];
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              title: Text(item['poly_name'] ?? '',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
+                              subtitle: Text(
+                                  'Kode: ${item['kode_poli'] ?? '-'}'),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit,
+                                        color: Colors.blue),
+                                    onPressed: () =>
+                                        _showFormDialog(poli: item),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete,
+                                        color: Colors.red),
+                                    onPressed: () => _confirmDelete(
+                                        item['poly_id'],
+                                        item['poly_name']),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showFormDialog(),
         backgroundColor: AppColors.primary,

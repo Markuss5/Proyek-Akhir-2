@@ -22,8 +22,6 @@ func NewAntrianController(svc service.AntrianService) *AntrianController {
 	}
 }
 
-// GET /api/v1/antrian/layanan
-// Sesuai sequence 1.1 → tampilkan jenis layanan
 func (c *AntrianController) GetLayanan(ctx *gin.Context) {
 	data, err := c.service.GetPoliklinik()
 	if err != nil {
@@ -39,8 +37,6 @@ func (c *AntrianController) GetLayanan(ctx *gin.Context) {
 	})
 }
 
-// POST /api/v1/antrian/cek-nik
-// Sesuai sequence 2A.1 → verifikasi NIK pasien lama
 func (c *AntrianController) CekNIK(ctx *gin.Context) {
 	var req request.CekNIKRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -66,8 +62,6 @@ func (c *AntrianController) CekNIK(ctx *gin.Context) {
 	})
 }
 
-// POST /api/v1/antrian
-// Sesuai sequence 4.1 → buat antrian baru
 func (c *AntrianController) CreateAntrian(ctx *gin.Context) {
 	var req request.AntrianRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -100,4 +94,30 @@ func (c *AntrianController) CreateAntrian(ctx *gin.Context) {
 		"message": "Antrian berhasil dibuat",
 		"data":    result,
 	})
+}
+
+func (c *AntrianController) GetDashboardStats(ctx *gin.Context) {
+	pasienHariIni, dokterAktif, jumlahPoli, err := c.service.GetDashboardStats()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Gagal memuat statistik"})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data": gin.H{
+			"pasien_hari_ini":   pasienHariIni,
+			"dokter_aktif":      dokterAktif,
+			"jumlah_poliklinik": jumlahPoli,
+		},
+	})
+}
+
+func (c *AntrianController) GetKunjunganStats(ctx *gin.Context) {
+	period := ctx.DefaultQuery("period", "daily")
+	data, err := c.service.GetKunjunganStats(period)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Gagal memuat statistik kunjungan"})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"success": true, "data": data})
 }

@@ -18,7 +18,6 @@ func SetupRoutes(
 ) {
 	api := r.Group("/api/v1")
 
-	// Pasien routes
 	pasien := api.Group("/pasien")
 	{
 		pasien.POST("/login", pasienCtrl.Login)
@@ -26,14 +25,12 @@ func SetupRoutes(
 		pasien.PUT("/profile", pasienCtrl.UpdateProfile)
 	}
 
-	// Informasi routes
 	informasi := api.Group("/informasi")
 	{
 		informasi.GET("", informasiCtrl.Get)
 		informasi.PUT("", informasiCtrl.Update)
 	}
 
-	// Poliklinik routes
 	poliklinik := api.Group("/poliklinik")
 	{
 		poliklinik.GET("", poliCtrl.GetAll)
@@ -42,7 +39,6 @@ func SetupRoutes(
 		poliklinik.DELETE("/:id", poliCtrl.Delete)
 	}
 
-	// Dokter routes
 	dokter := api.Group("/dokter")
 	{
 		dokter.GET("", dokterCtrl.GetByPoly)
@@ -51,7 +47,6 @@ func SetupRoutes(
 		dokter.DELETE("/:id", dokterCtrl.Delete)
 	}
 
-	// Kontrol Rutin routes
 	kontrolRutin := api.Group("/kontrol-rutin")
 	{
 		kontrolRutin.POST("", kontrolRutinCtrl.Create)
@@ -61,7 +56,6 @@ func SetupRoutes(
 		kontrolRutin.DELETE("/:id", kontrolRutinCtrl.Delete)
 	}
 
-	// Notifikasi routes
 	notifikasi := api.Group("/notifikasi")
 	{
 		notifikasi.POST("", notifikasiCtrl.Create)
@@ -72,12 +66,11 @@ func SetupRoutes(
 		notifikasi.DELETE("/:id", notifikasiCtrl.Delete)
 	}
 
-	// GET  /api/v1/antrian/layanan  → tampilkan jenis layanan
-	// POST /api/v1/antrian/cek-nik  → verifikasi NIK pasien lama
-	// POST /api/v1/antrian          → buat antrian baru
 	antrian := api.Group("/antrian")
 	{
 		antrian.GET("/layanan", antrianCtrl.GetLayanan)
+		antrian.GET("/dashboard-stats", antrianCtrl.GetDashboardStats)
+		antrian.GET("/kunjungan-stats", antrianCtrl.GetKunjunganStats)
 		antrian.POST("/cek-nik", antrianCtrl.CekNIK)
 		antrian.POST("", antrianCtrl.CreateAntrian)
 	}
