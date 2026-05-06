@@ -4,6 +4,7 @@
 .packages
 pubspec.lock
 giliranku_mobile/lib/core/constants/apiConstants.dart
+giliran_ku/lib/core/constants/apiConstants.dart
 
 # Go
 bin/
