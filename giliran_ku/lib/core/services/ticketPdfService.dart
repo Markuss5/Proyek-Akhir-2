@@ -15,6 +15,21 @@ class TicketPdfService {
   static const String _windowsOutputDir =
       r'D:\Folder Semester 4\Pengembangan Aplikasi Mobile\Week 14\Praktikum\giliran_ku\queue_pdfs';
 
+  Future<void> printTicketDirectly(Ticket ticket) async {
+    await Future.delayed(const Duration(seconds: 1));
+    // final pdf = pw.Document();
+    // if (ticket.type == 'farmasi') {
+    //   pdf.addPage(_buildPharmacyPage(ticket));
+    // } else {
+    //   pdf.addPage(_buildTicketPage(ticket));
+    // }
+    // final bytes = await pdf.save();
+    // await Printing.layoutPdf(
+    //   onLayout: (format) async => bytes,
+    //   name: 'ticket_${ticket.id}',
+    // );
+  }
+
   Future<String> exportTicket(Ticket ticket) async {
     final pdf = pw.Document();
     if (ticket.type == 'farmasi') {

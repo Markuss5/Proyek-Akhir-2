@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"gliranku/dto/request"
@@ -31,6 +32,7 @@ type AntrianService interface {
 
 type antrianService struct {
 	repo repository.AntrianRepository
+	mu   sync.Mutex
 }
 
 func NewAntrianService(repo repository.AntrianRepository) AntrianService {
@@ -75,6 +77,9 @@ func (s *antrianService) VerifyNIK(nik string) (*response.CekNIKResponse, error)
 }
 
 func (s *antrianService) CreateAntrian(req request.AntrianRequest) (*response.AntrianResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	var tanggal time.Time
 	var err error
 	if req.Tanggal != "" {
@@ -121,7 +126,6 @@ func (s *antrianService) CreateAntrian(req request.AntrianRequest) (*response.An
 	telepon := req.Telepon
 
 	if req.IsPasienLama || req.NamaPasien == "-" {
-		// Attempt to fetch from DB
 		if p, err := s.repo.CheckNIK(req.NIK); err == nil && p != nil {
 			namaPasien = p.PatientName
 			if p.Phone != nil {
@@ -270,8 +274,11 @@ func (s *antrianService) GetRiwayatAntrian(nik string) ([]response.AntrianRespon
 }
 
 func (s *antrianService) CreateBpjsAntrian(req request.BpjsAntrianRequest) (*response.AntrianResponse, error) {
-	const bpjsApiKey = "" // Blank Cons-ID / API Key placeholder
-	const bpjsApiUrl = "" // Blank API URL placeholder
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	const bpjsApiKey = ""
+	const bpjsApiUrl = ""
 
 	type BpjsRujukanResponse struct {
 		MetaHead struct {
@@ -440,12 +447,10 @@ func (s *antrianService) DeleteAntrian(kodeBooking string) error {
 }
 
 func (s *antrianService) GetRujukanBPJS(nik string) ([]response.RujukanResponse, error) {
-	// First, check local DB for saved referral for this NIK
 	var result []response.RujukanResponse
 	ref, err := s.repo.GetBpjsReferralByNik(nik)
 	
 	if err == nil && ref != nil {
-		// Mock local referral translation
 		poliNama := "Poli Bedah"
 		if ref.PoliID == 2 {
 			poliNama = "Poli Anak"
@@ -463,7 +468,6 @@ func (s *antrianService) GetRujukanBPJS(nik string) ([]response.RujukanResponse,
 		})
 	}
 
-	// Mocking BPJS API call fallback: if empty, generate a fallback
 	if len(result) == 0 {
 		result = append(result, response.RujukanResponse{
 			NoRujukan:  fmt.Sprintf("BPJS-%s-99", nik),

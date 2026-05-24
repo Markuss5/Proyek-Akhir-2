@@ -1,14 +1,16 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart' as loc;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:giliranku/core/theme/theme.dart';
 
-const _hospitalLat = 2.4449;
-const _hospitalLng = 99.1481;
-const LatLng _hospitalLatLng = LatLng(_hospitalLat, _hospitalLng);
+const double _hospitalLat = 2.4449;
+const double _hospitalLng = 99.1481;
+final LatLng _hospitalLatLng = LatLng(_hospitalLat, _hospitalLng);
 
 class LokasiRSView extends StatefulWidget {
   final String hospitalName;
@@ -25,7 +27,7 @@ class LokasiRSView extends StatefulWidget {
 }
 
 class _LokasiRSViewState extends State<LokasiRSView> {
-  GoogleMapController? _mapController;
+  final MapController _mapController = MapController();
 
   loc.LocationData? _userLocation;
   String _userAddress = 'Mengambil lokasi...';
@@ -33,34 +35,16 @@ class _LokasiRSViewState extends State<LokasiRSView> {
   bool _locationLoading = true;
   bool _locationDenied = false;
 
-  final Set<Marker> _markers = {};
-  bool _mapReady = false;
-
   @override
   void initState() {
     super.initState();
-    _setupHospitalMarker();
     _requestLocationAndLoad();
   }
 
   @override
   void dispose() {
-    _mapController?.dispose();
+    _mapController.dispose();
     super.dispose();
-  }
-
-  void _setupHospitalMarker() {
-    _markers.add(
-      Marker(
-        markerId: const MarkerId('hospital'),
-        position: _hospitalLatLng,
-        infoWindow: InfoWindow(
-          title: widget.hospitalName,
-          snippet: widget.hospitalAddress,
-        ),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-      ),
-    );
   }
 
   Future<void> _requestLocationAndLoad() async {
@@ -93,7 +77,6 @@ class _LokasiRSViewState extends State<LokasiRSView> {
     if (!mounted) return;
 
     _userLocation = locationData;
-    _addUserMarker(locationData);
 
     final dist = _haversineDistance(
       locationData.latitude ?? 0,
@@ -114,21 +97,7 @@ class _LokasiRSViewState extends State<LokasiRSView> {
       _locationLoading = false;
     });
 
-    if (_mapReady) _fitBounds(locationData);
-  }
-
-  void _addUserMarker(loc.LocationData data) {
-    if (data.latitude == null || data.longitude == null) return;
-    _markers.removeWhere((m) => m.markerId.value == 'user');
-    _markers.add(
-      Marker(
-        markerId: const MarkerId('user'),
-        position: LatLng(data.latitude!, data.longitude!),
-        infoWindow: const InfoWindow(title: 'Lokasi Anda'),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-      ),
-    );
-    if (mounted) setState(() {});
+    _fitBounds(locationData);
   }
 
   double _haversineDistance(
@@ -137,8 +106,10 @@ class _LokasiRSViewState extends State<LokasiRSView> {
     final dLat = _deg2rad(lat2 - lat1);
     final dLng = _deg2rad(lng2 - lng1);
     final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_deg2rad(lat1)) * cos(_deg2rad(lat2)) *
-            sin(dLng / 2) * sin(dLng / 2);
+        cos(_deg2rad(lat1)) *
+            cos(_deg2rad(lat2)) *
+            sin(dLng / 2) *
+            sin(dLng / 2);
     return R * 2 * atan2(sqrt(a), sqrt(1 - a));
   }
 
@@ -161,38 +132,25 @@ class _LokasiRSViewState extends State<LokasiRSView> {
     return 'Tidak dapat mengambil alamat';
   }
 
-  Future<void> _fitBounds(loc.LocationData userLocation) async {
-    final controller = _mapController;
-    if (controller == null) return;
+  void _fitBounds(loc.LocationData userLocation) {
     if (userLocation.latitude == null || userLocation.longitude == null) return;
-
     final userLatLng = LatLng(userLocation.latitude!, userLocation.longitude!);
-    final bounds = LatLngBounds(
-      southwest: LatLng(
-        min(userLatLng.latitude, _hospitalLat),
-        min(userLatLng.longitude, _hospitalLng),
-      ),
-      northeast: LatLng(
-        max(userLatLng.latitude, _hospitalLat),
-        max(userLatLng.longitude, _hospitalLng),
-      ),
-    );
 
-    await controller.animateCamera(
-      CameraUpdate.newLatLngBounds(bounds, 80),
+    final bounds = LatLngBounds(userLatLng, _hospitalLatLng);
+    _mapController.fitCamera(
+      CameraFit.bounds(
+        bounds: bounds,
+        padding: const EdgeInsets.all(80),
+      ),
     );
   }
 
-  Future<void> _recenter() async {
+  void _recenter() {
     final locData = _userLocation;
     if (locData == null || locData.latitude == null) return;
-    await _mapController?.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: LatLng(locData.latitude!, locData.longitude!),
-          zoom: 15,
-        ),
-      ),
+    _mapController.move(
+      LatLng(locData.latitude!, locData.longitude!),
+      15,
     );
   }
 
@@ -212,6 +170,47 @@ class _LokasiRSViewState extends State<LokasiRSView> {
     }
   }
 
+  List<Marker> _buildMarkers() {
+    final markers = <Marker>[
+      Marker(
+        point: _hospitalLatLng,
+        width: 48,
+        height: 48,
+        child: Tooltip(
+          message: widget.hospitalName,
+          child: const Icon(
+            Icons.local_hospital_rounded,
+            color: AppColors.primary,
+            size: 40,
+            shadows: [Shadow(blurRadius: 6, color: Colors.black26)],
+          ),
+        ),
+      ),
+    ];
+
+    final locData = _userLocation;
+    if (locData != null && locData.latitude != null) {
+      markers.add(
+        Marker(
+          point: LatLng(locData.latitude!, locData.longitude!),
+          width: 48,
+          height: 48,
+          child: const Tooltip(
+            message: 'Lokasi Anda',
+            child: Icon(
+              Icons.person_pin_circle_rounded,
+              color: Color(0xFF4C9BE8),
+              size: 40,
+              shadows: [Shadow(blurRadius: 6, color: Colors.black26)],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return markers;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -222,22 +221,21 @@ class _LokasiRSViewState extends State<LokasiRSView> {
           Expanded(
             child: Stack(
               children: [
-                GoogleMap(
-                  initialCameraPosition: const CameraPosition(
-                    target: _hospitalLatLng,
-                    zoom: 14,
+                FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    initialCenter: _hospitalLatLng,
+                    initialZoom: 14,
                   ),
-                  markers: _markers,
-                  myLocationButtonEnabled: false,
-                  zoomControlsEnabled: false,
-                  compassEnabled: true,
-                  onMapCreated: (controller) {
-                    _mapController = controller;
-                    setState(() => _mapReady = true);
-                    if (_userLocation != null) {
-                      _fitBounds(_userLocation!);
-                    }
-                  },
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.example.gliranku_mobile',
+                      maxZoom: 19,
+                    ),
+                    MarkerLayer(markers: _buildMarkers()),
+                  ],
                 ),
 
                 Positioned(
@@ -291,12 +289,15 @@ class _LokasiRSViewState extends State<LokasiRSView> {
                 color: AppColors.textPrimary,
               ),
               const SizedBox(width: 4),
-              const Text(
-                'Lokasi & Arah ke RSUD Porsea',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+              Expanded(
+                child: Text(
+                  'Lokasi & Arah ke ${widget.hospitalName}',
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -316,7 +317,7 @@ class _LokasiRSViewState extends State<LokasiRSView> {
             color: Color(0x14000000),
             blurRadius: 24,
             offset: Offset(0, -6),
-          )
+          ),
         ],
       ),
       child: SafeArea(
@@ -393,9 +394,11 @@ class _LokasiRSViewState extends State<LokasiRSView> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                         SizedBox(width: 10),
-                        Text('Mengambil lokasi Anda...',
-                            style: TextStyle(
-                                color: AppColors.textSecondary, fontSize: 13)),
+                        Text(
+                          'Mengambil lokasi Anda...',
+                          style: TextStyle(
+                              color: AppColors.textSecondary, fontSize: 13),
+                        ),
                       ],
                     ),
                   ),
@@ -423,10 +426,8 @@ class _LokasiRSViewState extends State<LokasiRSView> {
                   icon: const Icon(Icons.directions_rounded),
                   label: const Text(
                     'Petunjuk Arah',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
-                    ),
+                    style:
+                        TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                   ),
                 ),
               ),
@@ -445,7 +446,7 @@ class _LokasiRSViewState extends State<LokasiRSView> {
           children: [
             _buildStatChip(
               Icons.social_distance_rounded,
-              'Jarak',
+              'Jarak ke RSUD Porsea',
               _distanceText,
               AppColors.primary.withValues(alpha: 0.1),
               AppColors.primary,
@@ -453,7 +454,7 @@ class _LokasiRSViewState extends State<LokasiRSView> {
             const SizedBox(width: 12),
             _buildStatChip(
               Icons.directions_car_rounded,
-              'Estimasi',
+              'Estimasi Lama Perjalanan',
               _estimateDriveTime(),
               Colors.orange.withValues(alpha: 0.1),
               Colors.orange.shade700,
@@ -461,7 +462,6 @@ class _LokasiRSViewState extends State<LokasiRSView> {
           ],
         ),
         const SizedBox(height: 14),
-
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -472,11 +472,13 @@ class _LokasiRSViewState extends State<LokasiRSView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Lokasi Anda',
-                      style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w500)),
+                  const Text(
+                    'Lokasi Anda',
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500),
+                  ),
                   const SizedBox(height: 2),
                   Text(
                     _userAddress,
@@ -523,7 +525,7 @@ class _LokasiRSViewState extends State<LokasiRSView> {
                         color: color,
                         fontWeight: FontWeight.w700)),
               ],
-            )
+            ),
           ],
         ),
       ),
@@ -547,9 +549,7 @@ class _LokasiRSViewState extends State<LokasiRSView> {
             child: Text(
               'Izin lokasi diperlukan untuk menghitung jarak. Ketuk tombol refresh di peta untuk mencoba lagi.',
               style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.orange.shade800,
-                  height: 1.4),
+                  fontSize: 12, color: Colors.orange.shade800, height: 1.4),
             ),
           ),
         ],
@@ -561,7 +561,7 @@ class _LokasiRSViewState extends State<LokasiRSView> {
     final locData = _userLocation;
     if (locData == null || locData.latitude == null) return '-';
     final dist = _haversineDistance(
-      locData.latitude!, locData.longitude!, _hospitalLat, _hospitalLng);
+        locData.latitude!, locData.longitude!, _hospitalLat, _hospitalLng);
     final minutes = (dist / 40 * 60).round();
     if (minutes < 60) return '$minutes mnt';
     return '${(minutes / 60).floor()} jam ${minutes % 60} mnt';

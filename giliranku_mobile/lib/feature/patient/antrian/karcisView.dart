@@ -527,13 +527,6 @@ class _KarcisViewState extends State<KarcisView>
       Directory? dir;
       if (Platform.isAndroid) {
         dir = await getExternalStorageDirectory();
-        if (dir != null) {
-          String path = dir.path;
-          int index = path.indexOf('/Android/data/');
-          if (index != -1) {
-            dir = Directory('${path.substring(0, index)}/Download');
-          }
-        }
       } else {
         dir = await getApplicationDocumentsDirectory();
       }
@@ -550,7 +543,7 @@ class _KarcisViewState extends State<KarcisView>
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Tiket berhasil disimpan di: Download/$fileName'),
+          content: Text('Tiket berhasil disimpan: $fileName'),
           backgroundColor: const Color(0xFF0D9B86),
           behavior: SnackBarBehavior.floating,
         ));
