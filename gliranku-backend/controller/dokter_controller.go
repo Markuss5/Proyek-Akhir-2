@@ -7,6 +7,7 @@ import (
 	"gliranku/utils"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,11 +21,12 @@ func NewDokterController(repo *repository.DokterRepository, svc *service.DokterS
 	return &DokterController{Repo: repo, Service: svc}
 }
 
-// GET /api/v1/dokter?poly_id=1
 func (ctrl *DokterController) GetByPoly(c *gin.Context) {
 	polyIDStr := c.Query("poly_id")
 	if polyIDStr == "" {
-		// Return all doctors if no poly_id filter
+		polyIDStr = c.Param("poly_id")
+	}
+	if polyIDStr == "" {
 		results, err := ctrl.Repo.FindAll()
 		if err != nil {
 			utils.Error(c, http.StatusInternalServerError, "Gagal mengambil data dokter")
@@ -40,7 +42,12 @@ func (ctrl *DokterController) GetByPoly(c *gin.Context) {
 		return
 	}
 
-	results, err := ctrl.Repo.FindByPolyID(polyID)
+	tanggal := c.Query("tanggal")
+	if tanggal == "" {
+		tanggal = time.Now().Format("2006-01-02")
+	}
+
+	results, err := ctrl.Repo.FindByPolyID(polyID, tanggal)
 	if err != nil {
 		utils.Error(c, http.StatusInternalServerError, "Gagal mengambil data dokter")
 		return
@@ -48,7 +55,6 @@ func (ctrl *DokterController) GetByPoly(c *gin.Context) {
 	utils.Success(c, http.StatusOK, "Data dokter berhasil diambil", results)
 }
 
-// POST /api/v1/dokter
 func (ctrl *DokterController) Create(c *gin.Context) {
 	var req request.DokterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -64,7 +70,6 @@ func (ctrl *DokterController) Create(c *gin.Context) {
 	utils.Success(c, http.StatusCreated, "Dokter berhasil ditambahkan", result)
 }
 
-// PUT /api/v1/dokter/:id
 func (ctrl *DokterController) Update(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -86,7 +91,6 @@ func (ctrl *DokterController) Update(c *gin.Context) {
 	utils.Success(c, http.StatusOK, "Dokter berhasil diperbarui", result)
 }
 
-// DELETE /api/v1/dokter/:id
 func (ctrl *DokterController) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

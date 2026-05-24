@@ -58,11 +58,18 @@ func (ctrl *kioskController) GetBooking(c *gin.Context) {
 func (ctrl *kioskController) UploadPDF(c *gin.Context) {
 	file, err := c.FormFile("pdf")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "File PDF tidak ditemukan dalam request"})
-		return
+		file, err = c.FormFile("file")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "File PDF tidak ditemukan dalam request"})
+			return
+		}
 	}
 
 	filename := c.PostForm("filename")
+	if filename == "" {
+		filename = c.PostForm("ticket_id")
+	}
+
 	if filename == "" {
 		filename = file.Filename
 	} else {

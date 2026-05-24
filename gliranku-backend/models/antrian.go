@@ -3,9 +3,10 @@ package models
 import "time"
 
 type Antrian struct {
-	NoAntrian    string    `json:"no_antrian"`
-	KodeBooking  string    `json:"kode_booking"`
-	NIK          string    `json:"nik"`
+	NoAntrian       string    `json:"no_antrian"`
+	NoAntrianPoli   string    `json:"no_antrian_poli"`
+	KodeBooking     string    `json:"kode_booking"`
+	NIK             string    `json:"nik"`
 	NamaPasien   string    `json:"nama_pasien"`
 	Telepon      string    `json:"telepon"`
 	PoliID       int       `json:"poli_id"`
@@ -16,6 +17,8 @@ type Antrian struct {
 	Pembayaran   string    `json:"pembayaran"`
 	IsPasienLama bool      `json:"is_pasien_lama"`
 	Status       string    `json:"status"`
+	Source       string    `json:"source"`
+	NoRM         string    `json:"no_rm"`
 }
 
 type KunjunganStatPoli struct {
@@ -25,9 +28,10 @@ type KunjunganStatPoli struct {
 }
 
 type AntrianResponseExtended struct {
-	NoAntrian    string
-	KodeBooking  string
-	Poliklinik   string
+	NoAntrian     string
+	NoAntrianPoli string
+	KodeBooking   string
+	Poliklinik    string
 	Dokter       string
 	Tanggal      time.Time
 	WaktuMulai   string

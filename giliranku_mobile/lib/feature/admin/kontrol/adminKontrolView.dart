@@ -122,7 +122,21 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
   int get _selesaiCount =>
       _kontrolList.where((e) => e.status == 'selesai').length;
 
-  // ── Dialog ─────────────────────────────────────────────────────────
+  void _cancelSelection() {
+    setState(() {
+      _selectionMode = false;
+      _selectedIds.clear();
+    });
+  }
+
+  void _selectAll() {
+    setState(() {
+      _selectedIds.addAll(
+        _filteredList.where((e) => e.controlId != null).map((e) => e.controlId!),
+      );
+    });
+  }
+
   void _showAddDialog() async {
     final nikCtrl = TextEditingController();
     final namaCtrl = TextEditingController();
@@ -154,7 +168,6 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Dialog header
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.fromLTRB(24, 20, 20, 20),
@@ -195,7 +208,6 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
                       ],
                     ),
                   ),
-                  // Dialog body
                   Flexible(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(24),
@@ -216,7 +228,6 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
                           ),
                           const SizedBox(height: 14),
 
-                          // Poliklinik Dropdown
                           _dropdownContainer(
                             child: DropdownButtonHideUnderline(
                               child: DropdownButton<Map<String, dynamic>>(
@@ -262,7 +273,6 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
                           ),
                           const SizedBox(height: 14),
 
-                          // Dokter Dropdown
                           _dropdownContainer(
                             child: isLoadingDokter
                                 ? const Padding(
@@ -317,7 +327,6 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
                           ),
                           const SizedBox(height: 14),
 
-                          // Date picker
                           _pickerField(
                             icon: Icons.calendar_today_outlined,
                             label: selectedDate != null
@@ -347,7 +356,6 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
                           ),
                           const SizedBox(height: 14),
 
-                          // Time picker
                           _pickerField(
                             icon: Icons.access_time_rounded,
                             label: selectedTime != null
@@ -375,7 +383,6 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
                           ),
                           const SizedBox(height: 24),
 
-                          // Submit
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
@@ -575,17 +582,54 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
     );
   }
 
-  // ── Build ───────────────────────────────────────────────────────────
   @override
- Widget build(BuildContext context) {
-   return Scaffold(
-     backgroundColor: const Color(0xFFF4F6F9),
-     body: Column(
-       children: [
-         AdminHeader(
-           type: AdminHeaderType.page,
-           pageTitle: "Notifikasi Kontrol",
-         ),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F6F9),
+      body: Column(
+        children: [
+          AdminHeader(
+            type: AdminHeaderType.page,
+            pageTitle: "Notifikasi Kontrol",
+          ),
+          if (_selectionMode)
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: _cancelSelection,
+                    child: const Icon(Icons.close, color: Colors.black54),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    '${_selectedIds.length} dipilih',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: _selectAll,
+                    child: const Text(
+                      'Pilih Semua',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF2F9E8F),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  GestureDetector(
+                    onTap: _deleteSelectedControls,
+                    child: Icon(Icons.delete_outline, color: Colors.red.shade400, size: 22),
+                  ),
+                ],
+              ),
+            ),
           Expanded(
             child: _isLoading
                 ? const Center(
@@ -603,15 +647,13 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                          const SizedBox(height: 10),
-                          _buildSummaryCard(),
+                            const SizedBox(height: 10),
+                            _buildSummaryCard(),
 
-                            // List section label
-                           Padding(
-                            padding: const EdgeInsets.only(top: 12, bottom: 12),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 12, bottom: 12),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     _activeFilter == 'Semua'
@@ -623,26 +665,10 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
                                       color: Color(0xFF1A1A2E),
                                     ),
                                   ),
-                                  if (_selectionMode)
-                                    GestureDetector(
-                                      onTap: () => setState(() {
-                                        _selectionMode = false;
-                                        _selectedIds.clear();
-                                      }),
-                                      child: const Text(
-                                        "Batal",
-                                        style: TextStyle(
-                                          color: Color(0xFF2F9E8F),
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
                                 ],
                               ),
                             ),
 
-                            // Items
                             if (_filteredList.isEmpty)
                               _buildEmptyState()
                             else
@@ -659,16 +685,7 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
         ],
       ),
       floatingActionButton: _selectionMode
-          ? FloatingActionButton.extended(
-              onPressed: _deleteSelectedControls,
-              backgroundColor: Colors.red,
-              icon: const Icon(Icons.delete, color: Colors.white),
-              label: Text(
-                "Hapus (${_selectedIds.length})",
-                style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-            )
+          ? null
           : FloatingActionButton(
               onPressed: _showAddDialog,
               backgroundColor: const Color(0xFF2F9E8F),
@@ -677,7 +694,6 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
     );
   }
 
-  // ── Summary Card ──────────────────────────────────────────────────
   Widget _buildSummaryCard() {
     return Container(
       width: double.infinity,
@@ -695,7 +711,6 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Stats Row
           Row(
             children: [
               _buildStatBadge(
@@ -725,7 +740,6 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
           ),
           const SizedBox(height: 18),
 
-          // Filter chips
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -806,7 +820,6 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
     );
   }
 
-  // ── Empty State ───────────────────────────────────────────────────
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
@@ -842,7 +855,6 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
     );
   }
 
-  // ── Delete ────────────────────────────────────────────────────────
   Future<void> _deleteSelectedControls() async {
     final bool? confirm = await showDialog<bool>(
       context: context,
@@ -894,7 +906,6 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
     }
   }
 
-  // ── Kontrol Card ──────────────────────────────────────────────────
   Widget _buildKontrolCard(KontrolItem item) {
     final isSelesai = item.status == 'selesai';
     final isSelected = _selectedIds.contains(item.controlId);
@@ -1024,7 +1035,6 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
               ),
               child: Row(
                 children: [
-                  // Icon
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
@@ -1043,7 +1053,6 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
                   ),
                   const SizedBox(width: 14),
 
-                  // Info
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1087,7 +1096,6 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
                     ),
                   ),
 
-                  // Badge
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10, vertical: 5),
@@ -1111,7 +1119,6 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
             ),
           ),
 
-          // Selection overlay
           if (isSelected)
             Positioned.fill(
               child: Container(

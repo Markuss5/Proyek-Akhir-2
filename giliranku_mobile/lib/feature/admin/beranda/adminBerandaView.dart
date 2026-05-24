@@ -230,7 +230,7 @@ class _BerandaPageState extends State<_BerandaPage> {
                           fontSize: 20,
                           fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  Text('Selamat datang kembali! 👋',
+                  Text('Panel admin aplikasi GiliranKu RSUD Porsea',
                       style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.85),
                           fontSize: 13)),
@@ -243,7 +243,6 @@ class _BerandaPageState extends State<_BerandaPage> {
     );
   }
 
-  // ── Dashboard Card ──────────────────────────────────────────────────────────
   Widget _buildDashboardCard() {
     return Transform.translate(
       offset: const Offset(0, -20),

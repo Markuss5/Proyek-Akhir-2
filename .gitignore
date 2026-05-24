@@ -5,6 +5,8 @@
 pubspec.lock
 giliranku_mobile/lib/core/constants/apiConstants.dart
 giliran_ku/lib/core/constants/apiConstants.dart
+giliranku_mobile/lib/firebase_options.dart
+giliranku_mobile/firebase.json
 
 # Go
 bin/

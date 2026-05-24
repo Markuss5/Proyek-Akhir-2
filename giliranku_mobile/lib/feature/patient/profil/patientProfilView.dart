@@ -25,22 +25,12 @@ class _PatientProfilViewState extends State<PatientProfilView> {
         : null;
   }
 
-  Future<void> _refreshProfile() async {
-    if (!_isLoggedIn) return;
-    final updatedData = await SessionService().getPatientMap();
-    if (updatedData != null && mounted) {
-      setState(() {
-        _data = Map<String, dynamic>.from(updatedData);
-      });
-    }
-  }
-
   bool get _isLoggedIn => _data != null && _data!.containsKey('nik');
   String get _name => _isLoggedIn ? (_data!['patient_name'] ?? 'Pasien') : 'Tamu';
   String get _nik => _isLoggedIn ? (_data!['nik'] ?? '-') : '-';
-  String get _noBpjs =>
-      _isLoggedIn && _data!['no_bpjs'] != null && _data!['no_bpjs'] != ''
-          ? _data!['no_bpjs']
+  String get _noRM =>
+      _isLoggedIn && _data!['no_rm'] != null && _data!['no_rm'] != ''
+          ? _data!['no_rm']
           : '-';
 
   @override
@@ -54,65 +44,63 @@ class _PatientProfilViewState extends State<PatientProfilView> {
             _buildHeader(context),
             const SizedBox(height: 20),
             Expanded(
-              child: RefreshIndicator(
-                onRefresh: _refreshProfile,
-                color: AppColors.primary,
-                child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  children: [
-                    _buildMenuCard(
-                      context,
-                      isProfile: true,
-                      icon: Icons.person_rounded,
-                      title: _name,
-                      subtitle: _isLoggedIn 
-                          ? 'Lihat dan edit profil Anda' 
-                          : 'Masuk untuk melihat data lengkap',
-                      onTap: () {
-                        if (_isLoggedIn) {
-                          _openEditProfile();
-                        } else {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginView()));
-                        }
-                      },
-                    ),
-  
-                    if (_isLoggedIn) ...[
-                      _buildMedisCard(),
-                    ],
-  
-                    _buildMenuCard(
-                      context,
-                      icon: Icons.history_rounded,
-                      title: 'Riwayat Antrian',
-                      subtitle: 'Lihat riwayat kunjungan anda',
-                      onTap: () {
-                        if (!_isLoggedIn) {
-                          _showLoginAlert();
-                          return;
-                        }
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const RiwayatView()));
-                      },
-                    ),
-  
-                    _buildMenuCard(
-                      context,
-                      icon: _isLoggedIn ? Icons.logout_rounded : Icons.login_rounded,
-                      title: _isLoggedIn ? 'Keluar' : 'Masuk',
-                      subtitle: _isLoggedIn ? 'Logout dari akun' : 'Masuk ke akun Anda',
-                      iconColor: _isLoggedIn ? Colors.red : const Color(0xFF0D9B86),
-                      onTap: () {
-                        if (_isLoggedIn) {
-                          _showLogoutDialog();
-                        } else {
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginView()));
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 30),
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                children: [
+                  _buildMenuCard(
+                    context,
+                    isProfile: true,
+                    icon: Icons.person_rounded,
+                    title: _name,
+                    subtitle: 'Lihat dan edit profil Anda',
+                    onTap: () async {
+                      if (!_isLoggedIn) {
+                        _showLoginAlert();
+                        return;
+                      }
+                      final result = await Navigator.push<Map<String, dynamic>>(
+                        context,
+                        MaterialPageRoute(builder: (context) => EditProfilView(patientData: _data!)),
+                      );
+                      if (result != null) setState(() => _data = result);
+                    },
+                  ),
+
+                  if (_isLoggedIn) ...[
+                    _buildMedisCard(),
                   ],
-                ),
+
+                  _buildMenuCard(
+                    context,
+                    icon: Icons.history_rounded,
+                    title: 'Riwayat Antrian',
+                    subtitle: 'Riwayat kunjungan Anda di RSUD Porsea',
+                    onTap: () {
+                      if (!_isLoggedIn) {
+                        _showLoginAlert();
+                        return;
+                      }
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const RiwayatView()));
+                    },
+                  ),
+
+                  _buildMenuCard(
+                    context,
+                    icon: _isLoggedIn ? Icons.logout_rounded : Icons.login_rounded,
+                    title: _isLoggedIn ? 'Keluar' : 'Masuk',
+                    subtitle: _isLoggedIn ? 'Logout dari akun' : 'Masuk ke akun Anda',
+                    iconColor: _isLoggedIn ? Colors.red : const Color(0xFF0D9B86),
+                    onTap: () {
+                      if (_isLoggedIn) {
+                        _showLogoutDialog();
+                      } else {
+                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginView()));
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 30),
+                ],
               ),
             ),
           ],
@@ -236,7 +224,7 @@ class _PatientProfilViewState extends State<PatientProfilView> {
           const SizedBox(height: 16),
           _infoRow('NIK', _nik),
           const Divider(height: 24, color: Color(0xFFEEEEEE)),
-          _infoRow('No. BPJS', _noBpjs),
+          _infoRow('No. Rekam Medis', _noRM),
         ],
       ),
     );
@@ -272,9 +260,9 @@ class _PatientProfilViewState extends State<PatientProfilView> {
                   child: const Icon(Icons.lock_outline, color: AppColors.primary, size: 30),
                 ),
                 const SizedBox(height: 16),
-                const Text("Belum Login", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text("Fitur Terkunci", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                const Text("Silakan login terlebih dahulu untuk mengakses fitur ini",
+                const Text("Silakan masuk ke akun Anda terlebih dahulu agar fitur dapat diakses",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 13, color: Colors.grey),
                 ),
@@ -301,7 +289,7 @@ class _PatientProfilViewState extends State<PatientProfilView> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           elevation: 0,
                         ),
-                        child: const Text("Login", style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text("Masuk", style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],
@@ -312,14 +300,6 @@ class _PatientProfilViewState extends State<PatientProfilView> {
         );
       },
     );
-  }
-
-  Future<void> _openEditProfile() async {
-    final result = await Navigator.push<Map<String, dynamic>>(
-      context,
-      MaterialPageRoute(builder: (_) => EditProfilView(patientData: _data!)),
-    );
-    if (result != null) setState(() => _data = result);
   }
 
   void _showLogoutDialog() {

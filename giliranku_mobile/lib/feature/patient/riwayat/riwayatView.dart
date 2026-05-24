@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:giliranku/core/widgets/header.dart';
-import 'package:giliranku/core/repositories/pasienRepository.dart'; 
+import 'package:giliranku/core/repositories/pasienRepository.dart';
+import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/services/sessionService.dart';
 
 class RiwayatView extends StatefulWidget {
@@ -24,7 +25,6 @@ class _RiwayatViewState extends State<RiwayatView> {
 
   Future<void> _fetchRiwayat() async {
     if (!mounted) return;
-    
     setState(() => _isLoading = true);
 
     final patientData = await SessionService().getPatientMap();
@@ -32,7 +32,6 @@ class _RiwayatViewState extends State<RiwayatView> {
 
     if (_nik != null) {
       final data = await PasienRepository().getRiwayatAntrian(_nik!);
-      
       if (mounted) {
         setState(() {
           _riwayatList = data;
@@ -41,6 +40,60 @@ class _RiwayatViewState extends State<RiwayatView> {
       }
     } else {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _confirmDelete(Map<String, dynamic> item) async {
+    final kodeBooking = item['kode_booking'] as String? ?? '';
+    if (kodeBooking.isEmpty) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Hapus Riwayat', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Text(
+          'Hapus riwayat antrian dengan kode booking $kodeBooking?\n\nTindakan ini tidak dapat dibatalkan.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final success = await ApiDataSource().deleteAntrian(kodeBooking);
+    if (!mounted) return;
+
+    if (success) {
+      setState(() => _riwayatList.removeWhere(
+          (e) => e['kode_booking'] == kodeBooking));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Riwayat berhasil dihapus'),
+          backgroundColor: Color(0xFF25A699),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal menghapus riwayat.'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -53,7 +106,6 @@ class _RiwayatViewState extends State<RiwayatView> {
           AppHeader(
             mode: HeaderMode.page,
             title: 'Riwayat Antrian',
-            pageIcon: Iconsax.clock,
           ),
           Expanded(
             child: _isLoading
@@ -72,19 +124,21 @@ class _RiwayatViewState extends State<RiwayatView> {
                             itemCount: _riwayatList.length,
                             itemBuilder: (context, index) {
                               final item = _riwayatList[index];
+                              final status = item['status'] ?? 'Menunggu';
                               return Padding(
-                                padding: const EdgeInsets.only(bottom: 20),
+                                padding: const EdgeInsets.only(bottom: 16),
                                 child: QueueCard(
                                   poliName: item['poliklinik'] ?? 'Poli Umum',
                                   doctorName: item['dokter'] ?? '-',
                                   date: item['tanggal'] ?? '-',
-                                  code: item['kode_booking'] ?? '-',
                                   time: item['waktu'] ?? '-',
+                                  code: item['kode_booking'] ?? '-',
                                   queueNo: item['no_antrian']?.toString() ?? '-',
-                                  status: item['status'] ?? 'Menunggu',
-                                  icon: item['pembayaran'] == 'BPJS' 
-                                      ? Icons.health_and_safety_outlined 
+                                  status: status,
+                                  icon: item['pembayaran'] == 'BPJS'
+                                      ? Icons.health_and_safety_outlined
                                       : Icons.medical_services_outlined,
+                                  onDelete: () => _confirmDelete(item),
                                 ),
                               );
                             },
@@ -100,7 +154,7 @@ class _RiwayatViewState extends State<RiwayatView> {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
-        SChild(height: MediaQuery.of(context).size.height * 0.2),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.2),
         const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -123,13 +177,6 @@ class _RiwayatViewState extends State<RiwayatView> {
   }
 }
 
-class SChild extends StatelessWidget {
-  final double height;
-  const SChild({super.key, required this.height});
-  @override
-  Widget build(BuildContext context) => SizedBox(height: height);
-}
-
 class QueueCard extends StatelessWidget {
   final String poliName;
   final String doctorName;
@@ -139,6 +186,8 @@ class QueueCard extends StatelessWidget {
   final String queueNo;
   final String status;
   final IconData icon;
+  final bool isDeletable;
+  final VoidCallback? onDelete;
 
   const QueueCard({
     super.key,
@@ -150,7 +199,20 @@ class QueueCard extends StatelessWidget {
     required this.queueNo,
     required this.status,
     required this.icon,
+    this.isDeletable = true,
+    this.onDelete,
   });
+
+  Color get _statusColor {
+    switch (status.toLowerCase()) {
+      case 'selesai':
+        return Colors.green;
+      case 'dibatalkan':
+        return Colors.red;
+      default:
+        return const Color(0xFF25A699);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +220,7 @@ class QueueCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -173,19 +235,31 @@ class QueueCard extends StatelessWidget {
             children: [
               Icon(icon, color: const Color(0xFF25A699)),
               const SizedBox(width: 10),
-              Text(poliName, style: const TextStyle(fontWeight: FontWeight.bold)),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF25A699).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
+              Expanded(
+                child: Text(
+                  poliName,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                child: Text(status, style: const TextStyle(color: Color(0xFF25A699), fontSize: 12)),
-              )
+              ),
+              const SizedBox(width: 8),
+              if (isDeletable) ...[
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: onDelete,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 18),
+                  ),
+                ),
+              ],
             ],
           ),
-          const Divider(height: 24),
+          const Divider(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -193,12 +267,18 @@ class QueueCard extends StatelessWidget {
               _buildInfoColumn("No. Antrian", queueNo),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildInfoColumn("Tanggal", date),
               _buildInfoColumn("Jam", time),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _buildInfoColumn("Kode Booking", code),
             ],
           ),
         ],

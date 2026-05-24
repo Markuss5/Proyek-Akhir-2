@@ -65,27 +65,78 @@ class _BookingLookupViewState extends State<BookingLookupView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cetak Antrian'),
+        title: const Text('Cetak Antrian via Kode'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFFF0FBF7),
+              Color(0xFFE6F7F0),
+              Color(0xFFFFFFFF),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            TextField(
-              controller: _codeController,
-              decoration: InputDecoration(
-                labelText: 'Kode Booking',
-                errorText: _error,
+            Text(
+              'Cetak dengan Kode Booking',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: const Color(0xFF0A3D2E),
+                  ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Silakan masukkan kode booking yang Anda dapatkan dari aplikasi Mobile.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: const Color(0xFF577A6D),
+                  ),
+            ),
+            const SizedBox(height: 20),
+            
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFFD7EFE6)),
+              ),
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.qr_code_scanner,
+                    size: 48,
+                    color: Color(0xFF25A699),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _codeController,
+                    decoration: InputDecoration(
+                      labelText: 'Kode Booking',
+                      hintText: 'Contoh: GLR-82A1B',
+                      prefixIcon: const Icon(Icons.confirmation_number_outlined),
+                      errorText: _error,
+                    ),
+                    textCapitalization: TextCapitalization.characters,
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _loading ? null : _submit,
+                      icon: const Icon(Icons.search),
+                      label: Text(_loading ? 'Mencari Tiket...' : 'Cari Tiket'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loading ? null : _submit,
-              child: Text(_loading ? 'Memproses...' : 'Cari Tiket'),
-            ),
-            const SizedBox(height: 8),
-            const Text('Contoh kode: BK001 atau BK002'),
           ],
         ),
       ),

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "76884972463",
+    "project_id": "giliranku-ee66d",
+    "storage_bucket": "giliranku-ee66d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:76884972463:android:eb9e6afdeae279804f155a",
+        "android_client_info": {
+          "package_name": "com.example.gliranku_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAmY9uBRNDY3icF3myvzP2_E4_n5z_906M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -19,6 +19,8 @@ func SetupRoutes(
 ) {
 	api := r.Group("/api/v1")
 
+	api.POST("/tickets/pdf", kioskCtrl.UploadPDF)
+
 	pasien := api.Group("/pasien")
 	{
 		pasien.POST("/login", pasienCtrl.Login)
@@ -43,6 +45,7 @@ func SetupRoutes(
 	dokter := api.Group("/dokter")
 	{
 		dokter.GET("", dokterCtrl.GetByPoly)
+		dokter.GET("/poli/:poly_id", dokterCtrl.GetByPoly)
 		dokter.POST("", dokterCtrl.Create)
 		dokter.PUT("/:id", dokterCtrl.Update)
 		dokter.DELETE("/:id", dokterCtrl.Delete)
@@ -73,8 +76,11 @@ func SetupRoutes(
 		antrian.GET("/dashboard-stats", antrianCtrl.GetDashboardStats)
 		antrian.GET("/kunjungan-stats", antrianCtrl.GetKunjunganStats)
 		antrian.POST("/cek-nik", antrianCtrl.CekNIK)
+		antrian.POST("/bpjs", antrianCtrl.CreateBpjsAntrian)
+		antrian.GET("/bpjs/rujukan/:nik", antrianCtrl.GetRujukanBPJS)
 		antrian.POST("", antrianCtrl.CreateAntrian)
 		antrian.GET("/riwayat/:nik", antrianCtrl.GetRiwayat)
+		antrian.DELETE("/:kode_booking", antrianCtrl.DeleteAntrian)
 	}
 
 	kiosk := api.Group("/kiosk")

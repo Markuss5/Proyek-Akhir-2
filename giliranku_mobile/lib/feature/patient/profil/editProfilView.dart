@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku/core/repositories/pasienRepository.dart';
 import 'package:giliranku/core/services/sessionService.dart';
+import 'package:giliranku/core/widgets/header.dart';
 
 class EditProfilView extends StatefulWidget {
   final Map<String, dynamic> patientData;
@@ -58,10 +59,14 @@ class _EditProfilViewState extends State<EditProfilView> {
   }
 
   Future<void> _refreshData() async {
-    final updatedData = await SessionService().getPatientMap();
-    if (updatedData != null && mounted) {
+    final nik = widget.patientData['nik'];
+    if (nik == null) return;
+
+    final updated = await PasienRepository().getProfile(nik);
+    if (updated != null && mounted) {
+      await SessionService().savePatient(updated);
       setState(() {
-        final d = updatedData;
+        final d = updated.toMap();
         _nameCtrl.text = d['patient_name'] ?? '';
         _phoneCtrl.text = d['phone'] ?? '';
         _emailCtrl.text = d['email'] ?? '';
@@ -133,20 +138,21 @@ class _EditProfilViewState extends State<EditProfilView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF2F9E8F),
-        foregroundColor: Colors.white,
-        title: const Text(
-          'Edit Profil',
-          style: TextStyle(color: Colors.white),
-        ),
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: Column(
+        children: [
+          AppHeader(
+            mode: HeaderMode.page,
+            title: 'Edit Profil',
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _refreshData,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
             _buildReadOnlyField('NIK', widget.patientData['nik'] ?? '-'),
             const SizedBox(height: 16),
 
@@ -240,11 +246,15 @@ class _EditProfilViewState extends State<EditProfilView> {
               ),
             ),
             const SizedBox(height: 20),
-          ],
+                ],
+              ),
+            ),
+          ),
+        ),
+        ],
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildReadOnlyField(String label, String value) {
     return Container(

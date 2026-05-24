@@ -1,4 +1,4 @@
-import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/theme/theme.dart';
@@ -60,7 +60,6 @@ class _KelolaInformasiViewState extends State<KelolaInformasiView> {
 
     setState(() => _isSaving = true);
     
-    // Parse multiline strings
     final mission = _missionController.text.split('\n').where((e) => e.trim().isNotEmpty).toList();
     final facilities = _facilitiesController.text.split('\n').where((e) => e.trim().isNotEmpty).toList();
     
@@ -118,9 +117,13 @@ class _KelolaInformasiViewState extends State<KelolaInformasiView> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Form(
+    return RefreshIndicator(
+      onRefresh: _fetchData,
+      color: AppColors.primary,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
         key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -166,6 +169,7 @@ class _KelolaInformasiViewState extends State<KelolaInformasiView> {
           ],
         ),
       ),
+    ),
     );
   }
 

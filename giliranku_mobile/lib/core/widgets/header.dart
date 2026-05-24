@@ -1,8 +1,5 @@
-// lib/core/widgets/app_header.dart
-
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:giliranku/core/theme/theme.dart';
 
 enum HeaderMode { home, page, simple }
 
@@ -11,7 +8,6 @@ class AppHeader extends StatelessWidget {
   final String? patientName;
   final bool isLoggedIn;
   final String? title;
-  final String subtitle;
   final IconData? pageIcon;
   final VoidCallback? onBack;
 
@@ -21,7 +17,6 @@ class AppHeader extends StatelessWidget {
     this.patientName,
     this.isLoggedIn = false,
     this.title,
-    this.subtitle = 'RSUD Porsea',
     this.pageIcon,
     this.onBack,
   });
@@ -32,16 +27,12 @@ class AppHeader extends StatelessWidget {
         ? _HomeHeader(patientName: patientName, isLoggedIn: isLoggedIn)
         : _PageHeader(
             title: title ?? '',
-            subtitle: subtitle,
             pageIcon: pageIcon,
             onBack: onBack ?? () => Navigator.maybePop(context),
           );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HOME HEADER
-// ─────────────────────────────────────────────────────────────────────────────
 class _HomeHeader extends StatelessWidget {
   final String? patientName;
   final bool isLoggedIn;
@@ -50,14 +41,11 @@ class _HomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Gunakan MediaQuery agar SafeArea diperhitungkan
     final topPad = MediaQuery.of(context).padding.top;
 
-    // Tinggi area gradient: status bar + konten logo
     const double gradientContent = 200;
     final double gradientHeight = topPad + gradientContent;
 
-    // Greeting card mengapung 36px melampaui batas bawah gradient
     const double cardOverlap = 36.0;
     const double cardHeight  = 72.0;
 
@@ -67,10 +55,9 @@ class _HomeHeader extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
 
-          // ── Gradient + kurva bawah ──
           Positioned(
             top: 0, left: 0, right: 0,
-            height: gradientHeight + 10, // beri ruang untuk kurva
+            height: gradientHeight + 10,
             child: ClipPath(
               clipper: _BellClipper(),
               child: Container(
@@ -84,7 +71,6 @@ class _HomeHeader extends StatelessWidget {
                 ),
                 child: Stack(
                   children: [
-                    // Lingkaran dekorasi
                     Positioned(right: -70, top: -70,
                         child: _Bubble(size: 260, opacity: 0.07)),
                     Positioned(left: -50, bottom: 40,
@@ -92,7 +78,6 @@ class _HomeHeader extends StatelessWidget {
                     Positioned(left: 110, top: 20,
                         child: _Bubble(size: 70, opacity: 0.06)),
 
-                    // Top bar: chip RS + notif
                     Padding(
                       padding: EdgeInsets.fromLTRB(20, topPad + 14, 20, 0),
                       child: Row(
@@ -121,14 +106,12 @@ class _HomeHeader extends StatelessWidget {
                       ),
                     ),
 
-                    // Logo + nama app — di tengah area gradient
                     Positioned(
                       top: topPad + 46,
                       left: 0, right: 0,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // logo
                           Image.asset(
                             'assets/images/logo.png',
                             width: 150,
@@ -154,7 +137,6 @@ class _HomeHeader extends StatelessWidget {
   }
 }
 
-// Kurva smooth satu busur —  gelombang lembut di bawah header
 class _BellClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
@@ -164,7 +146,6 @@ class _BellClipper extends CustomClipper<Path> {
     final path = Path()
       ..lineTo(0, h - 50);
 
-    //  SINGLE CURVE ( smooth, no patah)
     path.cubicTo(
       w * 0.25, h + 25,
       w * 0.75, h + 25,
@@ -182,18 +163,13 @@ class _BellClipper extends CustomClipper<Path> {
   bool shouldReclip(_) => false;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PAGE HEADER 
-// ─────────────────────────────────────────────────────────────────────────────
 class _PageHeader extends StatelessWidget {
   final String title;
-  final String subtitle;
   final IconData? pageIcon;
   final VoidCallback onBack;
 
   const _PageHeader({
     required this.title,
-    required this.subtitle,
     this.pageIcon,
     required this.onBack,
   });
@@ -217,7 +193,6 @@ class _PageHeader extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          //  glow effect
           Positioned(
             top: -100,
             right: -80,
@@ -236,7 +211,6 @@ class _PageHeader extends StatelessWidget {
             ),
           ),
 
-           //  garis dekorasi bawah
             Positioned(
               bottom: 20,
               left: 40,
@@ -255,7 +229,6 @@ class _PageHeader extends StatelessWidget {
               ),
             ),
 
-          // 🔙 back button
               Positioned(
                 top: topPad + 8,
                 left: 16,
@@ -277,7 +250,6 @@ class _PageHeader extends StatelessWidget {
                 ),
               ),
 
-          //  CONTENT
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -294,6 +266,20 @@ class _PageHeader extends StatelessWidget {
                       color: Colors.white,
                       size: 24,
                     ),
+                  )
+                else
+                  Container(
+                    padding: const EdgeInsets.all(0),
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      width: 86,
+                      height: 86,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.local_hospital_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
                   ),
 
                 const SizedBox(height: 10),
@@ -309,14 +295,7 @@ class _PageHeader extends StatelessWidget {
 
                 const SizedBox(height: 4),
 
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
+                ],
             ),
           ),
         ],
@@ -324,164 +303,6 @@ class _PageHeader extends StatelessWidget {
     );
   }
 }
-
-class _SimpleHeader extends StatelessWidget {
-  final String title;
-  final VoidCallback onBack;
-
-  const _SimpleHeader({
-    required this.title,
-    required this.onBack,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final topPad = MediaQuery.of(context).padding.top;
-
-    return Container(
-      height: topPad + 80,
-      padding: EdgeInsets.fromLTRB(16, topPad + 10, 16, 16),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Color(0xFF0DB89E),
-            Color(0xFF0A6B5C),
-          ],
-        ),
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(24),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: onBack,
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.arrow_back,
-                  color: Colors.white, size: 18),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.grid_view_rounded,
-                color: Colors.white, size: 18),
-          ),
-        ],
-      ),
-    );
-  }
-}
-// Kurva asimetris halus untuk page header
-class _PageWaveClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final w = size.width;
-    final h = size.height;
-    final path = Path()..lineTo(0, h - 36);
-
-    path.cubicTo(w * 0.28, h - 36, w * 0.52, h + 16, w * 0.68, h - 10);
-    path.cubicTo(w * 0.82, h - 32, w * 0.92, h - 44, w, h - 28);
-
-    path..lineTo(w, 0)..close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(_) => false;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// GREETING CARD — status login user
-// ─────────────────────────────────────────────────────────────────────────────
-class _GreetingCard extends StatelessWidget {
-  final String name;
-  final bool isLoggedIn;
-
-  const _GreetingCard({required this.name, required this.isLoggedIn});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.14),
-            blurRadius: 24, offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Avatar gradient
-          Container(
-            width: 46, height: 46,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF0D9B86), Color(0xFF1DB8A0)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.28),
-                  blurRadius: 8, offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.waving_hand_rounded,
-                color: Colors.white, size: 20),
-          ),
-          const SizedBox(width: 12),
-
-          // Badge status
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: AppColors.primarySurface,
-              borderRadius: BorderRadius.circular(9),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-            ),
-            child: Text(
-              isLoggedIn ? 'Aktif' : 'Tamu',
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Shared widgets ───────────────────────────────────────────────────────────
 
 class _Bubble extends StatelessWidget {
   final double size;
@@ -511,22 +332,5 @@ class _GlassChip extends StatelessWidget {
           border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
         ),
         child: child,
-      );
-}
-
-class _GlassIconBtn extends StatelessWidget {
-  final IconData icon;
-  final double size;
-  const _GlassIconBtn({required this.icon, this.size = 18});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        width: 40, height: 40,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(13),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
-        ),
-        child: Icon(icon, color: Colors.white, size: size),
       );
 }

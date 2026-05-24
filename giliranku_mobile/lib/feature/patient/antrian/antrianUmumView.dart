@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/widgets/header.dart';
-import 'package:giliranku/feature/patient/antrian/karcis_view.dart';
-import 'package:iconsax/iconsax.dart';
+import 'package:giliranku/feature/patient/antrian/karcisView.dart';
 
 class JenisLayanan {
   final int id;
@@ -37,31 +36,43 @@ class Dokter {
 
 class AntrianResult {
   final String noAntrian;
+  final String noAntrianPoli;
   final String kodeBooking;
   final String poliklinik;
   final String dokter;
   final String tanggal;
   final String waktu;
   final String pembayaran;
+  final String source;
+  final String noRm;
+  final String namaPasien;
 
   const AntrianResult({
     required this.noAntrian,
+    required this.noAntrianPoli,
     required this.kodeBooking,
     required this.poliklinik,
     required this.dokter,
     required this.tanggal,
     required this.waktu,
     required this.pembayaran,
+    required this.source,
+    required this.noRm,
+    required this.namaPasien,
   });
 
   factory AntrianResult.fromJson(Map<String, dynamic> j) => AntrianResult(
-        noAntrian: j['no_antrian'] ?? 'A-001',
+        noAntrian: j['no_antrian'] ?? '106',
+        noAntrianPoli: j['no_antrian_poli'] ?? 'A-001',
         kodeBooking: j['kode_booking'] ?? '',
         poliklinik: j['poliklinik'] ?? '-',
         dokter: j['dokter'] ?? 'dr. -',
         tanggal: j['tanggal'] ?? '-',
         waktu: j['waktu'] ?? '-',
         pembayaran: j['pembayaran'] ?? 'Umum',
+        source: j['source'] ?? 'smartphone',
+        noRm: j['no_rm'] ?? '-',
+        namaPasien: j['nama_pasien'] ?? '-',
       );
 }
 
@@ -83,6 +94,7 @@ class _AntrianViewState extends State<AntrianView>
   bool _isLoading = false;
   bool _isLoadingLayanan = true;
   bool _isLoadingDokter = false;
+  bool _isPasienLama = false;
 
   List<JenisLayanan> _layananList = [];
   List<Dokter> _dokterList = [];
@@ -148,7 +160,16 @@ class _AntrianViewState extends State<AntrianView>
     }
   }
 
-    Future<void> _loadDokter(int poliId) async {
+  Future<void> _onRefresh() async {
+    await _loadLayanan();
+    if (_selectedPoliID != null && _tanggalCtrl.text.isNotEmpty) {
+      await _loadDokter(_selectedPoliID!, _tanggalCtrl.text);
+    }
+  }
+
+  Future<void> _loadDokter(int poliId, String tanggal) async {
+    if (tanggal.isEmpty) return;
+
     setState(() {
       _isLoadingDokter = true;
       _selectedDokterID = null;
@@ -156,7 +177,7 @@ class _AntrianViewState extends State<AntrianView>
       _dokterList = [];
     });
     try {
-      final list = await _api.getDokterByPoli(poliId);
+      final list = await _api.getDokterByPoli(poliId, tanggal);
       if (!mounted) return;
       
       setState(() {
@@ -177,11 +198,11 @@ class _AntrianViewState extends State<AntrianView>
     });
 
     bool valid = true;
-    if (_nikCtrl.text.trim().length < 10) {
-      setState(() => _nikError = 'NIK/No. BPJS tidak valid');
+    if (_nikCtrl.text.trim().length < (_isPasienLama ? 4 : 10)) {
+      setState(() => _nikError = 'NIK/No. RM tidak valid');
       valid = false;
     }
-    if (_namaCtrl.text.trim().isEmpty) {
+    if (!_isPasienLama && _namaCtrl.text.trim().isEmpty) {
       setState(() => _namaError = 'Nama tidak boleh kosong');
       valid = false;
     }
@@ -205,13 +226,14 @@ class _AntrianViewState extends State<AntrianView>
     try {
       final res = await _api.createAntrian({
         'nik'             : _nikCtrl.text.trim(),
-        'nama_pasien'     : _namaCtrl.text.trim(),
-        'telepon'         : _teleponCtrl.text.trim(),
+        'nama_pasien'     : _isPasienLama ? '-' : _namaCtrl.text.trim(),
+        'telepon'         : _isPasienLama ? '-' : _teleponCtrl.text.trim(),
         'tanggal'         : _tanggalCtrl.text.trim(),
         'poli_id'         : _selectedPoliID,
         'dokter_id'       : _selectedDokterID,
         'poliklinik_nama' : _selectedPoliNama,
         'dokter_nama'     : _selectedDokterNama,
+        'is_pasien_lama'  : _isPasienLama,
       });
 
       final data   = res['data'] as Map<String, dynamic>? ?? {};
@@ -267,6 +289,9 @@ class _AntrianViewState extends State<AntrianView>
             '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
         _tanggalError = null;
       });
+      if (_selectedPoliID != null) {
+        _loadDokter(_selectedPoliID!, _tanggalCtrl.text);
+      }
     }
   }
 
@@ -290,25 +315,28 @@ class _AntrianViewState extends State<AntrianView>
           children: [
             AppHeader(
               mode: HeaderMode.page,
-              title: 'Ambil Antrian',
-              subtitle: 'RSUD Porsea',
-              pageIcon: Iconsax.ticket,
+              title: 'Antrian Umum RSUD Porsea',
             ),
             Expanded(
               child: _isLoadingLayanan
                   ? _buildShimmer()
                   : FadeTransition(
                       opacity: _fadeAnim,
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            children: [
-                              _buildFormCard(),
-                              const SizedBox(height: 28),
-                              _buildDaftarButton(),
-                              const SizedBox(height: 32),
-                            ],
+                      child: RefreshIndicator(
+                        onRefresh: _onRefresh,
+                        color: const Color(0xFF0D9B86),
+                        child: SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              children: [
+                                _buildFormCard(),
+                                const SizedBox(height: 28),
+                                _buildDaftarButton(),
+                                const SizedBox(height: 32),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -337,38 +365,90 @@ class _AntrianViewState extends State<AntrianView>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _label('Status Pasien'),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _isPasienLama = false),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: !_isPasienLama ? const Color(0xFFE0F2F1) : Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(10),
+                      border: !_isPasienLama ? Border.all(color: const Color(0xFF25A699)) : Border.all(color: Colors.transparent),
+                    ),
+                    child: Center(
+                      child: Text('Pasien Baru',
+                          style: TextStyle(
+                            fontWeight: !_isPasienLama ? FontWeight.bold : FontWeight.normal,
+                            color: !_isPasienLama ? const Color(0xFF25A699) : Colors.grey,
+                          )),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _isPasienLama = true),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: _isPasienLama ? const Color(0xFFE0F2F1) : Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(10),
+                      border: _isPasienLama ? Border.all(color: const Color(0xFF25A699)) : Border.all(color: Colors.transparent),
+                    ),
+                    child: Center(
+                      child: Text('Pasien Lama',
+                          style: TextStyle(
+                            fontWeight: _isPasienLama ? FontWeight.bold : FontWeight.normal,
+                            color: _isPasienLama ? const Color(0xFF25A699) : Colors.grey,
+                          )),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
           _label('Data Pasien'),
           const SizedBox(height: 16),
 
           _field(
             ctrl: _nikCtrl,
-            label: 'NIK / No. BPJS',
-            hint: 'Masukkan NIK atau No. BPJS',
+            label: _isPasienLama ? 'NIK / No. Rekam Medis' : 'NIK',
+            hint: _isPasienLama ? 'Masukkan NIK atau No. RM' : 'Masukkan NIK (16 digit)',
             icon: Icons.badge_outlined,
             keyboardType: TextInputType.number,
             maxLength: 16,
             errorText: _nikError,
-            formatters: [FilteringTextInputFormatter.digitsOnly],
           ),
           const SizedBox(height: 16),
 
-          _field(
-            ctrl: _namaCtrl,
-            label: 'Nama Lengkap',
-            hint: 'Masukkan nama lengkap',
-            icon: Icons.person_outline_rounded,
-            errorText: _namaError,
-          ),
-          const SizedBox(height: 16),
+          if (!_isPasienLama) ...[
+            _field(
+              ctrl: _namaCtrl,
+              label: 'Nama Lengkap',
+              hint: 'Masukkan nama lengkap',
+              icon: Icons.person_outline_rounded,
+              errorText: _namaError,
+            ),
+            const SizedBox(height: 16),
 
-          _field(
-            ctrl: _teleponCtrl,
-            label: 'Nomor Telepon',
-            hint: '+62',
-            icon: Icons.phone_outlined,
-            keyboardType: TextInputType.phone,
-          ),
-          const SizedBox(height: 16),
+            _field(
+              ctrl: _teleponCtrl,
+              label: 'Nomor Telepon',
+              hint: '+62',
+              icon: Icons.phone_outlined,
+              keyboardType: TextInputType.phone,
+            ),
+            const SizedBox(height: 16),
+          ],
 
           _fieldTanggal(),
           const SizedBox(height: 20),
@@ -578,7 +658,7 @@ class _AntrianViewState extends State<AntrianView>
                           const JenisLayanan(id: 0, nama: 'Poli Umum'))
                   .nama;
             });
-            if (v != null) _loadDokter(v);
+            if (v != null) _loadDokter(v, _tanggalCtrl.text);
           },
         ),
       ),

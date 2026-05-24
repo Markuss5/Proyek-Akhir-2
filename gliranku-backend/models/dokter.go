@@ -10,6 +10,7 @@ type Dokter struct {
 	Status         bool   `json:"status"`
 	Schedule       string `json:"schedule,omitempty"`
 	KuotaNonJKN    int    `json:"kuota_non_jkn"`
+	MaxKuotaNonJKN int    `json:"max_kuota_non_jkn,omitempty"`
 	Senin   string `json:"senin,omitempty"`
 	Selasa  string `json:"selasa,omitempty"`
 	Rabu    string `json:"rabu,omitempty"`

@@ -20,18 +20,19 @@ class _TicketViewState extends State<TicketView> {
   final TicketPdfService _pdfService = TicketPdfService();
   bool _exporting = false;
 
-  Future<void> _exportPdf() async {
+  Future<void> _printTicket() async {
     setState(() => _exporting = true);
     try {
-      final filePath = await _pdfService.exportTicket(widget.ticket);
+      await _pdfService.printTicketDirectly(widget.ticket);
+      
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('PDF disimpan di: $filePath')),
+        const SnackBar(content: Text('tiket berhasil di print')),
       );
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal export PDF: $error')),
+        SnackBar(content: Text('Gagal print tiket: $error')),
       );
     } finally {
       if (mounted) {
@@ -55,9 +56,9 @@ class _TicketViewState extends State<TicketView> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: _exporting ? null : _exportPdf,
-                icon: const Icon(Icons.picture_as_pdf),
-                label: Text(_exporting ? 'Mengekspor...' : 'Export PDF'),
+                onPressed: _exporting ? null : _printTicket,
+                icon: const Icon(Icons.print),
+                label: Text(_exporting ? 'Mencetak...' : 'Cetak Tiket'),
               ),
             ),
           ],

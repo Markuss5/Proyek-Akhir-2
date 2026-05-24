@@ -59,9 +59,7 @@ class _InformasiPoliklinikViewState
           children: [
             AppHeader(
               mode: HeaderMode.page,
-              title: 'Daftar Poliklinik',
-              subtitle: 'RSUD Porsea',
-              pageIcon: Iconsax.hospital,
+              title: 'Daftar Poliklinik RSUD Porsea',
             ),
 
             _buildSearchBox(),

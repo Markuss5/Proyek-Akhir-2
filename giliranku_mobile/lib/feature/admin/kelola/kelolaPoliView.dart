@@ -159,7 +159,7 @@ class _KelolaPoliViewState extends State<KelolaPoliView> {
             child: TextField(
               controller: _searchCtrl,
               decoration: InputDecoration(
-                hintText: 'Cari poli atau kode…',
+                hintText: 'Cari data poli...',
                 prefixIcon:
                     const Icon(Icons.search, color: AppColors.primary),
                 filled: true,
@@ -187,9 +187,13 @@ class _KelolaPoliViewState extends State<KelolaPoliView> {
                     ? const Center(
                         child: Text('Tidak ada data',
                             style: TextStyle(color: Colors.grey)))
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _filtered.length,
+                    : RefreshIndicator(
+                        onRefresh: _fetchData,
+                        color: AppColors.primary,
+                        child: ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _filtered.length,
                         itemBuilder: (context, index) {
                           final item = _filtered[index];
                           return Card(
@@ -207,18 +211,30 @@ class _KelolaPoliViewState extends State<KelolaPoliView> {
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit,
-                                        color: Colors.blue),
-                                    onPressed: () =>
-                                        _showFormDialog(poli: item),
+                                  GestureDetector(
+                                    onTap: () => _showFormDialog(poli: item),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(Icons.edit, color: Colors.blue, size: 18),
+                                    ),
                                   ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete,
-                                        color: Colors.red),
-                                    onPressed: () => _confirmDelete(
+                                  const SizedBox(width: 8),
+                                  GestureDetector(
+                                    onTap: () => _confirmDelete(
                                         item['poly_id'],
                                         item['poly_name']),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(Icons.delete, color: Colors.red, size: 18),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -226,6 +242,7 @@ class _KelolaPoliViewState extends State<KelolaPoliView> {
                           );
                         },
                       ),
+                    ),
           ),
         ],
       ),

@@ -189,7 +189,7 @@ class _OperasionalBadge extends StatelessWidget {
       }
     }
 
-    final statusText = isOpen ? 'Sedang Buka' : 'Rumah Sakit Sedang Tutup';
+    final statusText = isOpen ? 'Sedang Buka' : 'RS Sedang Tutup';
     final statusColor = isOpen ? const Color(0xFF22C55E) : AppColors.error;
     final String dayPrefix = isSunday ? 'Minggu' : 'Senin - Sabtu';
 

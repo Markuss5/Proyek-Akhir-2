@@ -22,6 +22,14 @@ func (s *DokterService) Create(req request.DokterRequest) (*models.Dokter, error
 		PolyID:         req.PolyID,
 		Phone:          req.Phone,
 		Schedule:       req.Schedule,
+		MaxKuotaNonJKN: req.MaxKuotaNonJKN,
+		Senin:          req.Senin,
+		Selasa:         req.Selasa,
+		Rabu:           req.Rabu,
+		Kamis:          req.Kamis,
+		Jumat:          req.Jumat,
+		Sabtu:          req.Sabtu,
+		Minggu:         req.Minggu,
 	}
 
 	result, err := s.DokterRepo.Create(dokter)
@@ -45,6 +53,14 @@ func (s *DokterService) Update(id int, req request.DokterRequest) (*models.Dokte
 	existing.PolyID = req.PolyID
 	existing.Phone = req.Phone
 	existing.Schedule = req.Schedule
+	existing.MaxKuotaNonJKN = req.MaxKuotaNonJKN
+	existing.Senin = req.Senin
+	existing.Selasa = req.Selasa
+	existing.Rabu = req.Rabu
+	existing.Kamis = req.Kamis
+	existing.Jumat = req.Jumat
+	existing.Sabtu = req.Sabtu
+	existing.Minggu = req.Minggu
 
 	result, err := s.DokterRepo.Update(existing)
 	if err != nil {

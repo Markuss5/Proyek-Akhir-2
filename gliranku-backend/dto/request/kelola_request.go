@@ -20,8 +20,16 @@ type PoliRequest struct {
 
 type DokterRequest struct {
 	DoctorName     string `json:"doctor_name" binding:"required"`
-	Specialization string `json:"specialization" binding:"required"`
+	Specialization string `json:"specialization"`
 	PolyID         int    `json:"poly_id" binding:"required"`
 	Phone          string `json:"phone"`
-	Schedule       string `json:"schedule"` // e.g., "Senin, Selasa"
+	Schedule       string `json:"schedule"`
+	MaxKuotaNonJKN int    `json:"max_kuota_non_jkn"`
+	Senin          string `json:"senin"`
+	Selasa         string `json:"selasa"`
+	Rabu           string `json:"rabu"`
+	Kamis          string `json:"kamis"`
+	Jumat          string `json:"jumat"`
+	Sabtu          string `json:"sabtu"`
+	Minggu         string `json:"minggu"`
 }

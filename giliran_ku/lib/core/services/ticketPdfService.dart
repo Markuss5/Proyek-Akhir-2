@@ -9,6 +9,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:giliran_ku/core/constants/apiConstants.dart';
 import 'package:giliran_ku/core/models/ticketModel.dart';
+import 'package:printing/printing.dart';
 
 class TicketPdfService {
   static const String _windowsOutputDir =
@@ -237,12 +238,12 @@ class TicketPdfService {
   }
 
   Future<String> _uploadToBackend(Ticket ticket, Uint8List bytes) async {
-    final uri = Uri.parse('${ApiConfig.baseUrl}/tickets/pdf');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/kiosk/pdf');
     final request = http.MultipartRequest('POST', uri)
-      ..fields['ticket_id'] = ticket.id
+      ..fields['filename'] = ticket.id
       ..files.add(
         http.MultipartFile.fromBytes(
-          'file',
+          'pdf',
           bytes,
           filename: _safeFileName(ticket),
         ),

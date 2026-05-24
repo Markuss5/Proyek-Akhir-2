@@ -32,5 +32,9 @@ func ConnectDB() *sql.DB {
 	}
 
 	log.Println("Database connected successfully")
+
+	_, _ = db.Exec(`ALTER TABLE antrian ADD COLUMN IF NOT EXISTS source VARCHAR(50) DEFAULT 'smartphone';`)
+	_, _ = db.Exec(`ALTER TABLE antrian ADD COLUMN IF NOT EXISTS no_rm VARCHAR(50) DEFAULT '-';`)
+
 	return db
 }

@@ -54,21 +54,23 @@ class _LoginViewState extends State<LoginView> {
     }
 
     await _sessionService.savePatient(patient);
-    _kontrolRepo.resyncNotifications(nik);
+    await _kontrolRepo.resyncNotifications(nik);
 
     if (!mounted) return;
-    Navigator.pushReplacement(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => HomeView(patientData: patient.toMap())),
+      (route) => false,
     );
   }
 
   Future<void> _lewatkan() async {
     await _sessionService.saveGuest();
     if (!mounted) return;
-    Navigator.pushReplacement(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const HomeView()),
+      (route) => false,
     );
   }
 
@@ -171,7 +173,6 @@ class _LoginViewState extends State<LoginView> {
 
                         const SizedBox(height: 20),
 
-                        // 🔥 BUTTON FIX (BIRU + TEXT JELAS)
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(

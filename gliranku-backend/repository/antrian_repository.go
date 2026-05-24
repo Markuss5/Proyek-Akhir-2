@@ -11,7 +11,8 @@ import (
 type AntrianRepository interface {
 	FetchPoliklinik() ([]models.Poliklinik, error)
 	CheckNIK(nik string) (*models.Pasien, error)
-	GetLastQueueNumber(poliID int, tanggal time.Time) (int, error)
+	GetLastQueueNumberPoli(poliID int, tanggal time.Time) (int, error)
+	GetLastQueueNumberGlobal(tanggal time.Time) (int, error)
 	SaveAntrian(antrian *models.Antrian) error
 	GetDashboardStats() (int, int, int, error)
 	GetKunjunganStats(period string) ([]models.KunjunganStatPoli, error)
@@ -21,6 +22,7 @@ type AntrianRepository interface {
 	GetRiwayatByNIK(nik string) ([]models.AntrianResponseExtended, error)
 	DecrementDoctorQuota(doctorID int) error
 	GetDoctorNameByID(doctorID int) (string, error)
+	DeleteAntrian(kodeBooking string) error
 }
 
 type antrianRepository struct {
@@ -67,28 +69,48 @@ func (r *antrianRepository) CheckNIK(nik string) (*models.Pasien, error) {
 	return &p, nil
 }
 
-func (r *antrianRepository) GetLastQueueNumber(poliID int, tanggal time.Time) (int, error) {
+func (r *antrianRepository) GetLastQueueNumberPoli(poliID int, tanggal time.Time) (int, error) {
+	dateStr := tanggal.Format("2006-01-02")
+	fmt.Printf("GetLastQueueNumberPoli: Checking count for Poli %d on %s\n", poliID, dateStr)
+	
 	row := r.db.QueryRow(`
-		SELECT COALESCE(MAX(CAST(split_part(no_antrian, '-', 2) AS INTEGER)), 0)
+		SELECT COUNT(*)
 		FROM antrian
-		WHERE poli_id = $1 AND DATE(tanggal) = $2
-	`, poliID, tanggal.Format("2006-01-02"))
+		WHERE poli_id = $1 AND tanggal >= $2::date AND tanggal < ($2::date + interval '1 day')
+	`, poliID, dateStr)
 
-	var max int
-	err := row.Scan(&max)
-	return max, err
+	var count int
+	err := row.Scan(&count)
+	fmt.Printf("GetLastQueueNumberPoli: Found %d records\n", count)
+	return count, err
+}
+
+func (r *antrianRepository) GetLastQueueNumberGlobal(tanggal time.Time) (int, error) {
+	dateStr := tanggal.Format("2006-01-02")
+	fmt.Printf("GetLastQueueNumberGlobal: Checking count for Global on %s\n", dateStr)
+
+	row := r.db.QueryRow(`
+		SELECT COUNT(*)
+		FROM antrian
+		WHERE tanggal >= $1::date AND tanggal < ($1::date + interval '1 day')
+	`, dateStr)
+
+	var count int
+	err := row.Scan(&count)
+	fmt.Printf("GetLastQueueNumberGlobal: Found %d records\n", count)
+	return count, err
 }
 
 func (r *antrianRepository) SaveAntrian(a *models.Antrian) error {
 	_, err := r.db.Exec(`
 		INSERT INTO antrian
-		(no_antrian, kode_booking, nik, nama_pasien, telepon, poli_id, dokter_id,
-		 tanggal, waktu_mulai, waktu_selesai, pembayaran, is_pasien_lama, status)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+		(no_antrian, no_antrian_poli, kode_booking, nik, nama_pasien, telepon, poli_id, dokter_id,
+		 tanggal, waktu_mulai, waktu_selesai, pembayaran, is_pasien_lama, status, source, no_rm)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
 	`,
-		a.NoAntrian, a.KodeBooking, a.NIK, a.NamaPasien, a.Telepon,
+		a.NoAntrian, a.NoAntrianPoli, a.KodeBooking, a.NIK, a.NamaPasien, a.Telepon,
 		a.PoliID, a.DokterID, a.Tanggal, a.WaktuMulai, a.WaktuSelesai,
-		a.Pembayaran, a.IsPasienLama, a.Status,
+		a.Pembayaran, a.IsPasienLama, a.Status, a.Source, a.NoRM,
 	)
 	return err
 }
@@ -144,13 +166,17 @@ func (r *antrianRepository) GetDashboardStats() (int, int, int, error) {
 
 func (r *antrianRepository) GetKunjunganStats(period string) ([]models.KunjunganStatPoli, error) {
 	var dateFilter string
+	var apotekDateFilter string
 	switch period {
 	case "weekly":
 		dateFilter = `a.tanggal >= CURRENT_DATE - INTERVAL '7 days'`
+		apotekDateFilter = `createdat >= CURRENT_DATE - INTERVAL '7 days'`
 	case "monthly":
 		dateFilter = `a.tanggal >= CURRENT_DATE - INTERVAL '30 days'`
+		apotekDateFilter = `createdat >= CURRENT_DATE - INTERVAL '30 days'`
 	default:
 		dateFilter = `a.tanggal >= CURRENT_DATE AND a.tanggal < CURRENT_DATE + INTERVAL '1 day'`
+		apotekDateFilter = `createdat >= CURRENT_DATE AND createdat < CURRENT_DATE + INTERVAL '1 day'`
 	}
 
 	rows, err := r.db.Query(fmt.Sprintf(`
@@ -189,18 +215,31 @@ func (r *antrianRepository) GetKunjunganStats(period string) ([]models.Kunjungan
 		}
 		result = append(result, s)
 	}
+
+	var apotekCount int
+	apotekErr := r.db.QueryRow(fmt.Sprintf(
+		`SELECT COUNT(*) FROM Tiket_Apotek WHERE %s`, apotekDateFilter,
+	)).Scan(&apotekCount)
+	if apotekErr == nil {
+		result = append(result, models.KunjunganStatPoli{
+			PolyID:   999,
+			PolyName: "Apotek",
+			Jumlah:   apotekCount,
+		})
+	}
+
 	return result, nil
 }
 
 func (r *antrianRepository) GetTicketByBookingCode(code string) (*models.Antrian, error) {
 	var a models.Antrian
 	err := r.db.QueryRow(`
-		SELECT no_antrian, kode_booking, nik, nama_pasien, telepon, poli_id,
+		SELECT no_antrian, no_antrian_poli, kode_booking, nik, nama_pasien, telepon, poli_id,
 		       dokter_id, tanggal, waktu_mulai, waktu_selesai, pembayaran, is_pasien_lama, status
 		FROM antrian
 		WHERE kode_booking = $1
 	`, code).Scan(
-		&a.NoAntrian, &a.KodeBooking, &a.NIK, &a.NamaPasien, &a.Telepon, &a.PoliID,
+		&a.NoAntrian, &a.NoAntrianPoli, &a.KodeBooking, &a.NIK, &a.NamaPasien, &a.Telepon, &a.PoliID,
 		&a.DokterID, &a.Tanggal, &a.WaktuMulai, &a.WaktuSelesai, &a.Pembayaran, &a.IsPasienLama, &a.Status,
 	)
 	if err != nil {
@@ -214,18 +253,33 @@ func (r *antrianRepository) GetTicketByBookingCode(code string) (*models.Antrian
 
 func (r *antrianRepository) CreatePharmacyTicket() (*models.TiketFarmasi, error) {
 	var queueNumber int
-	var createdAt time.Time
+	var displayQueueNumber int
+	var createdAt = time.Now()
+
 	err := r.db.QueryRow(`
-		INSERT INTO Tiket_Apotek DEFAULT VALUES
+		INSERT INTO Tiket_Apotek (createdat) 
+		VALUES ($1)
 		RETURNING queuenumber, createdat
-	`).Scan(&queueNumber, &createdAt)
+	`, createdAt).Scan(&queueNumber, &createdAt)
+
 	if err != nil {
 		return nil, err
 	}
+
+	err = r.db.QueryRow(`
+		SELECT COUNT(*) 
+		FROM Tiket_Apotek 
+		WHERE DATE(createdat) = CURRENT_DATE AND queuenumber <= $1
+	`, queueNumber).Scan(&displayQueueNumber)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &models.TiketFarmasi{
-		QueueNumber: queueNumber,
+		QueueNumber: displayQueueNumber,
 		CreatedAt:   createdAt,
-		NoAntrian:   fmt.Sprintf("APT-%03d", queueNumber),
+		NoAntrian:   fmt.Sprintf("APT-%03d", displayQueueNumber),
 	}, nil
 }
 
@@ -247,7 +301,7 @@ func (r *antrianRepository) GetBpjsReferralByNik(nik string) (*models.BpjsReferr
 
 func (r *antrianRepository) GetRiwayatByNIK(nik string) ([]models.AntrianResponseExtended, error) {
 	query := `
-		SELECT a.no_antrian, a.kode_booking, p."NamaPoli", COALESCE(c.namadokter, 'dr. -'),
+		SELECT a.no_antrian, a.no_antrian_poli, a.kode_booking, p."NamaPoli", COALESCE(c.namadokter, 'dr. -'),
 		       a.tanggal, a.waktu_mulai, a.waktu_selesai, a.pembayaran, a.status
 		FROM antrian a
 		JOIN tbpoli p ON a.poli_id = p."IdPoli"
@@ -266,7 +320,7 @@ func (r *antrianRepository) GetRiwayatByNIK(nik string) ([]models.AntrianRespons
 	for rows.Next() {
 		var a models.AntrianResponseExtended
 		err := rows.Scan(
-			&a.NoAntrian, &a.KodeBooking, &a.Poliklinik, &a.Dokter,
+			&a.NoAntrian, &a.NoAntrianPoli, &a.KodeBooking, &a.Poliklinik, &a.Dokter,
 			&a.Tanggal, &a.WaktuMulai, &a.WaktuSelesai, &a.Pembayaran, &a.Status,
 		)
 		if err != nil {
@@ -275,4 +329,19 @@ func (r *antrianRepository) GetRiwayatByNIK(nik string) ([]models.AntrianRespons
 		results = append(results, a)
 	}
 	return results, nil
+}
+
+func (r *antrianRepository) DeleteAntrian(kodeBooking string) error {
+	result, err := r.db.Exec(`
+		DELETE FROM antrian
+		WHERE kode_booking = $1
+	`, kodeBooking)
+	if err != nil {
+		return err
+	}
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return fmt.Errorf("antrian tidak ditemukan")
+	}
+	return nil
 }

@@ -160,8 +160,7 @@ class _NotifikasiViewState extends State<NotifikasiView> {
         children: [
           AppHeader(
             mode: HeaderMode.page,
-            title: 'Notifikasi',
-            pageIcon: Iconsax.notification,
+            title: 'Notifikasi Kontrol',
           ),
 
           Container(
@@ -429,8 +428,8 @@ class _NotifikasiViewState extends State<NotifikasiView> {
             widget.nik == null
                 ? 'Masuk untuk melihat notifikasi'
                 : _activeFilter == 'Akan Datang'
-                    ? 'Belum ada jadwal kontrol'
-                    : 'Notifikasi anda masih kosong',
+                    ? 'Anda belum memiliki jadwal kontrol'
+                    : 'Belum ada data kontrol yang selesai',
             style: TextStyle(fontSize: 16, color: Colors.grey[400]),
           ),
         ],

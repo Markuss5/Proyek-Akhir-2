@@ -1,0 +1,569 @@
+import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart' as loc;
+import 'package:url_launcher/url_launcher.dart';
+import 'package:giliranku/core/theme/theme.dart';
+
+const _hospitalLat = 2.4449;
+const _hospitalLng = 99.1481;
+const LatLng _hospitalLatLng = LatLng(_hospitalLat, _hospitalLng);
+
+class LokasiRSView extends StatefulWidget {
+  final String hospitalName;
+  final String hospitalAddress;
+
+  const LokasiRSView({
+    super.key,
+    required this.hospitalName,
+    required this.hospitalAddress,
+  });
+
+  @override
+  State<LokasiRSView> createState() => _LokasiRSViewState();
+}
+
+class _LokasiRSViewState extends State<LokasiRSView> {
+  GoogleMapController? _mapController;
+
+  loc.LocationData? _userLocation;
+  String _userAddress = 'Mengambil lokasi...';
+  String _distanceText = '-';
+  bool _locationLoading = true;
+  bool _locationDenied = false;
+
+  final Set<Marker> _markers = {};
+  bool _mapReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupHospitalMarker();
+    _requestLocationAndLoad();
+  }
+
+  @override
+  void dispose() {
+    _mapController?.dispose();
+    super.dispose();
+  }
+
+  void _setupHospitalMarker() {
+    _markers.add(
+      Marker(
+        markerId: const MarkerId('hospital'),
+        position: _hospitalLatLng,
+        infoWindow: InfoWindow(
+          title: widget.hospitalName,
+          snippet: widget.hospitalAddress,
+        ),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+      ),
+    );
+  }
+
+  Future<void> _requestLocationAndLoad() async {
+    setState(() {
+      _locationLoading = true;
+      _locationDenied = false;
+    });
+
+    final locationService = loc.Location();
+
+    bool serviceEnabled = await locationService.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await locationService.requestService();
+      if (!serviceEnabled) {
+        if (mounted) setState(() => _locationDenied = true);
+        return;
+      }
+    }
+
+    loc.PermissionStatus permission = await locationService.hasPermission();
+    if (permission == loc.PermissionStatus.denied) {
+      permission = await locationService.requestPermission();
+      if (permission != loc.PermissionStatus.granted) {
+        if (mounted) setState(() => _locationDenied = true);
+        return;
+      }
+    }
+
+    final locationData = await locationService.getLocation();
+    if (!mounted) return;
+
+    _userLocation = locationData;
+    _addUserMarker(locationData);
+
+    final dist = _haversineDistance(
+      locationData.latitude ?? 0,
+      locationData.longitude ?? 0,
+      _hospitalLat,
+      _hospitalLng,
+    );
+
+    final address = await _reverseGeocode(
+      locationData.latitude ?? 0,
+      locationData.longitude ?? 0,
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _distanceText = '${dist.toStringAsFixed(1)} km';
+      _userAddress = address;
+      _locationLoading = false;
+    });
+
+    if (_mapReady) _fitBounds(locationData);
+  }
+
+  void _addUserMarker(loc.LocationData data) {
+    if (data.latitude == null || data.longitude == null) return;
+    _markers.removeWhere((m) => m.markerId.value == 'user');
+    _markers.add(
+      Marker(
+        markerId: const MarkerId('user'),
+        position: LatLng(data.latitude!, data.longitude!),
+        infoWindow: const InfoWindow(title: 'Lokasi Anda'),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+      ),
+    );
+    if (mounted) setState(() {});
+  }
+
+  double _haversineDistance(
+      double lat1, double lng1, double lat2, double lng2) {
+    const R = 6371.0;
+    final dLat = _deg2rad(lat2 - lat1);
+    final dLng = _deg2rad(lng2 - lng1);
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_deg2rad(lat1)) * cos(_deg2rad(lat2)) *
+            sin(dLng / 2) * sin(dLng / 2);
+    return R * 2 * atan2(sqrt(a), sqrt(1 - a));
+  }
+
+  double _deg2rad(double deg) => deg * pi / 180;
+
+  Future<String> _reverseGeocode(double lat, double lng) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(lat, lng);
+      if (placemarks.isNotEmpty) {
+        final p = placemarks.first;
+        final parts = [
+          p.street,
+          p.subLocality,
+          p.locality,
+          p.administrativeArea,
+        ].where((e) => e != null && e.isNotEmpty).toList();
+        return parts.join(', ');
+      }
+    } catch (_) {}
+    return 'Tidak dapat mengambil alamat';
+  }
+
+  Future<void> _fitBounds(loc.LocationData userLocation) async {
+    final controller = _mapController;
+    if (controller == null) return;
+    if (userLocation.latitude == null || userLocation.longitude == null) return;
+
+    final userLatLng = LatLng(userLocation.latitude!, userLocation.longitude!);
+    final bounds = LatLngBounds(
+      southwest: LatLng(
+        min(userLatLng.latitude, _hospitalLat),
+        min(userLatLng.longitude, _hospitalLng),
+      ),
+      northeast: LatLng(
+        max(userLatLng.latitude, _hospitalLat),
+        max(userLatLng.longitude, _hospitalLng),
+      ),
+    );
+
+    await controller.animateCamera(
+      CameraUpdate.newLatLngBounds(bounds, 80),
+    );
+  }
+
+  Future<void> _recenter() async {
+    final locData = _userLocation;
+    if (locData == null || locData.latitude == null) return;
+    await _mapController?.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: LatLng(locData.latitude!, locData.longitude!),
+          zoom: 15,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openDirections() async {
+    final locData = _userLocation;
+    String url;
+    if (locData != null && locData.latitude != null) {
+      url =
+          'https://www.google.com/maps/dir/?api=1&origin=${locData.latitude},${locData.longitude}&destination=$_hospitalLat,$_hospitalLng&travelmode=driving';
+    } else {
+      url =
+          'https://www.google.com/maps/dir/?api=1&destination=$_hospitalLat,$_hospitalLng&travelmode=driving';
+    }
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: Column(
+        children: [
+          _buildHeader(context),
+          Expanded(
+            child: Stack(
+              children: [
+                GoogleMap(
+                  initialCameraPosition: const CameraPosition(
+                    target: _hospitalLatLng,
+                    zoom: 14,
+                  ),
+                  markers: _markers,
+                  myLocationButtonEnabled: false,
+                  zoomControlsEnabled: false,
+                  compassEnabled: true,
+                  onMapCreated: (controller) {
+                    _mapController = controller;
+                    setState(() => _mapReady = true);
+                    if (_userLocation != null) {
+                      _fitBounds(_userLocation!);
+                    }
+                  },
+                ),
+
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: FloatingActionButton.small(
+                    heroTag: 'recenter',
+                    backgroundColor: Colors.white,
+                    elevation: 4,
+                    onPressed: _recenter,
+                    child: const Icon(Icons.my_location,
+                        color: AppColors.primary, size: 20),
+                  ),
+                ),
+
+                if (_locationDenied)
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: FloatingActionButton.small(
+                      heroTag: 'retry',
+                      backgroundColor: Colors.white,
+                      elevation: 4,
+                      onPressed: _requestLocationAndLoad,
+                      child: const Icon(Icons.refresh,
+                          color: Colors.orange, size: 20),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          _buildInfoPanel(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                onPressed: () => Navigator.pop(context),
+                color: AppColors.textPrimary,
+              ),
+              const SizedBox(width: 4),
+              const Text(
+                'Lokasi & Arah ke RSUD Porsea',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoPanel() {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 24,
+            offset: Offset(0, -6),
+          )
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(Icons.local_hospital_rounded,
+                        color: AppColors.primary, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.hospitalName,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        Text(
+                          widget.hospitalAddress,
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.textSecondary),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+              const SizedBox(height: 16),
+
+              if (_locationLoading)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        SizedBox(width: 10),
+                        Text('Mengambil lokasi Anda...',
+                            style: TextStyle(
+                                color: AppColors.textSecondary, fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                )
+              else if (_locationDenied)
+                _buildDeniedBanner()
+              else
+                _buildLocationStats(),
+
+              const SizedBox(height: 16),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _openDirections,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 0,
+                  ),
+                  icon: const Icon(Icons.directions_rounded),
+                  label: const Text(
+                    'Petunjuk Arah',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocationStats() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            _buildStatChip(
+              Icons.social_distance_rounded,
+              'Jarak',
+              _distanceText,
+              AppColors.primary.withValues(alpha: 0.1),
+              AppColors.primary,
+            ),
+            const SizedBox(width: 12),
+            _buildStatChip(
+              Icons.directions_car_rounded,
+              'Estimasi',
+              _estimateDriveTime(),
+              Colors.orange.withValues(alpha: 0.1),
+              Colors.orange.shade700,
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.person_pin_circle_rounded,
+                size: 18, color: Color(0xFF4C9BE8)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Lokasi Anda',
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 2),
+                  Text(
+                    _userAddress,
+                    style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w500),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatChip(
+      IconData icon, String label, String value, Color bgColor, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: color),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 10,
+                        color: color.withValues(alpha: 0.8),
+                        fontWeight: FontWeight.w500)),
+                Text(value,
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: color,
+                        fontWeight: FontWeight.w700)),
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeniedBanner() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.shade200),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.location_off_rounded,
+              color: Colors.orange.shade700, size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Izin lokasi diperlukan untuk menghitung jarak. Ketuk tombol refresh di peta untuk mencoba lagi.',
+              style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.orange.shade800,
+                  height: 1.4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _estimateDriveTime() {
+    final locData = _userLocation;
+    if (locData == null || locData.latitude == null) return '-';
+    final dist = _haversineDistance(
+      locData.latitude!, locData.longitude!, _hospitalLat, _hospitalLng);
+    final minutes = (dist / 40 * 60).round();
+    if (minutes < 60) return '$minutes mnt';
+    return '${(minutes / 60).floor()} jam ${minutes % 60} mnt';
+  }
+}

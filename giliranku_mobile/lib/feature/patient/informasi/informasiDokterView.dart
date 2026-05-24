@@ -84,9 +84,7 @@ class _InformasiDokterPageState extends State<InformasiDokterPage> {
           children: [
             AppHeader(
               mode: HeaderMode.page,
-              title: 'Informasi Dokter',
-              subtitle: 'RSUD Porsea',
-              pageIcon: Iconsax.user,
+              title: 'Daftar Dokter RSUD Porsea',
             ),
 
             Padding(

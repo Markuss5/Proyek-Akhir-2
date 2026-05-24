@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/widgets/header.dart';
 import 'package:giliranku/feature/patient/antrian/antrianUmumView.dart';
-import 'package:giliranku/feature/patient/antrian/karcis_view.dart';
+import 'package:giliranku/feature/patient/antrian/karcisView.dart';
 import 'package:iconsax/iconsax.dart';
 
 class AntrianBpjsView extends StatefulWidget {
@@ -23,11 +23,18 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
 
   bool _isLoading = false;
 
-  final _nikCtrl     = TextEditingController();
-  final _rujukanCtrl = TextEditingController();
+  final _nikCtrl = TextEditingController();
+
+  List<Map<String, dynamic>> _rujukanList = [];
+  Map<String, dynamic>? _selectedRujukan;
+  bool _isLoadingRujukan = false;
+
+  List<Dokter> _dokterList = [];
+  bool _isLoadingDokter = false;
+  int? _selectedDokterID;
+  String _selectedDokterNama = '';
 
   String? _nikError;
-  String? _rujukanError;
 
   bool get _isLoggedIn =>
       widget.patientData != null &&
@@ -51,26 +58,74 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
   void dispose() {
     _fadeCtrl.dispose();
     _nikCtrl.dispose();
-    _rujukanCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _daftarAntrian() async {
-    setState(() {
-      _nikError     = null;
-      _rujukanError = null;
-    });
+  Future<void> _onRefresh() async {
+    if (_nikCtrl.text.trim().length >= 10) {
+      await _cariRujukan();
+    } else {
+      setState(() {
+        _rujukanList = [];
+        _selectedRujukan = null;
+        _dokterList = [];
+        _selectedDokterID = null;
+      });
+    }
+  }
 
-    bool valid = true;
+  Future<void> _cariRujukan() async {
+    setState(() => _nikError = null);
     if (_nikCtrl.text.trim().length < 10) {
-      setState(() => _nikError = 'NIK/No. BPJS tidak valid');
-      valid = false;
+      setState(() => _nikError = 'NIK tidak valid');
+      return;
     }
-    if (_rujukanCtrl.text.trim().isEmpty) {
-      setState(() => _rujukanError = 'No. rujukan tidak boleh kosong');
-      valid = false;
+    setState(() => _isLoadingRujukan = true);
+    final list = await _api.fetchRujukanBpjs(_nikCtrl.text.trim());
+    if (!mounted) return;
+    setState(() {
+      _rujukanList = list;
+      _selectedRujukan = null;
+      _dokterList = [];
+      _selectedDokterID = null;
+      _isLoadingRujukan = false;
+    });
+    if (list.isEmpty) {
+      _showSnack('Rujukan tidak ditemukan untuk NIK ini.');
     }
-    if (!valid) return;
+  }
+
+  Future<void> _loadDokter(int poliId) async {
+    setState(() {
+      _isLoadingDokter = true;
+      _selectedDokterID = null;
+      _selectedDokterNama = '';
+      _dokterList = [];
+    });
+    try {
+      final date = DateTime.now().toIso8601String().split('T')[0];
+      final list = await _api.getDokterByPoli(poliId, date);
+      if (!mounted) return;
+      setState(() {
+        _dokterList = list.map((e) => Dokter.fromJson(e)).toList();
+        _isLoadingDokter = false;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingDokter = false);
+    }
+  }
+
+  Future<void> _daftarAntrian() async {
+    setState(() => _nikError = null);
+
+    if (_selectedRujukan == null) {
+      _showSnack('Pilih rujukan terlebih dahulu');
+      return;
+    }
+    if (_selectedDokterID == null) {
+      _showSnack('Pilih dokter terlebih dahulu');
+      return;
+    }
 
     setState(() => _isLoading = true);
     HapticFeedback.mediumImpact();
@@ -78,8 +133,9 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
     try {
       final res = await _api.createAntrian({
         'nik'        : _nikCtrl.text.trim(),
-        'no_rujukan' : _rujukanCtrl.text.trim(),
+        'no_rujukan' : _selectedRujukan!['no_rujukan'],
         'tipe'       : 'bpjs',
+        'dokter_id'  : _selectedDokterID,
       });
 
       final data   = res['data'] as Map<String, dynamic>? ?? {};
@@ -133,25 +189,28 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
           children: [
             AppHeader(
               mode: HeaderMode.page,
-              title: 'Antrian BPJS',
-              subtitle: 'RSUD Porsea',
-              pageIcon: Iconsax.shield_tick,
+              title: 'Antrian BPJS RSUD Porsea',
             ),
             Expanded(
               child: FadeTransition(
                 opacity: _fadeAnim,
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        _buildInfoBpjs(),
-                        const SizedBox(height: 16),
-                        _buildFormCard(),
-                        const SizedBox(height: 28),
-                        _buildDaftarButton(),
-                        const SizedBox(height: 32),
-                      ],
+                child: RefreshIndicator(
+                  onRefresh: _onRefresh,
+                  color: const Color(0xFF0D9B86),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          _buildInfoBpjs(),
+                          const SizedBox(height: 16),
+                          _buildFormCard(),
+                          const SizedBox(height: 28),
+                          _buildDaftarButton(),
+                          const SizedBox(height: 32),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -223,15 +282,128 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
             formatters: [FilteringTextInputFormatter.digitsOnly],
           ),
           const SizedBox(height: 16),
-          _field(
-            ctrl: _rujukanCtrl,
-            label: 'No. Rujukan',
-            hint: 'Masukkan nomor surat rujukan',
-            icon: Iconsax.document_text,
-            errorText: _rujukanError,
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton.icon(
+              onPressed: _isLoadingRujukan ? null : _cariRujukan,
+              icon: _isLoadingRujukan 
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.search, size: 18),
+              label: const Text('Cari Rujukan'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3B82F6),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
           ),
+          if (_rujukanList.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _label('Pilih Rujukan'),
+            const SizedBox(height: 12),
+            ..._rujukanList.map((ruj) => _buildRujukanCard(ruj)),
+          ],
+          if (_selectedRujukan != null) ...[
+            const SizedBox(height: 24),
+            _label('Pilih Dokter'),
+            const SizedBox(height: 12),
+            _buildDropdownDokter(),
+          ]
         ],
       ),
+    );
+  }
+
+  Widget _buildRujukanCard(Map<String, dynamic> ruj) {
+    final isSelected = _selectedRujukan == ruj;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedRujukan = ruj;
+        });
+        _loadDokter(ruj['poli_id']);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
+          border: Border.all(
+            color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFFE5E7EB),
+            width: 1.5,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(ruj['no_rujukan'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E40AF))),
+                if (isSelected) const Icon(Icons.check_circle, color: Color(0xFF3B82F6), size: 20),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text('Poli: ${ruj['poli_nama']}', style: const TextStyle(fontSize: 13, color: Color(0xFF4B5563))),
+            const SizedBox(height: 4),
+            Text('Faskes Asal: ${ruj['asal_faskes']}', style: const TextStyle(fontSize: 13, color: Color(0xFF4B5563))),
+            const SizedBox(height: 4),
+            Text('Diagnosa: ${ruj['diagnosa']}', style: const TextStyle(fontSize: 13, color: Color(0xFF4B5563))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDropdownDokter() {
+    if (_isLoadingDokter) {
+      return Container(
+        height: 52,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF3F4F6),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+        ),
+        child: const Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0D9B86)),
+          ),
+        ),
+      );
+    }
+    return DropdownButtonFormField<int>(
+      value: _selectedDokterID,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: const Color(0xFFF9FAFB),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0D9B86), width: 2)),
+      ),
+      hint: const Text('Pilih Dokter', style: TextStyle(fontSize: 14, color: Color(0xFF9CA3AF))),
+      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF6B7280)),
+      isExpanded: true,
+      items: _dokterList.map((d) {
+        return DropdownMenuItem<int>(
+          value: d.id,
+          child: Text(d.nama, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF111827))),
+        );
+      }).toList(),
+      onChanged: (val) {
+        if (val != null) {
+          setState(() {
+            _selectedDokterID = val;
+            _selectedDokterNama = _dokterList.firstWhere((e) => e.id == val).nama;
+          });
+        }
+      },
     );
   }
 

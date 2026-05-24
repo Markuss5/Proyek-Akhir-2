@@ -50,6 +50,8 @@ class Ticket {
       type: (json['pembayaran'] == 'BPJS') ? 'konsultasi-bpjs' : 'konsultasi-umum',
       poliName: json['poliklinik'],
       doctorName: json['dokter'],
+      patientName: json['nama_pasien'],
+      patientNik: json['nik'],
       bookingCode: json['kode_booking'],
       createdAt: DateTime.now(),
     );

@@ -34,7 +34,7 @@ class QueueApi {
     final data = _dataMap(payload);
     return Patient(
       nik: nik,
-      name: data['namaPasien'] ?? '-',
+      name: data['nama_pasien'] ?? '-',
     );
   }
 
@@ -42,33 +42,63 @@ class QueueApi {
     final payload = await _get('/antrian/layanan');
     final data = _dataList(payload);
     return data
-        .map((item) => Poli(id: item['id'].toString(), name: item['nama'] ?? ''))
+        .map((item) => Poli(
+              id: '${item['id'] ?? item['poly_id'] ?? ''}',
+              name: item['nama'] ?? item['poly_name'] ?? '',
+            ))
         .toList();
   }
 
-  Future<List<Doctor>> getDoctors(String poliId) async {
-    final payload = await _get('/dokter/poli/$poliId');
+  Future<List<Doctor>> getDoctors(String poliId, String date) async {
+    final payload = await _get(
+      '/dokter/poli/$poliId',
+      queryParameters: {'tanggal': date},
+    );
     final data = _dataList(payload);
     return data
         .map((item) => Doctor(
-              id: item['id'].toString(),
-              name: item['nama'] ?? '',
+              id: '${item['doctor_id'] ?? item['id'] ?? ''}',
+              name: item['doctor_name'] ?? item['nama'] ?? '',
               poliId: poliId,
             ))
         .toList();
+  }
+
+  Future<List<dynamic>> fetchRujukanBpjs(String nik) async {
+    final payload = await _get('/antrian/bpjs/rujukan/$nik');
+    return _dataList(payload);
   }
 
   Future<Ticket> createGeneralTicket({
     required String nik,
     required Poli poli,
     required Doctor doctor,
+    required bool isPasienLama,
+    String? namaPasien,
+    String? telepon,
   }) async {
     final payload = await _post('/antrian', {
       'nik': nik,
-      'nama_pasien': '-',
-      'telepon': '-',
+      'nama_pasien': isPasienLama ? '-' : (namaPasien ?? '-'),
+      'telepon': isPasienLama ? '-' : (telepon ?? '-'),
       'poli_id': int.parse(poli.id),
-      'is_pasien_lama': false,
+      'dokter_id': int.parse(doctor.id),
+      'is_pasien_lama': isPasienLama,
+    });
+    final data = _dataMap(payload);
+    return Ticket.fromJson(data);
+  }
+
+  Future<Ticket> createBpjsTicketDynamic({
+    required String nik,
+    required String noRujukan,
+    required int dokterId,
+  }) async {
+    final payload = await _post('/antrian', {
+      'nik': nik,
+      'no_rujukan': noRujukan,
+      'tipe': 'bpjs',
+      'dokter_id': dokterId,
     });
     final data = _dataMap(payload);
     return Ticket.fromJson(data);

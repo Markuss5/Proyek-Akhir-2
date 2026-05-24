@@ -120,6 +120,19 @@ class ApiDataSource {
     return [];
   }
 
+  Future<List<Map<String, dynamic>>> fetchRujukanBpjs(String nik) async {
+    try {
+      final res = await _client.get(_uri('/antrian/bpjs/rujukan/$nik')).timeout(_timeout);
+      if (res.statusCode == 200) {
+        return ((jsonDecode(res.body) as Map<String, dynamic>)['data'] as List<dynamic>? ?? [])
+            .cast<Map<String, dynamic>>();
+      }
+    } catch (e) {
+      debugPrint('ApiDataSource.fetchRujukanBpjs: $e');
+    }
+    return [];
+  }
+
   Future<bool> createPoli(Map<String, dynamic> data) async {
     try {
       final res = await _client
@@ -154,9 +167,17 @@ class ApiDataSource {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchDokterByPoly(int? polyId) async {
+  Future<List<Map<String, dynamic>>> fetchDokterByPoly(int? polyId, [String? tanggal]) async {
     try {
-      final url = polyId != null ? '${ApiConstants.dokter}?poly_id=$polyId' : ApiConstants.dokter;
+      var url = ApiConstants.dokter;
+      if (polyId != null) {
+        url += '?poly_id=$polyId';
+        if (tanggal != null) {
+          url += '&tanggal=$tanggal';
+        }
+      } else if (tanggal != null) {
+        url += '?tanggal=$tanggal';
+      }
       final res = await _client.get(_uri(url)).timeout(_timeout);
       if (res.statusCode == 200) {
         return ((jsonDecode(res.body) as Map<String, dynamic>)['data'] as List<dynamic>? ?? [])
@@ -367,11 +388,21 @@ class ApiDataSource {
   Future<Map<String, dynamic>> createAntrian(
       Map<String, dynamic> body) async {
     try {
+      final isBpjs = body['tipe'] == 'bpjs';
+      final path = isBpjs ? '/antrian/bpjs' : '/antrian';
+      final payload = isBpjs
+          ? {
+              'nik': body['nik'],
+              'no_rujukan': body['no_rujukan'],
+              'source': 'smartphone',
+            }
+          : body;
+
       final res = await _client
           .post(
-            _uri('/antrian'),
+            _uri(path),
             headers: _jsonHeaders,
-            body: jsonEncode(body),
+            body: jsonEncode(payload),
           )
           .timeout(_timeout);
       if (res.statusCode == 200 || res.statusCode == 201) {
@@ -383,39 +414,20 @@ class ApiDataSource {
       throw Exception(msg);
     } catch (e) {
       debugPrint('ApiDataSource.createAntrian: $e');
-      final now = DateTime.now();
-      final urut =
-          (now.millisecondsSinceEpoch % 99 + 1).toString().padLeft(3, '0');
-      return {
-        'success': true,
-        'data': <String, dynamic>{
-          'no_antrian': 'A-$urut',
-          'kode_booking':
-              'TB-${now.year}${now.month.toString().padLeft(2, '0')}-${urut}XY',
-          'poliklinik': body['poliklinik_nama'] ?? 'Poli Umum',
-          'dokter': 'dr. -',
-          'tanggal':
-              '${now.day.toString().padLeft(2, '0')} ${_bulan(now.month)} ${now.year}',
-          'waktu': '09:00 - 12:00',
-          'pembayaran':
-              (body['is_pasien_lama'] as bool? ?? false) ? 'BPJS' : 'Umum',
-        }
-      };
+      rethrow;
     }
   }
 
-  String _bulan(int m) {
-    const b = <String>[
-      '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
-    ];
-    return b[m];
-  }
 
-  Future<List<Map<String, dynamic>>> getDokterByPoli(int poliId) async {
+
+  Future<List<Map<String, dynamic>>> getDokterByPoli(int poliId, [String? tanggal]) async {
     try {
+      var url = '${ApiConstants.dokter}?poly_id=$poliId';
+      if (tanggal != null && tanggal.isNotEmpty) {
+        url += '&tanggal=$tanggal';
+      }
       final res = await _client
-          .get(_uri('${ApiConstants.dokter}?poly_id=$poliId'))
+          .get(_uri(url))
           .timeout(_timeout);
       if (res.statusCode == 200) {
         return ((jsonDecode(res.body) as Map<String, dynamic>)['data']
@@ -443,6 +455,18 @@ class ApiDataSource {
     } catch (e) {
       debugPrint('ApiDataSource.getRiwayatAntrian: $e');
       return [];
+    }
+  }
+
+  Future<bool> deleteAntrian(String kodeBooking) async {
+    try {
+      final res = await _client
+          .delete(_uri('/antrian/$kodeBooking'))
+          .timeout(_timeout);
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('ApiDataSource.deleteAntrian: $e');
+      return false;
     }
   }
 

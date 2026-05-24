@@ -19,13 +19,19 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
   bool _isLoading = true;
   List<Map<String, dynamic>> _perPoliStats = [];
 
-  int get _totalKunjungan =>
-      _perPoliStats.fold(0, (s, e) => s + (e['jumlah'] as int? ?? 0));
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _fetchStats();
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchStats() async {
@@ -124,22 +130,33 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
   }
 
   Widget _buildSummaryCards() {
-    final avg = _perPoliStats.isEmpty
-        ? 0
-        : (_totalKunjungan / _perPoliStats.length).round();
+    int apotekCount = 0;
+    for (final stat in _perPoliStats) {
+      final name = (stat['poly_name'] as String? ?? '').toLowerCase();
+      if (name.contains('apotek') || name.contains('farmasi')) {
+        apotekCount = stat['jumlah'] as int? ?? 0;
+        break;
+      }
+    }
+
+    final poliOnly = _perPoliStats.where((s) {
+      final name = (s['poly_name'] as String? ?? '').toLowerCase();
+      return !name.contains('apotek') && !name.contains('farmasi');
+    }).toList();
+    final totalPoli = poliOnly.fold(0, (s, e) => s + (e['jumlah'] as int? ?? 0));
 
     final summaryItems = [
       {
-        'judul': 'Total Kunjungan',
-        'angka': '$_totalKunjungan',
+        'judul': 'Kunjungan Poli',
+        'angka': '$totalPoli',
         'icon': Icons.people_alt_rounded,
         'color': const Color(0xFF2A9D8F),
         'bg': const Color(0xFFE6F7F5),
       },
       {
-        'judul': 'Rata-rata / Poli',
-        'angka': '$avg',
-        'icon': Icons.trending_up_rounded,
+        'judul': 'Kunjungan Apotek',
+        'angka': '$apotekCount',
+        'icon': Icons.medication,
         'color': const Color(0xFF5C6BC0),
         'bg': const Color(0xFFEEF0FF),
       },
@@ -322,30 +339,6 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
                           fontSize: 12, color: Color(0xFF2A9D8F))),
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE6F7F5),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Color(0xFF2A9D8F))),
-                    const SizedBox(width: 5),
-                    const Text('Live',
-                        style: TextStyle(
-                            color: Color(0xFF2A9D8F),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -451,9 +444,15 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
     );
   }
 
-  // ── Detail Card ────────────────────────────────────────────────────────────
   Widget _buildDetailCard() {
     if (_isLoading) return const SizedBox.shrink();
+
+    final filteredStats = _searchQuery.isEmpty 
+        ? _perPoliStats 
+        : _perPoliStats.where((s) {
+            final name = (s['poly_name'] as String? ?? '').toLowerCase();
+            return name.contains(_searchQuery.toLowerCase());
+          }).toList();
 
     return Container(
       decoration: BoxDecoration(
@@ -490,18 +489,44 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
               ],
             ),
           ),
-          if (_perPoliStats.isEmpty)
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              controller: _searchCtrl,
+              onChanged: (val) => setState(() => _searchQuery = val),
+              decoration: InputDecoration(
+                hintText: 'Cari poli & layanan...',
+                prefixIcon: const Icon(Icons.search, color: Color(0xFF2A9D8F)),
+                filled: true,
+                fillColor: Colors.grey[50],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade200),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade200),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF2A9D8F)),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+              ),
+            ),
+          ),
+          if (filteredStats.isEmpty)
             const Padding(
               padding: EdgeInsets.all(24),
-              child: Text('Belum ada data kunjungan',
+              child: Text('Poli & layanan yang dituju tidak ditemukan',
                   style: TextStyle(color: Colors.grey)),
             )
           else
             ListView.separated(
-              padding: const EdgeInsets.only(top: 12),
+              padding: const EdgeInsets.only(top: 0),
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: _perPoliStats.length,
+              itemCount: filteredStats.length,
               separatorBuilder: (_, __) => Divider(
                 height: 1,
                 color: Colors.grey.shade100,
@@ -509,10 +534,10 @@ class _AdminKunjunganViewState extends State<AdminKunjunganView> {
                 endIndent: 18,
               ),
               itemBuilder: (_, index) {
-                final stat = _perPoliStats[index];
+                final stat = filteredStats[index];
                 final color = _colorForIndex(index);
                 final jumlah = stat['jumlah'] as int? ?? 0;
-                final maxJ = _perPoliStats
+                final maxJ = filteredStats
                     .map((e) => e['jumlah'] as int? ?? 0)
                     .fold(1, (a, b) => a > b ? a : b);
 

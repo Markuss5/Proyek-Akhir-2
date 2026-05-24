@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/theme/theme.dart';
 import 'package:giliranku/core/widgets/header.dart';
+import 'package:giliranku/feature/patient/informasi/lokasiRSView.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class HospitalData {
   final String name;
@@ -71,11 +71,15 @@ class _InformasiViewState extends State<InformasiView> {
   }
 
   Future<void> _openMaps() async {
-    final Uri url = Uri.parse(
-      'geo:0,0?q=RSUD+Porsea+Toba',
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LokasiRSView(
+          hospitalName: profile!.name,
+          hospitalAddress: profile!.address,
+        ),
+      ),
     );
-
-    await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
   @override
@@ -101,9 +105,7 @@ class _InformasiViewState extends State<InformasiView> {
           children: [
             AppHeader(
             mode: HeaderMode.page,
-            title: 'Informasi RS',
-            subtitle: 'RSUD Porsea',
-            pageIcon: Iconsax.info_circle,
+            title: 'Informasi RSUD Porsea',
           ),
             Padding(
               padding: const EdgeInsets.all(20),
@@ -248,7 +250,7 @@ class _InformasiViewState extends State<InformasiView> {
                               const Icon(Icons.map_rounded,
                                   color: AppColors.primary, size: 40),
                               const SizedBox(height: 8),
-                              Text('Buka di Google Maps',
+                              Text('Lihat lokasi RSUD Porsea',
                                   style: TextStyle(
                                       color: Colors.grey.shade600,
                                       fontSize: 13)),
