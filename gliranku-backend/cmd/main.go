@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"gliranku/config"
 	"gliranku/controller"
 	"gliranku/repository"
@@ -15,6 +17,20 @@ func main() {
 
 	db := config.ConnectDB()
 	defer db.Close()
+
+	// ── Auto-migration: tambahkan kolom yang hilang di production DB ──────────
+	migrations := []string{
+		`ALTER TABLE antrian ADD COLUMN IF NOT EXISTS no_antrian_poli VARCHAR(20)`,
+		`ALTER TABLE antrian ADD COLUMN IF NOT EXISTS source VARCHAR(50) NOT NULL DEFAULT 'smartphone'`,
+		`ALTER TABLE antrian ADD COLUMN IF NOT EXISTS no_rm VARCHAR(50) NOT NULL DEFAULT '-'`,
+	}
+	for _, stmt := range migrations {
+		if _, err := db.Exec(stmt); err != nil {
+			log.Printf("[migration] WARNING: %s\n  → %v\n", stmt, err)
+		}
+	}
+	log.Println("[migration] Schema check selesai.")
+	// ─────────────────────────────────────────────────────────────────────────
 
 	pasienRepo := repository.NewPasienRepository(db)
 	kontrolRutinRepo := repository.NewKontrolRutinRepository(db)
@@ -52,4 +68,4 @@ func main() {
 
 	port := config.GetEnv("PORT", "8080")
 	r.Run(":" + port)
-}
+}
