@@ -1,30 +1,23 @@
 import 'package:flutter/material.dart';
 
-// ─── DESIGN TOKENS ────────────────────────────────────────────────────────────
-// Filosofi: satu dominant (teal), satu aksen (amber), sisanya monokrom.
-// Tidak ada rainbow — warna hanya untuk makna, bukan dekorasi.
 class AppColors {
-  // Primary — deep teal
   static const Color primary      = Color(0xFF0F7B6C);
   static const Color primaryLight = Color(0xFF1A9B8A);
   static const Color primaryDark  = Color(0xFF095C50);
-  static const Color primarySurf  = Color(0xFFEAF4F2); // bg lembut primary
+  static const Color primarySurf  = Color(0xFFEAF4F2);
   static const Color primarySurface = primarySurf;
 
-  // Aksen — warm amber (hanya untuk notif/reminder, bukan menu)
   static const Color amber     = Color(0xFFE8960A);
   static const Color amberSurf = Color(0xFFFDF3DC);
 
-  // Monokrom — semua abu dari satu ramp
-  static const Color ink0  = Color(0xFF111827); // teks utama
-  static const Color ink1  = Color(0xFF374151); // teks sekunder
-  static const Color ink2  = Color(0xFF6B7280); // teks muted
-  static const Color ink3  = Color(0xFF9CA3AF); // placeholder
-  static const Color ink4  = Color(0xFFE5E7EB); // divider
-  static const Color ink5  = Color(0xFFF3F4F6); // surface alt
+  static const Color ink0  = Color(0xFF111827);
+  static const Color ink1  = Color(0xFF374151);
+  static const Color ink2  = Color(0xFF6B7280);
+  static const Color ink3  = Color(0xFF9CA3AF);
+  static const Color ink4  = Color(0xFFE5E7EB);
+  static const Color ink5  = Color(0xFFF3F4F6);
   static const Color white = Color(0xFFFFFFFF);
 
-  // Alias legacy — agar tidak error di file lain
   static const Color gold          = amber;
   static const Color secondary     = Color(0xFF2563EB);
   static const Color info          = Color(0xFF0284C7);
@@ -33,7 +26,7 @@ class AppColors {
   static const Color error         = Color(0xFFDC2626);
 
   static const Color surface       = white;
-  static const Color background    = Color(0xFFF7F9F8); // sedikit warm
+  static const Color background    = Color(0xFFF7F9F8);
   static const Color divider       = ink4;
   static const Color cardShadow    = Color(0x0A000000);
   static const Color containerLight = primarySurf;
@@ -43,7 +36,6 @@ class AppColors {
   static const Color textMuted     = ink2;
 }
 
-// ─── TYPOGRAPHY SCALE ─────────────────────────────────────────────────────────
 class AppText {
   static const String font = 'PlusJakartaSans';
 
@@ -73,7 +65,6 @@ class AppText {
   );
 }
 
-// ─── THEME ────────────────────────────────────────────────────────────────────
 class AppTheme {
   static ThemeData get light {
     return ThemeData(

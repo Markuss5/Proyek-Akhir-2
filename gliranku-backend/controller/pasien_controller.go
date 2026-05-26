@@ -18,7 +18,6 @@ func NewPasienController(s *service.PasienService) *PasienController {
 	return &PasienController{Service: s}
 }
 
-// POST /api/v1/pasien/login
 func (ctrl *PasienController) Login(c *gin.Context) {
 	var req request.LoginPasienRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -35,7 +34,6 @@ func (ctrl *PasienController) Login(c *gin.Context) {
 	utils.Success(c, http.StatusOK, "Login berhasil", result)
 }
 
-// GET /api/v1/pasien/profile/:nik
 func (ctrl *PasienController) GetProfile(c *gin.Context) {
 	nik := c.Param("nik")
 
@@ -48,7 +46,6 @@ func (ctrl *PasienController) GetProfile(c *gin.Context) {
 	utils.Success(c, http.StatusOK, "Profil pasien berhasil diambil", result)
 }
 
-// PUT /api/v1/pasien/profile
 func (ctrl *PasienController) UpdateProfile(c *gin.Context) {
 	var req request.UpdatePasienProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

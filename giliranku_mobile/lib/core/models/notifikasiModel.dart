@@ -1,4 +1,3 @@
-/// Standalone Notifikasi model (entity + DTO combined).
 class NotifikasiModel {
   final int notificationId;
   final String nik;

@@ -20,7 +20,6 @@ func NewNotifikasiController(s *service.NotifikasiService) *NotifikasiController
 	return &NotifikasiController{Service: s}
 }
 
-// POST /api/v1/notifikasi
 func (ctrl *NotifikasiController) Create(c *gin.Context) {
 	var req request.CreateNotifikasiRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -43,7 +42,6 @@ func (ctrl *NotifikasiController) Create(c *gin.Context) {
 	utils.Success(c, http.StatusCreated, "Notifikasi berhasil dibuat", response.FromNotifikasi(*result))
 }
 
-// GET /api/v1/notifikasi/pasien/:nik
 func (ctrl *NotifikasiController) GetByNIK(c *gin.Context) {
 	nik := c.Param("nik")
 
@@ -56,7 +54,6 @@ func (ctrl *NotifikasiController) GetByNIK(c *gin.Context) {
 	utils.Success(c, http.StatusOK, "Data notifikasi berhasil diambil", response.FromNotifikasiList(results))
 }
 
-// GET /api/v1/notifikasi/pending
 func (ctrl *NotifikasiController) GetPending(c *gin.Context) {
 	results, err := ctrl.Service.GetPending()
 	if err != nil {
@@ -67,7 +64,6 @@ func (ctrl *NotifikasiController) GetPending(c *gin.Context) {
 	utils.Success(c, http.StatusOK, "Notifikasi pending berhasil diambil", response.FromNotifikasiList(results))
 }
 
-// PUT /api/v1/notifikasi/:id/mark-sent
 func (ctrl *NotifikasiController) MarkAsSent(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
@@ -85,7 +81,6 @@ func (ctrl *NotifikasiController) MarkAsSent(c *gin.Context) {
 	utils.Success(c, http.StatusOK, "Notifikasi berhasil ditandai sebagai terkirim", nil)
 }
 
-// POST /api/v1/notifikasi/process
 func (ctrl *NotifikasiController) ProcessPending(c *gin.Context) {
 	count, err := ctrl.Service.ProcessPendingNotifications()
 	if err != nil {
@@ -96,7 +91,6 @@ func (ctrl *NotifikasiController) ProcessPending(c *gin.Context) {
 	utils.Success(c, http.StatusOK, "Notifikasi pending berhasil diproses", gin.H{"processed_count": count})
 }
 
-// DELETE /api/v1/notifikasi/:id
 func (ctrl *NotifikasiController) Delete(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)

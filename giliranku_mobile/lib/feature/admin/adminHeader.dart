@@ -14,7 +14,6 @@ class AdminHeader extends StatelessWidget {
     this.type = AdminHeaderType.page,
   });
 
-  // Warna Brand
   static const _tealPrimary = Color(0xFF2A9D8F);
   static const _tealDarker = Color(0xFF217D72);
   static const _accentGreen = Color(0xFFA8EDCA);
@@ -24,9 +23,6 @@ class AdminHeader extends StatelessWidget {
     return type == AdminHeaderType.home ? _buildHome() : _buildPage();
   }
 
-  // ─────────────────────────────────────────────────────────────────
-  // OPSI A — Home (Original dengan sedikit perapian)
-  // ─────────────────────────────────────────────────────────────────
   Widget _buildHome() {
     return Container(
       width: double.infinity,
@@ -113,9 +109,6 @@ class AdminHeader extends StatelessWidget {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────
-  // OPSI B — Page (Versi Upgrade: Modern, Sleek, & Bold)
-  // ─────────────────────────────────────────────────────────────────
   Widget _buildPage() {
     return Container(
       width: double.infinity,
@@ -136,7 +129,6 @@ class AdminHeader extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
               child: Row(
                 children: [
-                  // Logo dengan Glassmorphism effect
                   Container(
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
@@ -160,7 +152,6 @@ class AdminHeader extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  // Info Area
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,7 +168,6 @@ class AdminHeader extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
-                        // Badge kecil pengganti subtitle statis
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
@@ -207,7 +197,6 @@ class AdminHeader extends StatelessWidget {
     );
   }
 
-  // ── Helpers ────────────────────────────────────────────────────
   Widget _circle(double size, double opacity) {
     return Container(
       width: size,

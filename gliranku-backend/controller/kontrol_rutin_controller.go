@@ -20,7 +20,6 @@ func NewKontrolRutinController(s *service.KontrolRutinService) *KontrolRutinCont
 	return &KontrolRutinController{Service: s}
 }
 
-// POST /api/v1/kontrol-rutin
 func (ctrl *KontrolRutinController) Create(c *gin.Context) {
 	var req request.CreateKontrolRutinRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -48,7 +47,6 @@ func (ctrl *KontrolRutinController) Create(c *gin.Context) {
 	utils.Success(c, http.StatusCreated, "Jadwal kontrol rutin berhasil dibuat. Notifikasi pengingat telah dijadwalkan (H-7, H-3, H-1).", response.FromKontrolRutin(*result))
 }
 
-// GET /api/v1/kontrol-rutin/pasien/:nik
 func (ctrl *KontrolRutinController) GetByNIK(c *gin.Context) {
 	nik := c.Param("nik")
 
@@ -61,7 +59,6 @@ func (ctrl *KontrolRutinController) GetByNIK(c *gin.Context) {
 	utils.Success(c, http.StatusOK, "Data kontrol rutin berhasil diambil", response.FromKontrolRutinList(results))
 }
 
-// GET /api/v1/kontrol-rutin/upcoming?days=7
 func (ctrl *KontrolRutinController) GetUpcoming(c *gin.Context) {
 	daysStr := c.DefaultQuery("days", "7")
 	days, err := strconv.Atoi(daysStr)
@@ -79,7 +76,6 @@ func (ctrl *KontrolRutinController) GetUpcoming(c *gin.Context) {
 	utils.Success(c, http.StatusOK, "Data kontrol mendatang berhasil diambil", response.FromKontrolRutinList(results))
 }
 
-// GET /api/v1/kontrol-rutin/all
 func (ctrl *KontrolRutinController) GetAll(c *gin.Context) {
 	results, err := ctrl.Service.GetAll()
 	if err != nil {
@@ -90,7 +86,6 @@ func (ctrl *KontrolRutinController) GetAll(c *gin.Context) {
 	utils.Success(c, http.StatusOK, "Semua data kontrol rutin berhasil diambil", response.FromKontrolRutinList(results))
 }
 
-// DELETE /api/v1/kontrol-rutin/:id
 func (ctrl *KontrolRutinController) Delete(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)

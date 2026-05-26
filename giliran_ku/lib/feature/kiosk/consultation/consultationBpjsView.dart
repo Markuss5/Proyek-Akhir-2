@@ -168,7 +168,6 @@ class _ConsultationBpjsViewState extends State<ConsultationBpjsView> {
             ),
             const SizedBox(height: 20),
             
-            // Pencarian Rujukan
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(

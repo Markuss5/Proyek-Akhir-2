@@ -1,4 +1,3 @@
-/// Standalone KontrolRutin model (entity + DTO combined).
 class KontrolRutinModel {
   final int controlId;
   final String nik;

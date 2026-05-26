@@ -1,5 +1,3 @@
-/// Standalone Pasien model (entity + DTO combined).
-/// No framework dependencies — pure Dart.
 class PasienModel {
   final String nik;
   final String name;
@@ -47,7 +45,6 @@ class PasienModel {
     'no_rm': noRm,
   };
 
-  /// Convert to the raw Map that legacy pages/widgets still expect.
   Map<String, dynamic> toMap() => {
     'nik': nik,
     'patient_name': name,

@@ -17,7 +17,6 @@ func NewInformasiController(s *service.InformasiService) *InformasiController {
 	return &InformasiController{Service: s}
 }
 
-// GET /api/v1/informasi
 func (ctrl *InformasiController) Get(c *gin.Context) {
 	result, err := ctrl.Service.Get()
 	if err != nil {
@@ -27,7 +26,6 @@ func (ctrl *InformasiController) Get(c *gin.Context) {
 	utils.Success(c, http.StatusOK, "Informasi Rumah Sakit berhasil diambil", result)
 }
 
-// PUT /api/v1/informasi
 func (ctrl *InformasiController) Update(c *gin.Context) {
 	var req request.InformasiRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

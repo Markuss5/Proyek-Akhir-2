@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:giliranku/core/theme/theme.dart';
 
-// ─── SINGLE PAINTER PER ICON ──────────────────────────────────────────────────
-
 class _IconPainter extends CustomPainter {
   final bool isActive;
   final Color activeColor;
@@ -26,8 +24,6 @@ class _IconPainter extends CustomPainter {
   bool shouldRepaint(_IconPainter o) =>
       o.isActive != isActive || o.activeColor != activeColor;
 }
-
-// ─── DRAW FUNCTIONS ───────────────────────────────────────────────────────────
 
 void _drawHome(Canvas c, double s, bool active, Color color) {
   final stroke = Paint()
@@ -119,8 +115,6 @@ void _drawProfile(Canvas c, double s, bool active, Color color) {
     c.drawPath(arc, paint);
   }
 }
-
-// ─── NAVBAR ───────────────────────────────────────────────────────────────────
 
 class AppBottomNav extends StatelessWidget {
   final int currentIndex;

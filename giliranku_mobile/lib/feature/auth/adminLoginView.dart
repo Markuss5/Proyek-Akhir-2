@@ -38,7 +38,7 @@ class _AdminLoginViewState extends State<AdminLoginView> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const AdminBerandaView()),
-        (route) => false, // clears the entire back stack
+        (route) => false,
       );
     } else {
       setState(() => _errorMessage = 'Email atau kata sandi salah');

@@ -20,7 +20,6 @@ func NewPoliController(repo *repository.PoliRepository, svc *service.PoliService
 	return &PoliController{Repo: repo, Service: svc}
 }
 
-// GET /api/v1/poliklinik
 func (ctrl *PoliController) GetAll(c *gin.Context) {
 	results, err := ctrl.Repo.FindAll()
 	if err != nil {
@@ -30,7 +29,6 @@ func (ctrl *PoliController) GetAll(c *gin.Context) {
 	utils.Success(c, http.StatusOK, "Data poliklinik berhasil diambil", results)
 }
 
-// POST /api/v1/poliklinik
 func (ctrl *PoliController) Create(c *gin.Context) {
 	var req request.PoliRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -46,7 +44,6 @@ func (ctrl *PoliController) Create(c *gin.Context) {
 	utils.Success(c, http.StatusCreated, "Poliklinik berhasil ditambahkan", result)
 }
 
-// PUT /api/v1/poliklinik/:id
 func (ctrl *PoliController) Update(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -68,7 +65,6 @@ func (ctrl *PoliController) Update(c *gin.Context) {
 	utils.Success(c, http.StatusOK, "Poliklinik berhasil diperbarui", result)
 }
 
-// DELETE /api/v1/poliklinik/:id
 func (ctrl *PoliController) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
