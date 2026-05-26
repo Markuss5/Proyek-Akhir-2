@@ -18,7 +18,7 @@ func (r *DokterRepository) FindByPolyID(polyID int, tanggal string) ([]models.Do
 		SELECT c.id as category_id, c.namadokter, c."IdPoli", p."NamaPoli", d."NoTelp", d."Spesialisasi", c.options as schedule,
 		       COALESCE(c.senin,''), COALESCE(c.selasa,''), COALESCE(c.rabu,''),
 		       COALESCE(c.kamis,''), COALESCE(c.jumat,''), COALESCE(c.sabtu,''), COALESCE(c.minggu,''),
-		       (COALESCE(c."MaxKuotaNonJKN", 30) - (SELECT COUNT(*) FROM antrian a WHERE a.dokter_id = c.id AND DATE(a.tanggal) = $2 AND status != 'dibatalkan')), COALESCE(c."MaxKuotaNonJKN", 30)
+		       (COALESCE(c."KuotaNonJKN", 30) - (SELECT COUNT(*) FROM antrian a WHERE a.dokter_id = c.id AND DATE(a.tanggal) = $2::date AND status != 'dibatalkan')), COALESCE(c."KuotaNonJKN", 30)
 		FROM category c
 		JOIN tbpoli p ON c."IdPoli" = p."IdPoli"
 		LEFT JOIN tbdaftardokter d ON c."IdDokter" = d."IdDokter"
@@ -61,7 +61,7 @@ func (r *DokterRepository) FindAll() ([]models.Dokter, error) {
 		SELECT c.id as category_id, c.namadokter, c."IdPoli", p."NamaPoli", d."NoTelp", d."Spesialisasi", c.options as schedule,
 		       COALESCE(c.senin,''), COALESCE(c.selasa,''), COALESCE(c.rabu,''),
 		       COALESCE(c.kamis,''), COALESCE(c.jumat,''), COALESCE(c.sabtu,''), COALESCE(c.minggu,''),
-		       COALESCE(c."KuotaNonJKN", 0), COALESCE(c."MaxKuotaNonJKN", 30)
+		       COALESCE(c."KuotaNonJKN", 0), COALESCE(c."KuotaNonJKN", 30)
 		FROM category c
 		JOIN tbpoli p ON c."IdPoli" = p."IdPoli"
 		LEFT JOIN tbdaftardokter d ON c."IdDokter" = d."IdDokter"
@@ -104,7 +104,7 @@ func (r *DokterRepository) FindByID(id int) (*models.Dokter, error) {
 		SELECT c.id as category_id, c.namadokter, c."IdPoli", p."NamaPoli", d."NoTelp", d."Spesialisasi", c.options as schedule,
 		       COALESCE(c.senin,''), COALESCE(c.selasa,''), COALESCE(c.rabu,''),
 		       COALESCE(c.kamis,''), COALESCE(c.jumat,''), COALESCE(c.sabtu,''), COALESCE(c.minggu,''),
-		       COALESCE(c."KuotaNonJKN", 0), COALESCE(c."MaxKuotaNonJKN", 30)
+		       COALESCE(c."KuotaNonJKN", 0), COALESCE(c."KuotaNonJKN", 30)
 		FROM category c
 		JOIN tbpoli p ON c."IdPoli" = p."IdPoli"
 		LEFT JOIN tbdaftardokter d ON c."IdDokter" = d."IdDokter"
@@ -161,7 +161,7 @@ func (r *DokterRepository) Create(d *models.Dokter) (*models.Dokter, error) {
 	d.PolyName = polyName
 
 	queryCategory := `
-		INSERT INTO category (name, namadokter, "IdDokter", "IdPoli", app, options, voice_call, "MaxKuotaNonJKN", senin, selasa, rabu, kamis, jumat, sabtu, minggu)
+		INSERT INTO category (name, namadokter, "IdDokter", "IdPoli", app, options, voice_call, "KuotaNonJKN", senin, selasa, rabu, kamis, jumat, sabtu, minggu)
 		VALUES ($1, $2, $3, $4, 1, $5, '', $6, $7, $8, $9, $10, $11, $12, $13)
 		RETURNING id
 	`
@@ -188,7 +188,7 @@ func (r *DokterRepository) Update(d *models.Dokter) (*models.Dokter, error) {
 
 	queryCategory := `
 		UPDATE category
-		SET namadokter = $1, "IdPoli" = $2, options = $3, "MaxKuotaNonJKN" = $4,
+		SET namadokter = $1, "IdPoli" = $2, options = $3, "KuotaNonJKN" = $4,
 		    senin = $5, selasa = $6, rabu = $7, kamis = $8, jumat = $9, sabtu = $10, minggu = $11
 		WHERE id = $12
 		RETURNING "IdDokter"

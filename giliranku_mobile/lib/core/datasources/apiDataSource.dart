@@ -422,9 +422,9 @@ class ApiDataSource {
 
   Future<List<Map<String, dynamic>>> getDokterByPoli(int poliId, [String? tanggal]) async {
     try {
-      var url = '${ApiConstants.dokter}?poly_id=$poliId';
+      var url = '${ApiConstants.dokter}/poli/$poliId';
       if (tanggal != null && tanggal.isNotEmpty) {
-        url += '&tanggal=$tanggal';
+        url += '?tanggal=$tanggal';
       }
       final res = await _client
           .get(_uri(url))

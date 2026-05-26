@@ -168,8 +168,6 @@ class _AntrianViewState extends State<AntrianView>
   }
 
   Future<void> _loadDokter(int poliId, String tanggal) async {
-    if (tanggal.isEmpty) return;
-
     setState(() {
       _isLoadingDokter = true;
       _selectedDokterID = null;
@@ -177,9 +175,11 @@ class _AntrianViewState extends State<AntrianView>
       _dokterList = [];
     });
     try {
-      final list = await _api.getDokterByPoli(poliId, tanggal);
+      final list = await _api.getDokterByPoli(
+        poliId,
+        tanggal.isNotEmpty ? tanggal : null,
+      );
       if (!mounted) return;
-      
       setState(() {
         _dokterList = list.map((e) => Dokter.fromJson(e)).toList();
         _isLoadingDokter = false;
