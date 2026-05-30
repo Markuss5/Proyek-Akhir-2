@@ -2,6 +2,7 @@ package routes
 
 import (
 	"gliranku/controller"
+	"gliranku/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,13 +18,18 @@ func SetupRoutes(
 	antrianCtrl *controller.AntrianController,
 	kioskCtrl controller.KioskController,
 ) {
+	r.Use(middleware.SecurityHeaders())
+	r.Use(middleware.CORS())
+	r.Use(middleware.RequestSizeLimit(4 * 1024 * 1024))
+	r.Use(middleware.RateLimit())
+
 	api := r.Group("/api/v1")
 
 	api.POST("/tickets/pdf", kioskCtrl.UploadPDF)
 
 	pasien := api.Group("/pasien")
 	{
-		pasien.POST("/login", pasienCtrl.Login)
+		pasien.POST("/login", middleware.StrictRateLimit(), pasienCtrl.Login)
 		pasien.GET("/profile/:nik", pasienCtrl.GetProfile)
 		pasien.PUT("/profile", pasienCtrl.UpdateProfile)
 	}
@@ -76,9 +82,10 @@ func SetupRoutes(
 		antrian.GET("/dashboard-stats", antrianCtrl.GetDashboardStats)
 		antrian.GET("/kunjungan-stats", antrianCtrl.GetKunjunganStats)
 		antrian.POST("/cek-nik", antrianCtrl.CekNIK)
-		antrian.POST("/bpjs", antrianCtrl.CreateBpjsAntrian)
+		// Booking antrian diberi rate limit ketat: maks 5 per 10 detik per IP
+		antrian.POST("/bpjs", middleware.StrictRateLimit(), antrianCtrl.CreateBpjsAntrian)
 		antrian.GET("/bpjs/rujukan/:nik", antrianCtrl.GetRujukanBPJS)
-		antrian.POST("", antrianCtrl.CreateAntrian)
+		antrian.POST("", middleware.StrictRateLimit(), antrianCtrl.CreateAntrian)
 		antrian.GET("/riwayat/:nik", antrianCtrl.GetRiwayat)
 		antrian.DELETE("/:kode_booking", antrianCtrl.DeleteAntrian)
 	}
