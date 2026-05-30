@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/widgets/header.dart';
-import 'package:iconsax/iconsax.dart';
 
 class InformasiPoliklinikView extends StatefulWidget {
   const InformasiPoliklinikView({super.key});

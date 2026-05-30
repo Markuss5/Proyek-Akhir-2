@@ -3,7 +3,6 @@ import 'package:giliranku/core/repositories/notifikasiRepository.dart';
 import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/models/notifikasiModel.dart';
 import 'package:giliranku/core/widgets/header.dart';
-import 'package:iconsax/iconsax.dart';
 
 class NotifikasiView extends StatefulWidget {
   final String? nik;

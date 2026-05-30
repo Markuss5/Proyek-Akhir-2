@@ -4,7 +4,6 @@ import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/widgets/header.dart';
 import 'package:giliranku/feature/patient/antrian/antrianUmumView.dart';
 import 'package:giliranku/feature/patient/antrian/karcisView.dart';
-import 'package:iconsax/iconsax.dart';
 
 class AntrianBpjsView extends StatefulWidget {
   final Map<String, dynamic>? patientData;

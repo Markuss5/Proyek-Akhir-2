@@ -13,16 +13,11 @@ import (
 	"gliranku/service"
 )
 
-// safeFilename sanitizes user-supplied filenames to prevent path traversal attacks.
-// Only allows alphanumeric characters, dashes, underscores, and dots.
 var allowedFilenameChars = regexp.MustCompile(`[^a-zA-Z0-9\-_.]`)
 
 func sanitizeFilename(name string) string {
-	// Remove directory traversal characters first
 	name = filepath.Base(name)
-	// Strip any remaining unsafe chars
 	name = allowedFilenameChars.ReplaceAllString(name, "_")
-	// Enforce .pdf extension
 	if !strings.HasSuffix(strings.ToLower(name), ".pdf") {
 		name = name + ".pdf"
 	}
@@ -83,14 +78,12 @@ func (ctrl *kioskController) UploadPDF(c *gin.Context) {
 		}
 	}
 
-	// Batasi ukuran file upload maksimal 5MB
-	const maxUploadSize = 5 << 20 // 5MB
+	const maxUploadSize = 5 << 20
 	if file.Size > maxUploadSize {
 		c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "Ukuran file melebihi batas maksimal 5MB"})
 		return
 	}
 
-	// Validasi MIME type - hanya izinkan PDF
 	src, err := file.Open()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membaca file upload"})
@@ -98,7 +91,6 @@ func (ctrl *kioskController) UploadPDF(c *gin.Context) {
 	}
 	defer src.Close()
 
-	// Baca 4 byte pertama untuk cek magic bytes PDF (%PDF)
 	magic := make([]byte, 4)
 	if _, err := src.Read(magic); err == nil {
 		if string(magic) != "%PDF" {
@@ -106,12 +98,10 @@ func (ctrl *kioskController) UploadPDF(c *gin.Context) {
 			return
 		}
 	}
-	// Kembalikan posisi ke awal setelah membaca magic bytes
 	if seeker, ok := src.(interface{ Seek(int64, int) (int64, error) }); ok {
 		seeker.Seek(0, 0)
 	}
 
-	// Ambil dan sanitasi nama file (anti path traversal)
 	filename := c.PostForm("filename")
 	if filename == "" {
 		filename = c.PostForm("ticket_id")
@@ -129,7 +119,6 @@ func (ctrl *kioskController) UploadPDF(c *gin.Context) {
 		return
 	}
 
-	// Pastikan savePath tidak keluar dari saveDir (double-check path traversal)
 	savePath := filepath.Join(saveDir, filename)
 	if !strings.HasPrefix(filepath.Clean(savePath), filepath.Clean(saveDir)) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Nama file tidak valid"})

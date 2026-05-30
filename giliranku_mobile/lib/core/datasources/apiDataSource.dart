@@ -13,9 +13,21 @@ class ApiDataSource {
 
   final http.Client _client = http.Client();
   final Duration _timeout = ApiConstants.timeout;
+  String? authToken;
 
   Uri _uri(String endpoint) => Uri.parse('${ApiConstants.baseUrl}$endpoint');
-  Map<String, String> get _jsonHeaders => {'Content-Type': 'application/json'};
+  
+  Map<String, String> get _jsonHeaders {
+    final headers = {'Content-Type': 'application/json'};
+    if (authToken != null) {
+      headers['Authorization'] = 'Bearer $authToken';
+    }
+    return headers;
+  }
+
+  void setToken(String? token) {
+    authToken = token;
+  }
 
   Future<PasienModel?> loginPasien(String nik, String name) async {
     try {
@@ -28,7 +40,13 @@ class ApiDataSource {
           .timeout(_timeout);
       final body = jsonDecode(res.body) as Map<String, dynamic>;
       if (res.statusCode == 200) {
-        return PasienModel.fromJson(body['data'] as Map<String, dynamic>);
+        final data = body['data'] as Map<String, dynamic>;
+        if (data['token'] != null) {
+          setToken(data['token'] as String);
+          return PasienModel.fromJson(data['patient'] as Map<String, dynamic>);
+        } else {
+          return PasienModel.fromJson(data);
+        }
       }
       return PasienModel(
         nik: '',
@@ -44,7 +62,7 @@ class ApiDataSource {
   Future<PasienModel?> getProfile(String nik) async {
     try {
       final res = await _client
-          .get(_uri('${ApiConstants.pasienProfile}/$nik'))
+          .get(_uri('${ApiConstants.pasienProfile}/$nik'), headers: _jsonHeaders)
           .timeout(_timeout);
       if (res.statusCode == 200) {
         return PasienModel.fromJson(
@@ -122,7 +140,9 @@ class ApiDataSource {
 
   Future<List<Map<String, dynamic>>> fetchRujukanBpjs(String nik) async {
     try {
-      final res = await _client.get(_uri('/antrian/bpjs/rujukan/$nik')).timeout(_timeout);
+      final res = await _client
+          .get(_uri('/antrian/bpjs/rujukan/$nik'), headers: _jsonHeaders)
+          .timeout(_timeout);
       if (res.statusCode == 200) {
         return ((jsonDecode(res.body) as Map<String, dynamic>)['data'] as List<dynamic>? ?? [])
             .cast<Map<String, dynamic>>();
@@ -244,7 +264,7 @@ class ApiDataSource {
   Future<List<KontrolRutinModel>> fetchKontrolRutinByNik(String nik) async {
     try {
       final res = await _client
-          .get(_uri('${ApiConstants.kontrolRutinByNik}/$nik'))
+          .get(_uri('${ApiConstants.kontrolRutinByNik}/$nik'), headers: _jsonHeaders)
           .timeout(_timeout);
       if (res.statusCode == 200) {
         return ((jsonDecode(res.body) as Map<String, dynamic>)['data']
@@ -304,7 +324,7 @@ class ApiDataSource {
   Future<List<NotifikasiModel>> fetchNotifikasiByNik(String nik) async {
     try {
       final res = await _client
-          .get(_uri('${ApiConstants.notifikasiByNik}/$nik'))
+          .get(_uri('${ApiConstants.notifikasiByNik}/$nik'), headers: _jsonHeaders)
           .timeout(_timeout);
       if (res.statusCode == 200) {
         return ((jsonDecode(res.body) as Map<String, dynamic>)['data']
@@ -334,7 +354,7 @@ class ApiDataSource {
   Future<bool> nikExists(String nik) async {
     try {
       final res = await _client
-          .get(_uri('${ApiConstants.pasienProfile}/$nik'))
+          .get(_uri('${ApiConstants.pasienProfile}/$nik'), headers: _jsonHeaders)
           .timeout(_timeout);
       return res.statusCode == 200;
     } catch (e) {
@@ -444,7 +464,7 @@ class ApiDataSource {
   Future<dynamic> getRiwayatAntrian(String nik) async {
     try {
       final res = await _client
-          .get(_uri('/antrian/riwayat/$nik'))
+          .get(_uri('/antrian/riwayat/$nik'), headers: _jsonHeaders)
           .timeout(_timeout);
 
       if (res.statusCode == 200) {

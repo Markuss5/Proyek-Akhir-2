@@ -14,13 +14,26 @@ class SessionService {
   static const String _phoneKey = 'session_phone';
   static const String _bpjsKey = 'session_bpjs';
   static const String _bloodTypeKey = 'session_blood_type';
+  static const String _tokenKey = 'session_token';
+  static const String _expiryKey = 'session_expiry';
 
   Future<SessionType> getSessionType() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_typeKey) ?? '';
+    
+    if (raw == 'patient') {
+      final expiryStr = prefs.getString(_expiryKey);
+      if (expiryStr != null) {
+        final expiryDate = DateTime.tryParse(expiryStr);
+        if (expiryDate != null && DateTime.now().isAfter(expiryDate)) {
+          await logout();
+          return SessionType.none;
+        }
+      }
+      return SessionType.patient;
+    }
+    
     switch (raw) {
-      case 'patient':
-        return SessionType.patient;
       case 'admin':
         return SessionType.admin;
       case 'guest':
@@ -55,7 +68,7 @@ class SessionService {
     };
   }
 
-  Future<void> savePatientMap(Map<String, dynamic> data) async {
+  Future<void> savePatientMap(Map<String, dynamic> data, {String? token}) async {
     final patient = PasienModel(
       nik: data['nik'] ?? '',
       name: data['patient_name'] ?? '',
@@ -63,10 +76,10 @@ class SessionService {
       bpjs: data['no_bpjs'] ?? data['bpjs'],
       bloodType: data['golongan_darah'] ?? data['blood_type'],
     );
-    await savePatient(patient);
+    await savePatient(patient, token: token);
   }
 
-  Future<void> savePatient(PasienModel patient) async {
+  Future<void> savePatient(PasienModel patient, {String? token}) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_typeKey, 'patient');
     await prefs.setString(_nikKey, patient.nik);
@@ -76,6 +89,16 @@ class SessionService {
     if (patient.bloodType != null) {
       await prefs.setString(_bloodTypeKey, patient.bloodType!);
     }
+    if (token != null) {
+      await prefs.setString(_tokenKey, token);
+      final expiryDate = DateTime.now().add(const Duration(days: 7));
+      await prefs.setString(_expiryKey, expiryDate.toIso8601String());
+    }
+  }
+
+  Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_tokenKey);
   }
 
   Future<void> saveGuest() async {

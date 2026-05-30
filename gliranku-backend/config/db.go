@@ -22,7 +22,7 @@ func ConnectDB() *sql.DB {
 	sslmode := GetEnv("DB_SSLMODE", "disable")
 
 	dsn := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s TimeZone=Asia/Jakarta",
 		host, port, user, password, dbname, sslmode,
 	)
 
@@ -31,12 +31,10 @@ func ConnectDB() *sql.DB {
 		log.Fatalf("Failed to open database connection: %v", err)
 	}
 
-	// ── Connection pool limits (anti-DB exhaustion attack) ───────────────────
-	db.SetMaxOpenConns(25)              // Maks 25 koneksi terbuka ke DB
-	db.SetMaxIdleConns(10)              // Maks 10 koneksi idle
-	db.SetConnMaxLifetime(5 * time.Minute) // Daur ulang koneksi tiap 5 menit
-	db.SetConnMaxIdleTime(2 * time.Minute) // Tutup koneksi idle > 2 menit
-	// ────────────────────────────────────────────────────────────────────────
+	db.SetMaxOpenConns(250)
+	db.SetMaxIdleConns(100)
+	db.SetConnMaxLifetime(10 * time.Minute)
+	db.SetConnMaxIdleTime(5 * time.Minute)
 
 	err = db.Ping()
 	if err != nil {
@@ -45,7 +43,6 @@ func ConnectDB() *sql.DB {
 
 	log.Println("Database connected successfully")
 
-	// Jalankan migrasi otomatis
 	runMigrations(db)
 
 	return db
@@ -72,7 +69,6 @@ func runMigrations(db *sql.DB) {
 
 	log.Printf("[migration] Found %d .up.sql files to execute", len(upFiles))
 
-	// Pastikan urutannya benar (000001, 000002, dst)
 	sort.Strings(upFiles)
 
 	for _, fileName := range upFiles {
@@ -97,7 +93,6 @@ func runMigrations(db *sql.DB) {
 		}
 	}
 
-	// Tambahan kolom jika diperlukan (dari kode sebelumnya)
 	_, errSource := db.Exec(`ALTER TABLE antrian ADD COLUMN IF NOT EXISTS source VARCHAR(50) DEFAULT 'smartphone';`)
 	if errSource != nil {
 		log.Printf("[migration] Warning altering source column: %v", errSource)

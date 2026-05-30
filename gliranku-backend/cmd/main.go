@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	_ "time/tzdata"
 
 	"gliranku/config"
 	"gliranku/controller"
@@ -15,6 +16,13 @@ import (
 )
 
 func main() {
+	loc, err := time.LoadLocation("Asia/Jakarta")
+	if err == nil {
+		time.Local = loc
+	} else {
+		log.Printf("Warning: Failed to load timezone Asia/Jakarta: %v", err)
+	}
+
 	config.LoadEnv()
 
 	db := config.ConnectDB()
@@ -58,7 +66,6 @@ func main() {
 	kioskCtrl := controller.NewKioskController(antrianService)
 
 	r := gin.New()
-	// Recovery menangkap panic agar server tidak crash total
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
 	r.SetTrustedProxies(nil)
@@ -71,18 +78,16 @@ func main() {
 
 	port := config.GetEnv("PORT", "8080")
 
-	// ── HTTP Server dengan timeout (anti-Slowloris attack) ───────────────────
 	srv := &http.Server{
 		Addr:         ":" + port,
 		Handler:      r,
-		ReadTimeout:  15 * time.Second, // Maks waktu baca request body
-		WriteTimeout: 30 * time.Second, // Maks waktu kirim response
-		IdleTimeout:  60 * time.Second, // Maks waktu koneksi idle (keep-alive)
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 60 * time.Second,
+		IdleTimeout:  120 * time.Second,
 	}
-	// ────────────────────────────────────────────────────────────────────────
 
 	log.Printf("Server running on port %s", port)
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Server error: %v", err)
 	}
-}
+}

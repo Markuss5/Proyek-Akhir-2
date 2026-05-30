@@ -203,17 +203,6 @@ class QueueCard extends StatelessWidget {
     this.onDelete,
   });
 
-  Color get _statusColor {
-    switch (status.toLowerCase()) {
-      case 'selesai':
-        return Colors.green;
-      case 'dibatalkan':
-        return Colors.red;
-      default:
-        return const Color(0xFF25A699);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(

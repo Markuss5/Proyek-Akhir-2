@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/widgets/header.dart';
 import 'package:giliranku/core/theme/theme.dart';
-import 'package:iconsax/iconsax.dart';
 
 const _days = [
   {'label': 'Sen', 'key': 'senin'},

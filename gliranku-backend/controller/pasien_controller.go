@@ -31,7 +31,19 @@ func (ctrl *PasienController) Login(c *gin.Context) {
 		return
 	}
 
-	utils.Success(c, http.StatusOK, "Login berhasil", result)
+	token, err := utils.GenerateToken(result.NIK)
+	if err != nil {
+		utils.Error(c, http.StatusInternalServerError, "Gagal membuat sesi login: "+err.Error())
+		return
+	}
+
+	// Bungkus result dengan token
+	response := gin.H{
+		"patient": result,
+		"token":   token,
+	}
+
+	utils.Success(c, http.StatusOK, "Login berhasil", response)
 }
 
 func (ctrl *PasienController) GetProfile(c *gin.Context) {
@@ -50,6 +62,12 @@ func (ctrl *PasienController) UpdateProfile(c *gin.Context) {
 	var req request.UpdatePasienProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.ValidationError(c, "Data tidak valid", err.Error())
+		return
+	}
+
+	tokenNIK, exists := c.Get("nik")
+	if exists && tokenNIK.(string) != req.NIK {
+		utils.Error(c, http.StatusForbidden, "Forbidden: Anda tidak diizinkan mengubah data pasien lain (IDOR Protection Active)")
 		return
 	}
 

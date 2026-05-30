@@ -5,6 +5,7 @@ import 'package:giliranku/feature/auth/adminLoginView.dart';
 import 'package:giliranku/core/repositories/pasienRepository.dart';
 import 'package:giliranku/core/repositories/kontrolRutinRepository.dart';
 import 'package:giliranku/core/services/sessionService.dart';
+import 'package:giliranku/core/datasources/apiDataSource.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -54,7 +55,8 @@ class _LoginViewState extends State<LoginView> {
       return;
     }
 
-    await _sessionService.savePatient(patient);
+    final token = ApiDataSource().authToken;
+    await _sessionService.savePatient(patient, token: token);
     try {
       await _kontrolRepo.resyncNotifications(nik);
     } catch (e) {

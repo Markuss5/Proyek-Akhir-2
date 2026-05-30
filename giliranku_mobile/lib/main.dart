@@ -9,6 +9,7 @@ import 'package:giliranku/core/services/fcmService.dart';
 import 'package:giliranku/core/repositories/kontrolRutinRepository.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:giliranku/firebase_options.dart';
+import 'package:giliranku/core/datasources/apiDataSource.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,11 @@ void main() async {
 
   await NotificationService().initialize();
   await FcmService().initialize();
+
+  final token = await SessionService().getToken();
+  if (token != null) {
+    ApiDataSource().setToken(token);
+  }
 
   final sessionType = await SessionService().getSessionType();
   Widget homeWidget = const SplashView();

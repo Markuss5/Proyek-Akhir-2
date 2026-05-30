@@ -3,7 +3,6 @@ import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/theme/theme.dart';
 import 'package:giliranku/core/widgets/header.dart';
 import 'package:giliranku/feature/patient/informasi/lokasiRSView.dart';
-import 'package:iconsax/iconsax.dart';
 
 class HospitalData {
   final String name;
