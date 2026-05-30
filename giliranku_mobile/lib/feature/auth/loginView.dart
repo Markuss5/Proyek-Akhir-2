@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:giliranku/feature/patient/home/homeView.dart';
 import 'package:giliranku/feature/auth/adminLoginView.dart';
@@ -54,7 +55,11 @@ class _LoginViewState extends State<LoginView> {
     }
 
     await _sessionService.savePatient(patient);
-    await _kontrolRepo.resyncNotifications(nik);
+    try {
+      await _kontrolRepo.resyncNotifications(nik);
+    } catch (e) {
+      debugPrint('resyncNotifications error (diabaikan): $e');
+    }
 
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(

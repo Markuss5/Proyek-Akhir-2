@@ -5,6 +5,7 @@ import 'package:giliranku/feature/patient/home/homeView.dart';
 import 'package:giliranku/feature/admin/beranda/adminBerandaView.dart';
 import 'package:giliranku/core/services/sessionService.dart';
 import 'package:giliranku/core/services/notificationService.dart';
+import 'package:giliranku/core/services/fcmService.dart';
 import 'package:giliranku/core/repositories/kontrolRutinRepository.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:giliranku/firebase_options.dart';
@@ -17,6 +18,7 @@ void main() async {
   );
 
   await NotificationService().initialize();
+  await FcmService().initialize();
 
   final sessionType = await SessionService().getSessionType();
   Widget homeWidget = const SplashView();

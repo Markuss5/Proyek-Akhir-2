@@ -111,67 +111,71 @@ class NotificationService {
     required DateTime scheduledDate,
     String? payload,
   }) async {
-    final now = tz.TZDateTime.now(tz.local);
-    final tz.TZDateTime scheduledTZDate = tz.TZDateTime.from(
-      scheduledDate,
-      tz.local,
-    );
+    try {
+      final now = tz.TZDateTime.now(tz.local);
+      final tz.TZDateTime scheduledTZDate = tz.TZDateTime.from(
+        scheduledDate,
+        tz.local,
+      );
 
-    if (scheduledTZDate.isBefore(now)) {
-      if (scheduledTZDate.year == now.year &&
-          scheduledTZDate.month == now.month &&
-          scheduledTZDate.day == now.day) {
-        debugPrint('Notification $id: scheduled earlier today, showing now');
-        await showNow(id: id, title: title, body: body, payload: payload);
+      if (scheduledTZDate.isBefore(now)) {
+        if (scheduledTZDate.year == now.year &&
+            scheduledTZDate.month == now.month &&
+            scheduledTZDate.day == now.day) {
+          debugPrint('Notification $id: scheduled earlier today, showing now');
+          await showNow(id: id, title: title, body: body, payload: payload);
+        } else {
+          debugPrint('Skipping notification $id: scheduled date is in the past');
+        }
         return;
       }
-      debugPrint('Skipping notification $id: scheduled date is in the past');
-      return;
+
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+            'kontrol_rutin_channel',
+            'Pengingat Kontrol Rutin',
+            channelDescription:
+                'Notifikasi pengingat jadwal kontrol rutin pasien',
+            importance: Importance.high,
+            priority: Priority.high,
+            showWhen: true,
+            enableVibration: true,
+            playSound: true,
+            icon: '@mipmap/ic_launcher',
+            largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+            styleInformation: BigTextStyleInformation(''),
+          );
+
+      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+
+      const NotificationDetails notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _notificationsPlugin.zonedSchedule(
+        id,
+        title,
+        body,
+        scheduledTZDate,
+        notificationDetails,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        payload: payload,
+        matchDateTimeComponents: null,
+      );
+
+      debugPrint(
+        'Notification $id scheduled for ${scheduledTZDate.toIso8601String()}',
+      );
+    } catch (e) {
+      debugPrint('scheduleNotification $id error (diabaikan): $e');
     }
-
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-          'kontrol_rutin_channel',
-          'Pengingat Kontrol Rutin',
-          channelDescription:
-              'Notifikasi pengingat jadwal kontrol rutin pasien',
-          importance: Importance.high,
-          priority: Priority.high,
-          showWhen: true,
-          enableVibration: true,
-          playSound: true,
-          icon: '@mipmap/ic_launcher',
-          largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
-          styleInformation: BigTextStyleInformation(''),
-        );
-
-    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    const NotificationDetails notificationDetails = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    await _notificationsPlugin.zonedSchedule(
-      id,
-      title,
-      body,
-      scheduledTZDate,
-      notificationDetails,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      payload: payload,
-      matchDateTimeComponents: null,
-    );
-
-    debugPrint(
-      'Notification $id scheduled for ${scheduledTZDate.toIso8601String()}',
-    );
   }
 
   Future<void> scheduleKontrolRutinReminders({
@@ -186,10 +190,10 @@ class NotificationService {
       final DateTime reminderDate = DateTime(
         controlDate.year,
         controlDate.month,
-        controlDate.day - daysBefore,
+        controlDate.day,
         controlDate.hour,
         controlDate.minute,
-      );
+      ).subtract(Duration(days: daysBefore));
 
       final int baseId = controlId % 100000000;
       final int notifId = baseId * 10 + daysBefore;
@@ -197,10 +201,10 @@ class NotificationService {
       String body;
       if (daysBefore == 1) {
         body =
-            'Besok adalah jadwal kontrol rutin Anda di RSUD Porsea (${_formatDate(controlDate)}).';
+            'Besok adalah jadwal kontrol rutin Anda di RSUD Porsea (${_formatDate(controlDate)}, ${_formatTime(controlDate)}).';
       } else {
         body =
-            'Jadwal kontrol rutin Anda di RSUD Porsea tinggal $daysBefore hari lagi (${_formatDate(controlDate)}).';
+            'Jadwal kontrol rutin Anda di RSUD Porsea tinggal $daysBefore hari lagi (${_formatDate(controlDate)}, ${_formatTime(controlDate)}).';
       }
 
       if (notes != null && notes.isNotEmpty) {
@@ -216,12 +220,18 @@ class NotificationService {
       );
     }
 
-    final DateTime oneHourBefore = controlDate.subtract(const Duration(hours: 1));
+    final DateTime oneHourBefore = DateTime(
+      controlDate.year,
+      controlDate.month,
+      controlDate.day,
+      controlDate.hour,
+      controlDate.minute,
+    ).subtract(const Duration(hours: 1));
     final int baseId = controlId % 100000000;
     final int oneHourNotifId = baseId * 10;
 
     String oneHourBody =
-        'Jadwal kontrol rutin Anda di RSUD Porsea 1 jam lagi (${_formatDate(controlDate)}, ${controlDate.hour.toString().padLeft(2, '0')}:${controlDate.minute.toString().padLeft(2, '0')}).';
+        'Jadwal kontrol rutin Anda di RSUD Porsea 1 jam lagi (${_formatDate(controlDate)}, ${_formatTime(controlDate)}).';
 
     if (notes != null && notes.isNotEmpty) {
       oneHourBody += ' Catatan: $notes';
@@ -265,5 +275,9 @@ class NotificationService {
       'Desember',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+
+  String _formatTime(DateTime date) {
+    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }
