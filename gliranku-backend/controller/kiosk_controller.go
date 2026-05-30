@@ -6,10 +6,28 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gliranku/service"
 )
+
+// safeFilename sanitizes user-supplied filenames to prevent path traversal attacks.
+// Only allows alphanumeric characters, dashes, underscores, and dots.
+var allowedFilenameChars = regexp.MustCompile(`[^a-zA-Z0-9\-_.]`)
+
+func sanitizeFilename(name string) string {
+	// Remove directory traversal characters first
+	name = filepath.Base(name)
+	// Strip any remaining unsafe chars
+	name = allowedFilenameChars.ReplaceAllString(name, "_")
+	// Enforce .pdf extension
+	if !strings.HasSuffix(strings.ToLower(name), ".pdf") {
+		name = name + ".pdf"
+	}
+	return name
+}
 
 type KioskController interface {
 	CreatePharmacyTicket(c *gin.Context)
@@ -65,16 +83,45 @@ func (ctrl *kioskController) UploadPDF(c *gin.Context) {
 		}
 	}
 
+	// Batasi ukuran file upload maksimal 5MB
+	const maxUploadSize = 5 << 20 // 5MB
+	if file.Size > maxUploadSize {
+		c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "Ukuran file melebihi batas maksimal 5MB"})
+		return
+	}
+
+	// Validasi MIME type - hanya izinkan PDF
+	src, err := file.Open()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membaca file upload"})
+		return
+	}
+	defer src.Close()
+
+	// Baca 4 byte pertama untuk cek magic bytes PDF (%PDF)
+	magic := make([]byte, 4)
+	if _, err := src.Read(magic); err == nil {
+		if string(magic) != "%PDF" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Hanya file PDF yang diizinkan"})
+			return
+		}
+	}
+	// Kembalikan posisi ke awal setelah membaca magic bytes
+	if seeker, ok := src.(interface{ Seek(int64, int) (int64, error) }); ok {
+		seeker.Seek(0, 0)
+	}
+
+	// Ambil dan sanitasi nama file (anti path traversal)
 	filename := c.PostForm("filename")
 	if filename == "" {
 		filename = c.PostForm("ticket_id")
 	}
-
 	if filename == "" {
 		filename = file.Filename
 	} else {
 		filename = fmt.Sprintf("%s.pdf", filename)
 	}
+	filename = sanitizeFilename(filename)
 
 	saveDir := "queue_pdfs"
 	if err := os.MkdirAll(saveDir, os.ModePerm); err != nil {
@@ -82,13 +129,12 @@ func (ctrl *kioskController) UploadPDF(c *gin.Context) {
 		return
 	}
 
+	// Pastikan savePath tidak keluar dari saveDir (double-check path traversal)
 	savePath := filepath.Join(saveDir, filename)
-	src, err := file.Open()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membaca file upload"})
+	if !strings.HasPrefix(filepath.Clean(savePath), filepath.Clean(saveDir)) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Nama file tidak valid"})
 		return
 	}
-	defer src.Close()
 
 	out, err := os.Create(savePath)
 	if err != nil {

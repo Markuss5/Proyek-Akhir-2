@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -29,6 +30,13 @@ func ConnectDB() *sql.DB {
 	if err != nil {
 		log.Fatalf("Failed to open database connection: %v", err)
 	}
+
+	// ── Connection pool limits (anti-DB exhaustion attack) ───────────────────
+	db.SetMaxOpenConns(25)              // Maks 25 koneksi terbuka ke DB
+	db.SetMaxIdleConns(10)              // Maks 10 koneksi idle
+	db.SetConnMaxLifetime(5 * time.Minute) // Daur ulang koneksi tiap 5 menit
+	db.SetConnMaxIdleTime(2 * time.Minute) // Tutup koneksi idle > 2 menit
+	// ────────────────────────────────────────────────────────────────────────
 
 	err = db.Ping()
 	if err != nil {

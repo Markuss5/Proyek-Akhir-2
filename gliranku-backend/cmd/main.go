@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"net/http"
+	"time"
 
 	"gliranku/config"
 	"gliranku/controller"
@@ -55,7 +57,10 @@ func main() {
 	antrianCtrl := controller.NewAntrianController(antrianService)
 	kioskCtrl := controller.NewKioskController(antrianService)
 
-	r := gin.Default()
+	r := gin.New()
+	// Recovery menangkap panic agar server tidak crash total
+	r.Use(gin.Recovery())
+	r.Use(gin.Logger())
 	r.SetTrustedProxies(nil)
 
 	r.GET("/", func(c *gin.Context) {
@@ -65,5 +70,19 @@ func main() {
 	routes.SetupRoutes(r, kontrolRutinCtrl, notifikasiCtrl, poliCtrl, dokterCtrl, pasienCtrl, informasiCtrl, antrianCtrl, kioskCtrl)
 
 	port := config.GetEnv("PORT", "8080")
-	r.Run(":" + port)
-}
+
+	// ── HTTP Server dengan timeout (anti-Slowloris attack) ───────────────────
+	srv := &http.Server{
+		Addr:         ":" + port,
+		Handler:      r,
+		ReadTimeout:  15 * time.Second, // Maks waktu baca request body
+		WriteTimeout: 30 * time.Second, // Maks waktu kirim response
+		IdleTimeout:  60 * time.Second, // Maks waktu koneksi idle (keep-alive)
+	}
+	// ────────────────────────────────────────────────────────────────────────
+
+	log.Printf("Server running on port %s", port)
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("Server error: %v", err)
+	}
+}
