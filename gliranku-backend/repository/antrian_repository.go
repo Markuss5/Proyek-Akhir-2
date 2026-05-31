@@ -3,6 +3,8 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"math/rand"
+	"strings"
 	"time"
 
 	"gliranku/models"
@@ -137,7 +139,25 @@ func (r *antrianRepository) GetDoctorNameByID(doctorID int) (string, error) {
 }
 
 func GenerateKodeBooking(tanggal time.Time, kodePoli string, urut int) string {
-	return fmt.Sprintf("TB-%s-%s-%03d", tanggal.Format("020106"), kodePoli, urut)
+	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+	kode := strings.ToUpper(kodePoli)
+	for len(kode) < 3 {
+		kode += "X"
+	}
+	if len(kode) > 3 {
+		kode = kode[:3]
+	}
+
+	tanggalPart := tanggal.Format("02")
+
+	r := rand.New(rand.NewSource(tanggal.UnixNano() + int64(urut)))
+	randPart := make([]byte, 3)
+	for i := range randPart {
+		randPart[i] = chars[r.Intn(len(chars))]
+	}
+
+	return fmt.Sprintf("%s%s%s", kode, tanggalPart, string(randPart))
 }
 
 func (r *antrianRepository) GetDashboardStats() (int, int, int, error) {

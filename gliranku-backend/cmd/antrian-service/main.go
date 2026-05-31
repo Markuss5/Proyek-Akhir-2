@@ -38,30 +38,12 @@ func main() {
 			log.Printf("[migration] WARNING: %s\n  → %v\n", stmt, err)
 		}
 	}
-	log.Println("[migration] Schema check selesai.")
+	log.Println("[migration] Antrian schema check selesai.")
 
-	pasienRepo := repository.NewPasienRepository(db)
-	kontrolRutinRepo := repository.NewKontrolRutinRepository(db)
-	notifikasiRepo := repository.NewNotifikasiRepository(db)
-	poliRepo := repository.NewPoliRepository(db)
-	dokterRepo := repository.NewDokterRepository(db)
-	informasiRepo := repository.NewInformasiRepository(db)
 	antrianRepo := repository.NewAntrianRepository(db)
 
-	pasienService := service.NewPasienService(pasienRepo)
-	kontrolRutinService := service.NewKontrolRutinService(kontrolRutinRepo, notifikasiRepo, pasienRepo)
-	notifikasiService := service.NewNotifikasiService(notifikasiRepo, pasienRepo)
-	poliService := service.NewPoliService(poliRepo)
-	dokterService := service.NewDokterService(dokterRepo)
-	informasiService := service.NewInformasiService(informasiRepo)
 	antrianService := service.NewAntrianService(antrianRepo)
 
-	pasienCtrl := controller.NewPasienController(pasienService)
-	kontrolRutinCtrl := controller.NewKontrolRutinController(kontrolRutinService)
-	notifikasiCtrl := controller.NewNotifikasiController(notifikasiService)
-	poliCtrl := controller.NewPoliController(poliRepo, poliService)
-	dokterCtrl := controller.NewDokterController(dokterRepo, dokterService)
-	informasiCtrl := controller.NewInformasiController(informasiService)
 	antrianCtrl := controller.NewAntrianController(antrianService)
 	kioskCtrl := controller.NewKioskController(antrianService)
 
@@ -71,12 +53,19 @@ func main() {
 	r.SetTrustedProxies(nil)
 
 	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "GiliranKu Backend API"})
+		c.JSON(200, gin.H{
+			"service": "GiliranKu Antrian Service",
+			"version": "1.0.0",
+			"status":  "running",
+		})
+	})
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	routes.SetupRoutes(r, kontrolRutinCtrl, notifikasiCtrl, poliCtrl, dokterCtrl, pasienCtrl, informasiCtrl, antrianCtrl, kioskCtrl)
+	routes.SetupAntrianRoutes(r, antrianCtrl, kioskCtrl)
 
-	port := config.GetEnv("PORT", "8080")
+	port := config.GetEnv("PORT", "8081")
 
 	srv := &http.Server{
 		Addr:         ":" + port,
@@ -86,8 +75,8 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 	}
 
-	log.Printf("Server running on port %s", port)
+	log.Printf("[antrian-service] Running on port %s", port)
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("Server error: %v", err)
+		log.Fatalf("[antrian-service] Server error: %v", err)
 	}
 }
