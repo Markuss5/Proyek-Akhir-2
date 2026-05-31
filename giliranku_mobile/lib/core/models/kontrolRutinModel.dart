@@ -17,9 +17,9 @@ class KontrolRutinModel {
       KontrolRutinModel(
         controlId: json['control_id'] as int,
         nik: json['nik'] as String,
-        controlDate: DateTime.parse(json['control_date'] as String),
+        controlDate: DateTime.parse(json['control_date'] as String).toLocal(),
         notes: json['notes'] as String?,
-        createdAt: DateTime.parse(json['created_at'] as String),
+        createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
       );
 
   Map<String, dynamic> toJson() => {

@@ -252,7 +252,7 @@ class TicketPdfService {
   }
 
   Future<String> _uploadToBackend(Ticket ticket, Uint8List bytes) async {
-    final uri = Uri.parse('${ApiConfig.baseUrl}/kiosk/pdf');
+    final uri = Uri.parse('${ApiConfig.antrianBaseUrl}/kiosk/pdf');
     final request = http.MultipartRequest('POST', uri)
       ..fields['filename'] = ticket.id
       ..files.add(

@@ -15,7 +15,19 @@ class ApiDataSource {
   final Duration _timeout = ApiConstants.timeout;
   String? authToken;
 
-  Uri _uri(String endpoint) => Uri.parse('${ApiConstants.baseUrl}$endpoint');
+  Uri _uri(String endpoint) {
+    String base;
+    if (endpoint.startsWith('/antrian') || endpoint.startsWith('/kiosk') || endpoint.startsWith('/tickets')) {
+      base = ApiConstants.antrianBaseUrl;
+    } else if (endpoint.startsWith('/pasien') || endpoint.startsWith('/notifikasi') || endpoint.startsWith('/kontrol-rutin')) {
+      base = ApiConstants.pasienBaseUrl;
+    } else if (endpoint.startsWith('/poliklinik') || endpoint.startsWith('/dokter') || endpoint.startsWith('/informasi')) {
+      base = ApiConstants.masterBaseUrl;
+    } else {
+      base = ApiConstants.masterBaseUrl; // fallback
+    }
+    return Uri.parse('$base$endpoint');
+  }
   
   Map<String, String> get _jsonHeaders {
     final headers = {'Content-Type': 'application/json'};

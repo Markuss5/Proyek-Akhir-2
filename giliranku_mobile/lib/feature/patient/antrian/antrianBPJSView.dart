@@ -121,6 +121,10 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
       _showSnack('Pilih rujukan terlebih dahulu');
       return;
     }
+    if (!_isLoadingDokter && _dokterList.isEmpty) {
+      _showSnack('Tidak ada dokter yang tersedia untuk rujukan anda');
+      return;
+    }
     if (_selectedDokterID == null) {
       _showSnack('Pilih dokter terlebih dahulu');
       return;
@@ -374,6 +378,34 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
         ),
       );
     }
+
+    // Tidak ada dokter — blokir pemilihan
+    if (_dokterList.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFEE2E2),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFFCA5A5), width: 1.5),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.person_off_outlined, color: Color(0xFFEF4444), size: 20),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Tidak ada dokter tersedia untuk poli ini.',
+                style: TextStyle(
+                    color: Color(0xFF991B1B),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return DropdownButtonFormField<int>(
       value: _selectedDokterID,
       decoration: InputDecoration(

@@ -10,16 +10,14 @@ import 'package:giliran_ku/core/models/ticketModel.dart';
 import 'package:giliran_ku/core/datasources/apiException.dart';
 
 class QueueApi {
-  QueueApi._internal({http.Client? client, String? baseUrl})
-      : _client = client ?? http.Client(),
-        _baseUrl = baseUrl ?? ApiConfig.baseUrl;
+  QueueApi._internal({http.Client? client})
+      : _client = client ?? http.Client();
 
   static final QueueApi _instance = QueueApi._internal();
 
   factory QueueApi() => _instance;
 
   final http.Client _client;
-  final String _baseUrl;
 
   Future<Ticket> createBpjsTicket(String nikOrBpjs) async {
     final payload = await _post('/kiosk/bpjs', {
@@ -164,7 +162,18 @@ class QueueApi {
   }
 
   Uri _buildUri(String path, Map<String, String>? queryParameters) {
-    final base = Uri.parse(_baseUrl);
+    String baseStr;
+    if (path.startsWith('/antrian') || path.startsWith('/kiosk') || path.startsWith('/tickets')) {
+      baseStr = ApiConfig.antrianBaseUrl;
+    } else if (path.startsWith('/pasien') || path.startsWith('/notifikasi') || path.startsWith('/kontrol-rutin')) {
+      baseStr = ApiConfig.pasienBaseUrl;
+    } else if (path.startsWith('/poliklinik') || path.startsWith('/dokter') || path.startsWith('/informasi')) {
+      baseStr = ApiConfig.masterBaseUrl;
+    } else {
+      baseStr = ApiConfig.masterBaseUrl;
+    }
+
+    final base = Uri.parse(baseStr);
     final normalizedPath = path.startsWith('/') ? path : '/$path';
     final basePath = base.path.endsWith('/')
         ? base.path.substring(0, base.path.length - 1)

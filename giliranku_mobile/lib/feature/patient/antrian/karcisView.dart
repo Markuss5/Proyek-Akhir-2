@@ -524,28 +524,36 @@ class _KarcisViewState extends State<KarcisView>
         ),
       );
 
-      Directory? dir;
+      Directory? baseDir;
       if (Platform.isAndroid) {
-        dir = await getExternalStorageDirectory();
+        final extDirs = await getExternalStorageDirectories();
+        if (extDirs != null && extDirs.isNotEmpty) {
+          final rootPath = extDirs.first.path.split('Android').first;
+          baseDir = Directory('${rootPath}Download/GiliranKu');
+        } else {
+          baseDir = await getExternalStorageDirectory();
+        }
       } else {
-        dir = await getApplicationDocumentsDirectory();
+        final docsDir = await getApplicationDocumentsDirectory();
+        baseDir = Directory('${docsDir.path}/Download/GiliranKu');
       }
 
-      if (dir == null) throw Exception("Tidak dapat menemukan direktori penyimpanan");
-      
-      if (!await dir.exists()) {
-        await dir.create(recursive: true);
+      if (baseDir == null) throw Exception("Tidak dapat menemukan direktori penyimpanan");
+
+      if (!await baseDir.exists()) {
+        await baseDir.create(recursive: true);
       }
 
       final fileName = 'Tiket_Antrian_${widget.result.noAntrianPoli}.pdf';
-      final file = File('${dir.path}/$fileName');
+      final file = File('${baseDir.path}/$fileName');
       await file.writeAsBytes(await pdf.save());
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Tiket berhasil disimpan: $fileName'),
+          content: Text('Tiket disimpan di: ${baseDir.path}/$fileName'),
           backgroundColor: const Color(0xFF0D9B86),
           behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
         ));
       }
     } catch (e) {
