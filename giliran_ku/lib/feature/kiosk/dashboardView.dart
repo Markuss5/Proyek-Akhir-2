@@ -11,68 +11,70 @@ class DashboardView extends StatelessWidget {
   Widget build(BuildContext context) {
     final actions = _buildActions(context);
     final width = MediaQuery.of(context).size.width;
-    final crossAxisCount = width >= 900
+    
+    // Optimasi jumlah kolom untuk layar kiosk (lebih responsif dan lega)
+    final crossAxisCount = width >= 1200
         ? 3
-        : width >= 640
-            ? 2
-            : 2;
+        : width >= 750
+            ? 3
+            : 1; // 1 Kolom jika di smartphone biasa agar tidak overflow
 
     return Scaffold(
+      backgroundColor: const Color(0xFF04261A), // Dark mode base untuk estetika premium
       body: Stack(
         children: [
+          // Background Gradient mewah
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFFE7F7F1),
-                  Color(0xFFF2FBF8),
-                  Color(0xFFFFFFFF),
+                  Color(0xFF063A25),
+                  Color(0xFF031F15),
+                  Color(0xFF010A07),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
             ),
           ),
+          
+          // Halo Ornamen Glow
           Positioned(
-            top: -40,
-            right: -30,
-            child: _HaloCircle(
-              size: 140,
-              color: const Color(0xFFBDEBDC),
-            ),
+            top: -100,
+            right: -100,
+            child: _HaloCircle(size: 400, color: const Color(0xFF1F9E76).withOpacity(0.25)),
           ),
           Positioned(
-            bottom: -50,
-            left: -20,
-            child: _HaloCircle(
-              size: 160,
-              color: const Color(0xFFCFEFE3),
-            ),
+            bottom: -150,
+            left: -100,
+            child: _HaloCircle(size: 500, color: const Color(0xFF0E7054).withOpacity(0.2)),
           ),
+          
           SafeArea(
             child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
               slivers: [
                 SliverToBoxAdapter(child: _DashboardHeader()),
+                
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
                   sliver: SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: crossAxisCount,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      childAspectRatio: 1.05,
+                      mainAxisSpacing: 28,
+                      crossAxisSpacing: 28,
+                      childAspectRatio: width >= 750 ? 0.95 : 1.4,
                     ),
                     delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        return _DashboardCard(action: actions[index]);
-                      },
+                      (context, index) => _DashboardCard(action: actions[index]),
                       childCount: actions.length,
                     ),
                   ),
                 ),
+                
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                    padding: const EdgeInsets.fromLTRB(32, 16, 32, 40),
                     child: _InfoBanner(),
                   ),
                 ),
@@ -87,76 +89,69 @@ class DashboardView extends StatelessWidget {
   List<_DashboardAction> _buildActions(BuildContext context) {
     return [
       _DashboardAction(
-        title: 'Antrian Konsultasi',
-        subtitle: 'BPJS & Umum',
-        icon: Icons.medical_services_outlined,
-        color: const Color(0xFF54D9B4),
-        accent: const Color(0xFF2FAA85),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const ConsultationMenuView(),
-            ),
-          );
-        },
+        title: 'Antrian\nKonsultasi',
+        subtitle: 'Pendaftaran BPJS & Umum',
+        icon: Icons.medical_services_rounded,
+        topColor: const Color(0xFF26D095),
+        botColor: const Color(0xFF0E7054),
+        iconColor: const Color(0xFFE8FFF5),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ConsultationMenuView()),
+        ),
       ),
       _DashboardAction(
-        title: 'Antrian Farmasi',
-        subtitle: 'Ambil nomor obat',
-        icon: Icons.local_pharmacy_outlined,
-        color: const Color(0xFF6EE0C3),
-        accent: const Color(0xFF3BB894),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const PharmacyQueueView(),
-            ),
-          );
-        },
+        title: 'Antrian\nFarmasi',
+        subtitle: 'Ambil Nomor Obat & Resep',
+        icon: Icons.local_pharmacy_rounded,
+        topColor: const Color(0xFF00B4D8),
+        botColor: const Color(0xFF0077B6),
+        iconColor: const Color(0xFFE0F7FA),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PharmacyQueueView()),
+        ),
       ),
       _DashboardAction(
-        title: 'Cetak Antrian',
-        subtitle: 'Kode booking',
-        icon: Icons.qr_code_2_outlined,
-        color: const Color(0xFF7FE4CA),
-        accent: const Color(0xFF43BFA0),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const BookingLookupView(),
-            ),
-          );
-        },
+        title: 'Cetak\nAntrian',
+        subtitle: 'Scan / Masukkan Kode Booking',
+        icon: Icons.qr_code_scanner_rounded,
+        topColor: const Color(0xFFFFB703),
+        botColor: const Color(0xFFFB8500),
+        iconColor: const Color(0xFFFFF6E0),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const BookingLookupView()),
+        ),
       ),
     ];
   }
 }
 
+// ─── Header ───────────────────────────────────────────────────────────────────
 class _DashboardHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+      padding: const EdgeInsets.fromLTRB(32, 40, 32, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                width: 72,
-                height: 72,
-                padding: const EdgeInsets.all(10),
+                width: 90,
+                height: 90,
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
                     BoxShadow(
-                      color: Color(0x1A0F8C6D),
-                      blurRadius: 12,
-                      offset: Offset(0, 6),
+                      color: const Color(0xFF26D095).withOpacity(0.25),
+                      blurRadius: 30,
+                      offset: const Offset(0, 12),
                     ),
                   ],
                 ),
@@ -165,41 +160,60 @@ class _DashboardHeader extends StatelessWidget {
                   fit: BoxFit.contain,
                 ),
               ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'RSUD Porsea',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0A3D2E),
+              const SizedBox(width: 24),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'RSUD PORSEA',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontSize: 36,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 1.5,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1F9E76).withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(color: const Color(0xFF26D095).withOpacity(0.3)),
+                      ),
+                      child: const Text(
+                        'SISTEM ANTRIAN TERPADU',
+                        style: TextStyle(
+                          color: Color(0xFF26D095),
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
                         ),
-                  ),
-                  Text(
-                    'Sistem Antrian Terpadu',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: const Color(0xFF4C7B6A),
-                        ),
-                  ),
-                ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 18),
-          Text(
-            'Pilih layanan yang Anda butuhkan',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF0A3D2E),
-                ),
+          const SizedBox(height: 48),
+          const Text(
+            'Selamat Datang',
+            style: TextStyle(
+              fontSize: 48,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: -1.0,
+            ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            'Cek antrian, farmasi, atau cetak tiket booking dengan cepat.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: const Color(0xFF557A6B),
-                ),
+          const SizedBox(height: 8),
+          const Text(
+            'Silakan sentuh salah satu layanan di bawah ini untuk memulai.',
+            style: TextStyle(
+              color: Color(0xFFA2C5B9),
+              fontSize: 20,
+              fontWeight: FontWeight.w400,
+            ),
           ),
         ],
       ),
@@ -207,72 +221,191 @@ class _DashboardHeader extends StatelessWidget {
   }
 }
 
-class _DashboardCard extends StatelessWidget {
+// ─── Card Menu ────────────────────────────────────────────────────────────────
+class _DashboardCard extends StatefulWidget {
   final _DashboardAction action;
-
   const _DashboardCard({required this.action});
 
   @override
+  State<_DashboardCard> createState() => _DashboardCardState();
+}
+
+class _DashboardCardState extends State<_DashboardCard> with TickerProviderStateMixin {
+  late AnimationController _ctrlScale;
+  late Animation<double> _scale;
+
+  late AnimationController _ctrlArrow;
+  late Animation<double> _arrowTranslation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    _ctrlScale = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 80),
+      reverseDuration: const Duration(milliseconds: 120),
+    );
+    _scale = Tween<double>(begin: 1.0, end: 0.94)
+        .animate(CurvedAnimation(parent: _ctrlScale, curve: Curves.easeInOut));
+
+    _ctrlArrow = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    
+    _arrowTranslation = Tween<double>(begin: 0.0, end: 6.0).animate(
+      CurvedAnimation(parent: _ctrlArrow, curve: Curves.easeInOut),
+    );
+
+    _ctrlArrow.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _ctrlScale.dispose();
+    _ctrlArrow.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: action.onTap,
-        child: Ink(
+    final a = widget.action;
+    return ScaleTransition(
+      scale: _scale,
+      child: GestureDetector(
+        onTapDown: (_) => _ctrlScale.forward(),
+        onTapUp: (_) {
+          _ctrlScale.reverse();
+          a.onTap();
+        },
+        onTapCancel: () => _ctrlScale.reverse(),
+        child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                action.color.withOpacity(0.95),
-                action.accent,
-              ],
+              colors: [a.topColor, a.botColor],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: const [
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x1A0F8C6D),
-                blurRadius: 16,
-                offset: Offset(0, 8),
+                color: a.botColor.withOpacity(0.4),
+                blurRadius: 25,
+                spreadRadius: 1,
+                offset: const Offset(0, 15),
               ),
             ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
+          child: Stack(
+            children: [
+              // Efek Gradasi Glossy Atas
+              Positioned(
+                top: 0, left: 0, right: 0,
+                child: Container(
+                  height: 100,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.18),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                    gradient: LinearGradient(
+                      colors: [Colors.white.withOpacity(0.15), Colors.white.withOpacity(0.0)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
                   ),
-                  child: Icon(
-                    action.icon,
-                    color: Colors.white,
-                    size: 24,
-                  ),
                 ),
-                const Spacer(),
-                Text(
-                  action.title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
+              ),
+              // Ornamen Lingkaran Modern Abstract
+              Positioned(
+                bottom: -40,
+                right: -40,
+                child: CircleAvatar(
+                  radius: 100,
+                  backgroundColor: Colors.white.withOpacity(0.04),
+                ),
+              ),
+              
+              // Konten Utama
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
+                          ),
+                          child: Icon(a.icon, color: a.iconColor, size: 32),
+                        ),
+                        
+                        // Panah Beranimasi (Maju-Mundur)
+                        AnimatedBuilder(
+                          animation: _arrowTranslation,
+                          builder: (context, child) {
+                            return Transform.translate(
+                              offset: Offset(_arrowTranslation.value, 0),
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.12),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_forward_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    
+                    // Blok Teks Bawah (Aman dari overflow)
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            a.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                              height: 1.15,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            a.subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.85),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  action.subtitle,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withOpacity(0.85),
-                      ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -280,47 +413,55 @@ class _DashboardCard extends StatelessWidget {
   }
 }
 
+// ─── Info Banner ──────────────────────────────────────────────────────────────
 class _InfoBanner extends StatelessWidget {
+  const _InfoBanner();
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFEAF7F1),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFD2EDE2)),
+        color: Colors.white.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1.5),
       ),
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 56,
+            height: 56,
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
+              color: const Color(0xFF26D095).withOpacity(0.15),
+              borderRadius: BorderRadius.circular(18),
             ),
             child: const Icon(
-              Icons.favorite_border,
-              color: Color(0xFF2FAE86),
+              Icons.info_outline_rounded,
+              color: Color(0xFF26D095),
+              size: 28,
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
+          const SizedBox(width: 20),
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Tetap sehat bersama kami',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  'Informasi Pelayanan',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    fontSize: 18,
+                  ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 6),
                 Text(
-                  'Gunakan nomor antrian sesuai poli agar pelayanan lebih cepat.',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: const Color(0xFF5D7C70),
-                      ),
+                  'Pastikan Anda mengambil nomor antrian yang sesuai. Jika mengalami kesulitan, silakan hubungi petugas informasi di samping mesin ini.',
+                  style: TextStyle(
+                    color: Color(0xFFA2C5B9),
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
                 ),
               ],
             ),
@@ -331,14 +472,11 @@ class _InfoBanner extends StatelessWidget {
   }
 }
 
+// ─── Decorative Halo Circle ──────────────────────────────────────────────────
 class _HaloCircle extends StatelessWidget {
   final double size;
   final Color color;
-
-  const _HaloCircle({
-    required this.size,
-    required this.color,
-  });
+  const _HaloCircle({required this.size, required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -346,27 +484,30 @@ class _HaloCircle extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.45),
+        color: color,
         shape: BoxShape.circle,
       ),
     );
   }
 }
 
+// ─── Model Data Action ────────────────────────────────────────────────────────
 class _DashboardAction {
   final String title;
   final String subtitle;
   final IconData icon;
-  final Color color;
-  final Color accent;
+  final Color topColor;
+  final Color botColor;
+  final Color iconColor;
   final VoidCallback onTap;
 
   const _DashboardAction({
     required this.title,
     required this.subtitle,
     required this.icon,
-    required this.color,
-    required this.accent,
+    required this.topColor,
+    required this.botColor,
+    required this.iconColor,
     required this.onTap,
   });
 }

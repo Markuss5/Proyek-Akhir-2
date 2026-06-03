@@ -3,6 +3,7 @@ import 'package:giliranku/core/repositories/notifikasiRepository.dart';
 import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/models/notifikasiModel.dart';
 import 'package:giliranku/core/widgets/header.dart';
+import 'package:audioplayers/audioplayers.dart'; 
 
 class NotifikasiView extends StatefulWidget {
   final String? nik;
@@ -22,6 +23,9 @@ class _NotifikasiViewState extends State<NotifikasiView> {
   final Set<int> _selectedIds = {};
 
   late final _refreshTimer = _startRefreshTimer();
+  
+  //  DEKLARASIKAN AUDIO PLAYER
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void initState() {
@@ -32,6 +36,7 @@ class _NotifikasiViewState extends State<NotifikasiView> {
   @override
   void dispose() {
     _refreshTimer.cancel();
+    _audioPlayer.dispose(); // DISPOSE AUDIO PLAYER BIAR TIDAK MEMORY LEAK
     super.dispose();
   }
 
@@ -41,18 +46,36 @@ class _NotifikasiViewState extends State<NotifikasiView> {
     });
   }
 
+  // FUNGSI UNTUK MEMUTAR SUARA KRING
+  Future<void> _playKringSound() async {
+    try {
+      await _audioPlayer.play(AssetSource('audio/kring.mp3'));
+    } catch (e) {
+      debugPrint("Gagal memutar suara: $e");
+    }
+  }
+
   Future<void> _loadNotifications() async {
     if (widget.nik == null) {
       setState(() => _isLoading = false);
       return;
     }
-    if (!_isLoading) {
-    } else {
+    
+    // agar aplikasi tidak berkedip terus-menerus bagi pengguna.
+    if (_isLoading) {
       setState(() => _isLoading = true);
     }
+    
     try {
       final data = await NotifikasiRepository().getByNik(widget.nik!);
       if (!mounted) return;
+
+      //  LOGIKA DETEKSI NOTIFIKASI BARU
+      // Jika list lama tidak kosong, dan data baru dari API jumlahnya lebih banyak
+      if (_notifications.isNotEmpty && data.length > _notifications.length) {
+        _playKringSound(); // Bunyikan Kring!
+      }
+
       setState(() {
         _notifications = data;
         _isLoading = false;

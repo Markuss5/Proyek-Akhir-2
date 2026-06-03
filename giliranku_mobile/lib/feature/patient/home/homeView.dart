@@ -126,7 +126,6 @@ class _BerandaTabState extends State<_BerandaTab> {
                 ),
                 const SizedBox(height: 22),
                 const _SectionHeader(title: 'Layanan Utama', sub: 'Pilih layanan yang tersedia'),
-                const SizedBox(height: 10),
                 _MenuGrid(
                   nik: _nik,
                   patientData: widget.patientData,
@@ -311,15 +310,16 @@ class _MenuGrid extends StatelessWidget {
     final cardW   = (screenW - 40 - 12) / 2;
     final cardH   = cardW * 0.72;
 
-    return GridView.count(
-      crossAxisCount: 2,
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 10,
-      childAspectRatio: cardW / cardH,
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      children: menus.map((m) => _MenuCard(data: m)).toList(),
-    );
+return GridView.count(
+  crossAxisCount: 2,
+  crossAxisSpacing: 10,
+  mainAxisSpacing: 10,
+  padding: EdgeInsets.zero, // <--- TAMBAHKAN BARIS INI untuk menghilangkan jarak bawaan
+  childAspectRatio: cardW / cardH,
+  physics: const NeverScrollableScrollPhysics(),
+  shrinkWrap: true,
+  children: menus.map((m) => _MenuCard(data: m)).toList(),
+);
   }
 }
 
