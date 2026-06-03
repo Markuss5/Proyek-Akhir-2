@@ -12,25 +12,24 @@ class DashboardView extends StatelessWidget {
     final actions = _buildActions(context);
     final width = MediaQuery.of(context).size.width;
     
-    // Optimasi jumlah kolom untuk layar kiosk (lebih responsif dan lega)
-    final crossAxisCount = width >= 1200
+    // Memberikan sedikit ruang vertikal lebih (0.95 - 1.0) agar tidak rentan overflow di layar kecil
+    final crossAxisCount = width >= 900
         ? 3
-        : width >= 750
-            ? 3
-            : 1; // 1 Kolom jika di smartphone biasa agar tidak overflow
+        : width >= 640
+            ? 2
+            : 2;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF04261A), // Dark mode base untuk estetika premium
       body: Stack(
         children: [
-          // Background Gradient mewah
+          // Background gradient
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFF063A25),
-                  Color(0xFF031F15),
-                  Color(0xFF010A07),
+                  Color(0xFFCBEEDF),
+                  Color(0xFFDDF4EB),
+                  Color(0xFFF5FFFB),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -38,32 +37,30 @@ class DashboardView extends StatelessWidget {
             ),
           ),
           
-          // Halo Ornamen Glow
-          Positioned(
-            top: -100,
-            right: -100,
-            child: _HaloCircle(size: 400, color: const Color(0xFF1F9E76).withOpacity(0.25)),
+          // Halo dekoratif
+          const Positioned(
+            top: -50,
+            right: -40,
+            child: _HaloCircle(size: 180, color: Color(0xFF7DD4B5)),
           ),
-          Positioned(
-            bottom: -150,
-            left: -100,
-            child: _HaloCircle(size: 500, color: const Color(0xFF0E7054).withOpacity(0.2)),
+          const Positioned(
+            bottom: -60,
+            left: -30,
+            child: _HaloCircle(size: 200, color: Color(0xFF8ECFB8)),
           ),
           
           SafeArea(
             child: CustomScrollView(
-              physics: const BouncingScrollPhysics(),
               slivers: [
                 SliverToBoxAdapter(child: _DashboardHeader()),
-                
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                   sliver: SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: crossAxisCount,
-                      mainAxisSpacing: 28,
-                      crossAxisSpacing: 28,
-                      childAspectRatio: width >= 750 ? 0.95 : 1.4,
+                      mainAxisSpacing: 14,
+                      crossAxisSpacing: 14,
+                      childAspectRatio: 1.0, // Diubah ke 1.0 agar area card sedikit lebih tinggi ke bawah
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) => _DashboardCard(action: actions[index]),
@@ -71,10 +68,9 @@ class DashboardView extends StatelessWidget {
                     ),
                   ),
                 ),
-                
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(32, 16, 32, 40),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                     child: _InfoBanner(),
                   ),
                 ),
@@ -90,11 +86,10 @@ class DashboardView extends StatelessWidget {
     return [
       _DashboardAction(
         title: 'Antrian\nKonsultasi',
-        subtitle: 'Pendaftaran BPJS & Umum',
-        icon: Icons.medical_services_rounded,
-        topColor: const Color(0xFF26D095),
+        subtitle: 'BPJS & Umum',
+        icon: Icons.medical_services_outlined,
+        topColor: const Color(0xFF1F9E76),
         botColor: const Color(0xFF0E7054),
-        iconColor: const Color(0xFFE8FFF5),
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const ConsultationMenuView()),
@@ -102,11 +97,10 @@ class DashboardView extends StatelessWidget {
       ),
       _DashboardAction(
         title: 'Antrian\nFarmasi',
-        subtitle: 'Ambil Nomor Obat & Resep',
-        icon: Icons.local_pharmacy_rounded,
-        topColor: const Color(0xFF00B4D8),
-        botColor: const Color(0xFF0077B6),
-        iconColor: const Color(0xFFE0F7FA),
+        subtitle: 'Ambil nomor obat',
+        icon: Icons.local_pharmacy_outlined,
+        topColor: const Color(0xFF17A889),
+        botColor: const Color(0xFF0A7D67),
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const PharmacyQueueView()),
@@ -114,11 +108,10 @@ class DashboardView extends StatelessWidget {
       ),
       _DashboardAction(
         title: 'Cetak\nAntrian',
-        subtitle: 'Scan / Masukkan Kode Booking',
-        icon: Icons.qr_code_scanner_rounded,
-        topColor: const Color(0xFFFFB703),
-        botColor: const Color(0xFFFB8500),
-        iconColor: const Color(0xFFFFF6E0),
+        subtitle: 'Kode booking',
+        icon: Icons.qr_code_2_outlined,
+        topColor: const Color(0xFF0F8C6D),
+        botColor: const Color(0xFF07624D),
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const BookingLookupView()),
@@ -133,7 +126,7 @@ class _DashboardHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 40, 32, 16),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -141,17 +134,17 @@ class _DashboardHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                width: 90,
-                height: 90,
-                padding: const EdgeInsets.all(12),
+                width: 75,
+                height: 75,
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(22),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF26D095).withOpacity(0.25),
-                      blurRadius: 30,
-                      offset: const Offset(0, 12),
+                      color: const Color(0xFF0A7054).withOpacity(0.18),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
                     ),
                   ],
                 ),
@@ -160,7 +153,7 @@ class _DashboardHeader extends StatelessWidget {
                   fit: BoxFit.contain,
                 ),
               ),
-              const SizedBox(width: 24),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,27 +161,26 @@ class _DashboardHeader extends StatelessWidget {
                     Text(
                       'RSUD PORSEA',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontSize: 36,
+                            fontSize: 26,
                             fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            letterSpacing: 1.5,
+                            color: const Color(0xFF063A25),
+                            letterSpacing: 0.8,
+                            height: 1,
                           ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1F9E76).withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(color: const Color(0xFF26D095).withOpacity(0.3)),
+                        color: const Color(0xFFDDF4EB),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Text(
-                        'SISTEM ANTRIAN TERPADU',
-                        style: TextStyle(
-                          color: Color(0xFF26D095),
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: Text(
+                        'Sistem Antrian Terpadu',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: const Color(0xFF0E7054),
+                              fontWeight: FontWeight.w600,
+                            ),
                       ),
                     ),
                   ],
@@ -196,24 +188,31 @@ class _DashboardHeader extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 48),
-          const Text(
-            'Selamat Datang',
-            style: TextStyle(
-              fontSize: 48,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: -1.0,
-            ),
+          const SizedBox(height: 20),
+          Text(
+            'Layanan Rumah Sakit',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF063A25),
+                  height: 1.1,
+                  letterSpacing: -0.5,
+                ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Silakan sentuh salah satu layanan di bawah ini untuk memulai.',
-            style: TextStyle(
-              color: Color(0xFFA2C5B9),
-              fontSize: 20,
-              fontWeight: FontWeight.w400,
-            ),
+          Text(
+            'Silakan pilih layanan yang ingin Anda akses.',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: const Color(0xFF4D7C6B),
+                  height: 1.4,
+                ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Cek antrian, farmasi, atau cetak tiket booking dengan cepat.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: const Color(0xFF3A7060),
+                  fontWeight: FontWeight.w400,
+                ),
           ),
         ],
       ),
@@ -231,34 +230,40 @@ class _DashboardCard extends StatefulWidget {
 }
 
 class _DashboardCardState extends State<_DashboardCard> with TickerProviderStateMixin {
-  late AnimationController _ctrlScale;
-  late Animation<double> _scale;
+  late final AnimationController _ctrlScale;
+  late final Animation<double> _scale;
 
-  late AnimationController _ctrlArrow;
-  late Animation<double> _arrowTranslation;
+  late final AnimationController _ctrlArrow;
+  late final Animation<double> _arrowTranslation;
 
   @override
   void initState() {
     super.initState();
     
+    // Menggunakan instansiasi langsung 'late final' terbukti lebih aman dari LateInitializationError di GridView
     _ctrlScale = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 80),
-      reverseDuration: const Duration(milliseconds: 120),
+      duration: const Duration(milliseconds: 100),
+      reverseDuration: const Duration(milliseconds: 160),
     );
-    _scale = Tween<double>(begin: 1.0, end: 0.94)
+    _scale = Tween<double>(begin: 1.0, end: 0.95)
         .animate(CurvedAnimation(parent: _ctrlScale, curve: Curves.easeInOut));
 
     _ctrlArrow = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 750),
     );
     
-    _arrowTranslation = Tween<double>(begin: 0.0, end: 6.0).animate(
+    _arrowTranslation = Tween<double>(begin: 0.0, end: 5.0).animate(
       CurvedAnimation(parent: _ctrlArrow, curve: Curves.easeInOut),
     );
 
-    _ctrlArrow.repeat(reverse: true);
+    // Menjalankan animasi loop setelah frame pertama selesai dirender secara aman
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _ctrlArrow.repeat(reverse: true);
+      }
+    });
   }
 
   @override
@@ -287,120 +292,99 @@ class _DashboardCardState extends State<_DashboardCard> with TickerProviderState
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(32),
+            borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: a.botColor.withOpacity(0.4),
-                blurRadius: 25,
-                spreadRadius: 1,
-                offset: const Offset(0, 15),
+                color: a.botColor.withOpacity(0.45),
+                blurRadius: 14,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
           child: Stack(
             children: [
-              // Efek Gradasi Glossy Atas
+              // Efek lingkaran dekoratif latar belakang
               Positioned(
-                top: 0, left: 0, right: 0,
+                top: -22, right: -22,
                 child: Container(
-                  height: 100,
+                  width: 75, height: 75,
                   decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                    gradient: LinearGradient(
-                      colors: [Colors.white.withOpacity(0.15), Colors.white.withOpacity(0.0)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.08),
                   ),
-                ),
-              ),
-              // Ornamen Lingkaran Modern Abstract
-              Positioned(
-                bottom: -40,
-                right: -40,
-                child: CircleAvatar(
-                  radius: 100,
-                  backgroundColor: Colors.white.withOpacity(0.04),
                 ),
               ),
               
               // Konten Utama
               Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    // Bagian Atas: Icon Layanan & Panah
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          width: 64,
-                          height: 64,
+                          width: 40,
+                          height: 40,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.18),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
+                            color: Colors.white.withOpacity(0.20),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(a.icon, color: a.iconColor, size: 32),
+                          child: Icon(a.icon, color: Colors.white, size: 22),
                         ),
-                        
-                        // Panah Beranimasi (Maju-Mundur)
                         AnimatedBuilder(
                           animation: _arrowTranslation,
                           builder: (context, child) {
                             return Transform.translate(
                               offset: Offset(_arrowTranslation.value, 0),
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.12),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.arrow_forward_rounded,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ),
+                              child: child,
                             );
                           },
+                          child: Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.arrow_forward_rounded,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
                         ),
                       ],
                     ),
                     
-                    // Blok Teks Bawah (Aman dari overflow)
-                    Flexible(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            a.title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              fontWeight: FontWeight.w900,
-                              height: 1.15,
-                            ),
+                    // Spacer fleksibel menjamin judul terdorong rapi tanpa overflow
+                    const Spacer(),
+                    
+                    // Bagian Judul Utama
+                    Text(
+                      a.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 18,
+                            height: 1.15,
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            a.subtitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.85),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
+                    ),
+                    const SizedBox(height: 4),
+                    
+                    // Subtitel / Deskripsi Kecil alternatif agar muat sempurna
+                    Text(
+                      a.subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.white.withOpacity(0.8),
+                            fontSize: 11,
                           ),
-                        ],
-                      ),
                     ),
                   ],
                 ),
@@ -415,53 +399,54 @@ class _DashboardCardState extends State<_DashboardCard> with TickerProviderState
 
 // ─── Info Banner ──────────────────────────────────────────────────────────────
 class _InfoBanner extends StatelessWidget {
-  const _InfoBanner();
-
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1.5),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFB8E4D2), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0E7054).withOpacity(0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            width: 56,
-            height: 56,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: const Color(0xFF26D095).withOpacity(0.15),
-              borderRadius: BorderRadius.circular(18),
+              color: const Color(0xFFDDF4EB),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(
-              Icons.info_outline_rounded,
-              color: Color(0xFF26D095),
-              size: 28,
+              Icons.favorite_border,
+              color: Color(0xFF0E7054),
             ),
           ),
-          const SizedBox(width: 20),
-          const Expanded(
+          const SizedBox(width: 12),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Informasi Pelayanan',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    fontSize: 18,
-                  ),
+                  'Tetap sehat bersama kami',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF063A25),
+                      ),
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
-                  'Pastikan Anda mengambil nomor antrian yang sesuai. Jika mengalami kesulitan, silakan hubungi petugas informasi di samping mesin ini.',
-                  style: TextStyle(
-                    color: Color(0xFFA2C5B9),
-                    fontSize: 14,
-                    height: 1.4,
-                  ),
+                  'Gunakan nomor antrian sesuai poli agar pelayanan lebih cepat.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFF3A7060),
+                      ),
                 ),
               ],
             ),
@@ -472,7 +457,7 @@ class _InfoBanner extends StatelessWidget {
   }
 }
 
-// ─── Decorative Halo Circle ──────────────────────────────────────────────────
+// ─── Halo Circle ─────────────────────────────────────────────────────────────
 class _HaloCircle extends StatelessWidget {
   final double size;
   final Color color;
@@ -484,21 +469,20 @@ class _HaloCircle extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: color,
+        color: color.withOpacity(0.35),
         shape: BoxShape.circle,
       ),
     );
   }
 }
 
-// ─── Model Data Action ────────────────────────────────────────────────────────
+// ─── Data Model ───────────────────────────────────────────────────────────────
 class _DashboardAction {
   final String title;
   final String subtitle;
   final IconData icon;
   final Color topColor;
   final Color botColor;
-  final Color iconColor;
   final VoidCallback onTap;
 
   const _DashboardAction({
@@ -507,7 +491,6 @@ class _DashboardAction {
     required this.icon,
     required this.topColor,
     required this.botColor,
-    required this.iconColor,
     required this.onTap,
   });
 }
