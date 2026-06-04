@@ -6,19 +6,25 @@ import 'consultationGeneralView.dart';
 class ConsultationMenuView extends StatelessWidget {
   const ConsultationMenuView({super.key});
 
+  static const Color _topColor = Color(0xFF17A889);
+  static const Color _botColor = Color(0xFF0A7D67);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: _botColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
         title: const Text('Antrian Konsultasi'),
       ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFFF0FBF7),
-              Color(0xFFE6F7F0),
-              Color(0xFFFFFFFF),
+              Color(0xFFE6F5F0),
+              Color(0xFFF0FAF6),
+              Color(0xFFFAFFFE),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -30,23 +36,33 @@ class ConsultationMenuView extends StatelessWidget {
             Text(
               'Pilih jenis pasien',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: const Color(0xFF0A3D2E),
+                    color: const Color(0xFF063D2C),
+                    fontWeight: FontWeight.w700,
                   ),
             ),
             const SizedBox(height: 6),
             Text(
               'Sesuaikan dengan status rujukan agar tiket keluar lebih cepat.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: const Color(0xFF557A6B),
+                    color: const Color(0xFF2E7A60),
                   ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
+            Text(
+              'PILIHAN PASIEN',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: _topColor,
+                    letterSpacing: 1.2,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+            const SizedBox(height: 12),
             _ConsultationOptionCard(
               title: 'Pasien BPJS',
               subtitle: 'Gunakan NIK atau No BPJS',
-              icon: Icons.health_and_safety_outlined,
-              color: const Color(0xFF54D9B4),
-              accent: const Color(0xFF2FAA85),
+              icon: Icons.shield_outlined,
+              topColor: _topColor,
+              botColor: _botColor,
               onTap: () {
                 Navigator.push(
                   context,
@@ -56,13 +72,13 @@ class ConsultationMenuView extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             _ConsultationOptionCard(
               title: 'Pasien Umum',
               subtitle: 'Pilih poli dan dokter tujuan',
               icon: Icons.person_outline,
-              color: const Color(0xFF7FE4CA),
-              accent: const Color(0xFF43BFA0),
+              topColor: _topColor,
+              botColor: _botColor,
               onTap: () {
                 Navigator.push(
                   context,
@@ -78,7 +94,7 @@ class ConsultationMenuView extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFD4EEE4)),
+                border: Border.all(color: const Color(0xFFC3E8D8)),
               ),
               child: Row(
                 children: [
@@ -86,12 +102,12 @@ class ConsultationMenuView extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE2F4ED),
+                      color: const Color(0xFFD5F0E6),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(
                       Icons.info_outline,
-                      color: Color(0xFF2FAE86),
+                      color: Color(0xFF0A7D67),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -99,7 +115,7 @@ class ConsultationMenuView extends StatelessWidget {
                     child: Text(
                       'Pastikan data pasien valid agar nomor antrian keluar sesuai poli.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: const Color(0xFF4E6E62),
+                            color: const Color(0xFF2E6B55),
                           ),
                     ),
                   ),
@@ -117,16 +133,16 @@ class _ConsultationOptionCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
-  final Color color;
-  final Color accent;
+  final Color topColor;
+  final Color botColor;
   final VoidCallback onTap;
 
   const _ConsultationOptionCard({
     required this.title,
     required this.subtitle,
     required this.icon,
-    required this.color,
-    required this.accent,
+    required this.topColor,
+    required this.botColor,
     required this.onTap,
   });
 
@@ -140,10 +156,7 @@ class _ConsultationOptionCard extends StatelessWidget {
         child: Ink(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                color,
-                accent,
-              ],
+              colors: [topColor, botColor],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -169,11 +182,13 @@ class _ConsultationOptionCard extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
                       const SizedBox(height: 4),
                       Text(

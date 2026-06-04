@@ -204,7 +204,6 @@ class _InformasiViewState extends State<InformasiView>
           // Visi Label
           Row(
             children: const [
-              Icon(Icons.remove_red_eye_rounded, color: _C.teal, size: 18),
               SizedBox(width: 8),
               Text('Visi',
                   style: TextStyle(
@@ -236,7 +235,6 @@ class _InformasiViewState extends State<InformasiView>
           // Misi Label
           Row(
             children: const [
-              Icon(Icons.rocket_launch_rounded, color: _C.teal, size: 18),
               SizedBox(width: 8),
               Text('Misi',
                   style: TextStyle(

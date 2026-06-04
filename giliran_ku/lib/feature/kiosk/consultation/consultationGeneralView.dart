@@ -10,14 +10,21 @@ class ConsultationGeneralView extends StatefulWidget {
   const ConsultationGeneralView({super.key});
 
   @override
-  State<ConsultationGeneralView> createState() => _ConsultationGeneralViewState();
+  State<ConsultationGeneralView> createState() =>
+      _ConsultationGeneralViewState();
 }
 
 class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
+  static const Color _primary = Color(0xFF17A889);
+  static const Color _dark = Color(0xFF0A7D67);
+  static const Color _darkText = Color(0xFF063D2C);
+  static const Color _mutedText = Color(0xFF2E7A60);
+  static const Color _iconBg = Color(0xFFD5F0E6);
+  static const Color _cardBorder = Color(0xFFC3E8D8);
+
   final _nikController = TextEditingController();
   final _namaController = TextEditingController();
   final _teleponController = TextEditingController();
-  
   final ConsultationController _controller = ConsultationController();
 
   bool _isPasienLama = false;
@@ -50,7 +57,6 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
       _loadingLayanan = true;
       _error = null;
     });
-
     try {
       final polis = await _controller.fetchPoliList();
       if (!mounted) return;
@@ -73,7 +79,6 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
       _doctors = [];
       _selectedDoctor = null;
     });
-
     try {
       final date = DateTime.now().toIso8601String().split('T')[0];
       final doctors = await _controller.fetchDoctors(poli.id, date);
@@ -94,24 +99,21 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
       setState(() => _error = 'Masukkan NIK');
       return;
     }
-    
     if (!_isPasienLama) {
-      if (_namaController.text.trim().isEmpty || _teleponController.text.trim().isEmpty) {
+      if (_namaController.text.trim().isEmpty ||
+          _teleponController.text.trim().isEmpty) {
         setState(() => _error = 'Nama Lengkap dan Nomor Telepon harus diisi');
         return;
       }
     }
-
     if (_selectedPoli == null || _selectedDoctor == null) {
       setState(() => _error = 'Pilih poli dan dokter terlebih dahulu');
       return;
     }
-
     setState(() {
       _loading = true;
       _error = null;
     });
-
     try {
       final ticket = await _controller.createTicketForGeneral(
         nik: nik,
@@ -124,9 +126,7 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (_) => TicketView(ticket: ticket),
-        ),
+        MaterialPageRoute(builder: (_) => TicketView(ticket: ticket)),
       );
     } catch (error) {
       if (!mounted) return;
@@ -138,280 +138,367 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
   }
 
   String _readError(Object error) {
-    if (error is ApiException) {
-      return error.message;
-    }
+    if (error is ApiException) return error.message;
     return 'Terjadi kesalahan. Coba lagi.';
+  }
+
+  InputDecoration _inputDecoration({
+    required String label,
+    String? hint,
+    required IconData icon,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      prefixIcon: Icon(icon, color: _primary),
+      filled: true,
+      fillColor: const Color(0xFFF5FBF8),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: _cardBorder),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: _primary, width: 1.5),
+      ),
+      labelStyle: const TextStyle(color: Colors.black87),
+      floatingLabelStyle: const TextStyle(color: _primary),
+      hintStyle: const TextStyle(color: Colors.black54),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF0FAF6),
       appBar: AppBar(
+        backgroundColor: _dark,
+        foregroundColor: Colors.white,
+        elevation: 0,
         title: const Text('Pasien Umum'),
       ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color(0xFFF0FBF7),
-              Color(0xFFE6F7F0),
-              Color(0xFFFFFFFF),
-            ],
+            colors: [Color(0xFFE6F5F0), Color(0xFFF0FAF6), Color(0xFFFAFFFE)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
           children: [
-            Text(
-              'Pasien Umum',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: const Color(0xFF0A3D2E),
-                  ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Silakan lengkapi data pasien dan pilih poli tujuan.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: const Color(0xFF577A6D),
-                  ),
-            ),
+            _buildHeader(context),
             const SizedBox(height: 20),
-
-            // Toggle Pasien Lama / Baru
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _isPasienLama = false),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: !_isPasienLama ? const Color(0xFFE0F2F1) : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: !_isPasienLama ? Border.all(color: const Color(0xFF25A699)) : Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Center(
-                        child: Text('Pasien Baru',
-                            style: TextStyle(
-                              fontWeight: !_isPasienLama ? FontWeight.bold : FontWeight.normal,
-                              color: !_isPasienLama ? const Color(0xFF25A699) : Colors.grey,
-                            )),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _isPasienLama = true),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: _isPasienLama ? const Color(0xFFE0F2F1) : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: _isPasienLama ? Border.all(color: const Color(0xFF25A699)) : Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Center(
-                        child: Text('Pasien Lama',
-                            style: TextStyle(
-                              fontWeight: _isPasienLama ? FontWeight.bold : FontWeight.normal,
-                              color: _isPasienLama ? const Color(0xFF25A699) : Colors.grey,
-                            )),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            _buildToggle(),
             const SizedBox(height: 16),
-
-            // Form Identitas
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFD7EFE6)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE2F4ED),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Icon(
-                          Icons.person_outline,
-                          color: Color(0xFF2FAE86),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Identitas Pasien',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  if (_error != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Text(_error!, style: const TextStyle(color: Colors.red)),
-                    ),
-                  TextField(
-                    controller: _nikController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: _isPasienLama ? 'NIK / No. Rekam Medis' : 'NIK',
-                      hintText: 'Contoh: 1203010101010001',
-                      prefixIcon: const Icon(Icons.badge_outlined),
-                    ),
-                  ),
-                  if (!_isPasienLama) ...[
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _namaController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nama Lengkap',
-                        hintText: 'Masukkan nama pasien',
-                        prefixIcon: Icon(Icons.abc),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _teleponController,
-                      keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                        labelText: 'Nomor Telepon',
-                        hintText: '08',
-                        prefixIcon: Icon(Icons.phone),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+            if (_error != null) ...[
+              _buildErrorBanner(),
+              const SizedBox(height: 12),
+            ],
+            _buildIdentitasCard(context),
             const SizedBox(height: 16),
-
-            // Pilihan Poli & Dokter
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFD7EFE6)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE2F4ED),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Icon(
-                          Icons.apartment_outlined,
-                          color: Color(0xFF2FAE86),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Pilih Layanan & Dokter',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  if (_loadingLayanan)
-                    const Center(child: CircularProgressIndicator())
-                  else
-                    DropdownButtonFormField<Poli>(
-                      value: _selectedPoli,
-                      decoration: const InputDecoration(
-                        labelText: 'Poliklinik',
-                        prefixIcon: Icon(Icons.apartment),
-                      ),
-                      items: _polis.map((p) {
-                        return DropdownMenuItem<Poli>(
-                          value: p,
-                          child: Text(p.name),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        setState(() {
-                          _selectedPoli = val;
-                          _selectedDoctor = null;
-                        });
-                        if (val != null) {
-                          _loadDoctors(val);
-                        }
-                      },
-                    ),
-                  const SizedBox(height: 12),
-                  if (_loadingDoctors)
-                    const Center(child: CircularProgressIndicator())
-                  else if (_selectedPoli != null && _doctors.isEmpty)
-                    const Text('Tidak ada dokter tersedia.', style: TextStyle(color: Colors.red))
-                  else
-                    DropdownButtonFormField<Doctor>(
-                      value: _selectedDoctor,
-                      decoration: const InputDecoration(
-                        labelText: 'Dokter',
-                        prefixIcon: Icon(Icons.medical_services_outlined),
-                      ),
-                      items: _doctors.map((d) {
-                        return DropdownMenuItem<Doctor>(
-                          value: d,
-                          child: Text(d.name),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        setState(() {
-                          _selectedDoctor = val;
-                        });
-                      },
-                    ),
-                ],
-              ),
-            ),
+            _buildLayananCard(context),
             const SizedBox(height: 24),
-            
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _loading ? null : _submit,
-                icon: const Icon(Icons.print),
-                label: Text(_loading ? 'Mencetak...' : 'Cetak Tiket Umum'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
+            _buildSubmitButton(),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Pasien Umum',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: _darkText,
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Silakan lengkapi data pasien dan pilih poli tujuan.',
+          style: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.copyWith(color: _mutedText),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildToggle() {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _cardBorder),
+      ),
+      child: Row(
+        children: [
+          _toggleOption(
+            label: 'Pasien Baru',
+            selected: !_isPasienLama,
+            onTap: () => setState(() => _isPasienLama = false),
+          ),
+          _toggleOption(
+            label: 'Pasien Lama',
+            selected: _isPasienLama,
+            onTap: () => setState(() => _isPasienLama = true),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _toggleOption({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: selected ? _dark : Colors.transparent,
+            borderRadius: BorderRadius.circular(11),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: selected ? Colors.white : _mutedText,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorBanner() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF0F0),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFFCDD2)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.red, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              _error!,
+              style: const TextStyle(color: Colors.red, fontSize: 13),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCardHeader(BuildContext context,
+      {required IconData icon, required String title}) {
+    return Row(
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: _iconBg,
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: Icon(icon, color: _dark, size: 22),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: _darkText,
+              ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIdentitasCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildCardHeader(context,
+              icon: Icons.person_outline, title: 'Identitas Pasien'),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _nikController,
+            keyboardType: TextInputType.number,
+            decoration: _inputDecoration(
+              label: _isPasienLama ? 'NIK / No. Rekam Medis' : 'NIK',
+              hint: 'Contoh: 1203010101010001',
+              icon: Icons.badge_outlined,
+            ),
+          ),
+          if (!_isPasienLama) ...[
+            const SizedBox(height: 12),
+            TextField(
+              controller: _namaController,
+              decoration: _inputDecoration(
+                label: 'Nama Lengkap',
+                hint: 'Masukkan nama pasien',
+                icon: Icons.person_outline,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _teleponController,
+              keyboardType: TextInputType.phone,
+              decoration: _inputDecoration(
+                label: 'Nomor Telepon',
+                hint: '08xxxxxxxxxx',
+                icon: Icons.phone_outlined,
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLayananCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildCardHeader(context,
+              icon: Icons.apartment_outlined, title: 'Pilih Layanan & Dokter'),
+          const SizedBox(height: 16),
+          if (_loadingLayanan)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: CircularProgressIndicator(color: _primary),
+              ),
+            )
+          else
+            DropdownButtonFormField<Poli>(
+              value: _selectedPoli,
+              decoration: _inputDecoration(
+                label: 'Poliklinik',
+                icon: Icons.apartment_outlined,
+              ),
+              items: _polis.map((p) {
+                return DropdownMenuItem<Poli>(
+                  value: p,
+                  child: Text(p.name),
+                );
+              }).toList(),
+              onChanged: (val) {
+                setState(() {
+                  _selectedPoli = val;
+                  _selectedDoctor = null;
+                });
+                if (val != null) _loadDoctors(val);
+              },
+            ),
+          const SizedBox(height: 12),
+          if (_loadingDoctors)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: CircularProgressIndicator(color: _primary),
+              ),
+            )
+          else if (_selectedPoli != null && _doctors.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF8E1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.warning_amber_outlined,
+                      color: Colors.orange, size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    'Tidak ada dokter tersedia hari ini.',
+                    style: TextStyle(color: Colors.orange, fontSize: 13),
+                  ),
+                ],
+              ),
+            )
+          else
+            DropdownButtonFormField<Doctor>(
+              value: _selectedDoctor,
+              decoration: _inputDecoration(
+                label: 'Dokter',
+                icon: Icons.medical_services_outlined,
+              ),
+              items: _doctors.map((d) {
+                return DropdownMenuItem<Doctor>(
+                  value: d,
+                  child: Text(d.name),
+                );
+              }).toList(),
+              onChanged: (val) => setState(() => _selectedDoctor = val),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _loading ? null : _submit,
+        icon: _loading
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: Colors.white),
+              )
+            : const Icon(Icons.print_outlined, size: 20),
+        label: Text(
+          _loading ? 'Mencetak...' : 'Cetak Tiket Umum',
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _dark,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          elevation: 0,
         ),
       ),
     );
