@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:giliran_ku/core/datasources/apiException.dart';
 import 'package:giliran_ku/feature/kiosk/consultation/consultationController.dart';
@@ -32,6 +33,8 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
   bool _loadingLayanan = false;
   bool _loadingDoctors = false;
   String? _error;
+  String? _nikError;
+  String? _namaError;
 
   List<Poli> _polis = [];
   Poli? _selectedPoli;
@@ -42,6 +45,36 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
   void initState() {
     super.initState();
     _loadPolis();
+    _nikController.addListener(_validateNik);
+    _namaController.addListener(_validateNama);
+  }
+
+  void _validateNik() {
+    final nik = _nikController.text.trim();
+    setState(() {
+      if (nik.isEmpty) {
+        _nikError = null;
+      } else if (nik.length < 16) {
+        _nikError = 'NIK harus 16 karakter';
+      } else if (nik.length > 16) {
+        _nikError = 'NIK maksimal 16 karakter';
+      } else {
+        _nikError = null;
+      }
+    });
+  }
+
+  void _validateNama() {
+    final nama = _namaController.text.trim();
+    setState(() {
+      if (nama.isEmpty) {
+        _namaError = null;
+      } else if (!RegExp(r'^[a-zA-Z\s]*$').hasMatch(nama)) {
+        _namaError = 'Nama hanya boleh berisi huruf';
+      } else {
+        _namaError = null;
+      }
+    });
   }
 
   @override
@@ -95,16 +128,42 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
 
   Future<void> _submit() async {
     final nik = _nikController.text.trim();
+    final nama = _namaController.text.trim();
+    final telepon = _teleponController.text.trim();
+
+    // Validate NIK
     if (nik.isEmpty) {
       setState(() => _error = 'Masukkan NIK');
       return;
     }
+    if (nik.length != 16) {
+      setState(() => _error = 'NIK harus 16 karakter');
+      return;
+    }
+    if (!RegExp(r'^[0-9]*$').hasMatch(nik)) {
+      setState(() => _error = 'NIK hanya boleh berisi angka');
+      return;
+    }
+
+    // Validate Nama & Telepon untuk pasien baru
     if (!_isPasienLama) {
-      if (_namaController.text.trim().isEmpty ||
-          _teleponController.text.trim().isEmpty) {
+      if (nama.isEmpty || telepon.isEmpty) {
         setState(() => _error = 'Nama Lengkap dan Nomor Telepon harus diisi');
         return;
       }
+      if (!RegExp(r'^[a-zA-Z\s]*$').hasMatch(nama)) {
+        setState(() => _error = 'Nama hanya boleh berisi huruf');
+        return;
+      }
+      if (_namaError != null) {
+        setState(() => _error = 'Periksa kembali data Nama');
+        return;
+      }
+    }
+
+    if (_nikError != null) {
+      setState(() => _error = 'Periksa kembali data NIK');
+      return;
     }
     if (_selectedPoli == null || _selectedDoctor == null) {
       setState(() => _error = 'Pilih poli dan dokter terlebih dahulu');
@@ -350,9 +409,35 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
           _buildCardHeader(context,
               icon: Icons.person_outline, title: 'Identitas Pasien'),
           const SizedBox(height: 16),
+          // NIK Error Message
+          if (_nikError != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  const Icon(Icons.error_outline,
+                      color: Colors.red, size: 14),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      _nikError!,
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           TextField(
             controller: _nikController,
             keyboardType: TextInputType.number,
+            inputFormatters: [
+              LengthLimitingTextInputFormatter(16),
+              FilteringTextInputFormatter.digitsOnly,
+            ],
             decoration: _inputDecoration(
               label: _isPasienLama ? 'NIK / No. Rekam Medis' : 'NIK',
               hint: 'Contoh: 1203010101010001',
@@ -360,9 +445,36 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
             ),
           ),
           if (!_isPasienLama) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
+            // Nama Error Message
+            if (_namaError != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline,
+                        color: Colors.red, size: 14),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        _namaError!,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             TextField(
               controller: _namaController,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(
+                  RegExp(r'[a-zA-Z\s]'),
+                ),
+              ],
               decoration: _inputDecoration(
                 label: 'Nama Lengkap',
                 hint: 'Masukkan nama pasien',
