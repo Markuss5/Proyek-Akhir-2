@@ -8,25 +8,24 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:giliran_ku/core/constants/apiConstants.dart';
 import 'package:giliran_ku/core/models/ticketModel.dart';
-// import 'package:printing/printing.dart';
+import 'package:giliran_ku/core/services/thermalPrinterService.dart';
 
 class TicketPdfService {
   static const String _windowsOutputDir =
       r'D:\Folder Semester 4\Pengembangan Aplikasi Mobile\Week 14\Praktikum\giliran_ku\queue_pdfs';
 
   Future<void> printTicketDirectly(Ticket ticket) async {
-    await Future.delayed(const Duration(seconds: 1));
-    // final pdf = pw.Document();
-    // if (ticket.type == 'farmasi') {
-    //   pdf.addPage(_buildPharmacyPage(ticket));
-    // } else {
-    //   pdf.addPage(_buildTicketPage(ticket));
-    // }
-    // final bytes = await pdf.save();
-    // await Printing.layoutPdf(
-    //   onLayout: (format) async => bytes,
-    //   name: 'ticket_${ticket.id}',
-    // );
+    await ThermalPrinterService.printTicket(ticket);
+  }
+
+  Future<Uint8List> getTicketPdfBytes(Ticket ticket) async {
+    final pdf = pw.Document();
+    if (ticket.type == 'farmasi') {
+      pdf.addPage(_buildPharmacyPage(ticket));
+    } else {
+      pdf.addPage(_buildTicketPage(ticket));
+    }
+    return pdf.save();
   }
 
   Future<String> exportTicket(Ticket ticket) async {

@@ -24,7 +24,7 @@ class ApiDataSource {
     } else if (endpoint.startsWith('/poliklinik') || endpoint.startsWith('/dokter') || endpoint.startsWith('/informasi')) {
       base = ApiConstants.masterBaseUrl;
     } else {
-      base = ApiConstants.masterBaseUrl; // fallback
+      base = ApiConstants.masterBaseUrl;
     }
     return Uri.parse('$base$endpoint');
   }

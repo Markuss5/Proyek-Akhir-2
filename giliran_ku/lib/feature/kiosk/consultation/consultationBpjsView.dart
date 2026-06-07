@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:giliran_ku/core/datasources/apiException.dart';
 import 'package:giliran_ku/feature/kiosk/consultation/consultationController.dart';
-import 'package:giliran_ku/feature/kiosk/ticketView.dart';
+import 'package:giliran_ku/core/widgets/printingScreen.dart';
 import 'package:giliran_ku/core/models/doctorModel.dart';
 
 class ConsultationBpjsView extends StatefulWidget {
@@ -102,6 +102,40 @@ class _ConsultationBpjsViewState extends State<ConsultationBpjsView> {
       setState(() => _error = 'Pilih dokter terlebih dahulu');
       return;
     }
+    _showConfirmationDialog();
+  }
+
+  void _showConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Konfirmasi Pendaftaran'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Apakah data Anda sudah sesuai?'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Kembali'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _processSubmit();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: _dark, foregroundColor: Colors.white),
+            child: const Text('Ya, Cetak Tiket'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _processSubmit() async {
     setState(() {
       _loading = true;
       _error = null;
@@ -115,7 +149,9 @@ class _ConsultationBpjsViewState extends State<ConsultationBpjsView> {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => TicketView(ticket: ticket)),
+        MaterialPageRoute(
+          builder: (_) => PrintingScreen(ticket: ticket),
+        ),
       );
     } catch (error) {
       if (!mounted) return;

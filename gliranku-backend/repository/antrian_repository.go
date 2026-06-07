@@ -13,6 +13,7 @@ import (
 type AntrianRepository interface {
 	FetchPoliklinik() ([]models.Poliklinik, error)
 	CheckNIK(nik string) (*models.Pasien, error)
+	CheckNameCaseInsensitive(name string) (*models.Pasien, error)
 	GetLastQueueNumberPoli(poliID int, tanggal time.Time) (int, error)
 	GetLastQueueNumberGlobal(tanggal time.Time) (int, error)
 	SaveAntrian(antrian *models.Antrian) error
@@ -59,6 +60,22 @@ func (r *antrianRepository) CheckNIK(nik string) (*models.Pasien, error) {
 	row := r.db.QueryRow(
 		`SELECT nik, norm, patientname, phone, "noBPJS"
 		 FROM pasien WHERE nik = $1`, nik)
+
+	var p models.Pasien
+	err := row.Scan(&p.NIK, &p.NoRM, &p.PatientName, &p.Phone, &p.NoBPJS)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+func (r *antrianRepository) CheckNameCaseInsensitive(name string) (*models.Pasien, error) {
+	row := r.db.QueryRow(
+		`SELECT nik, norm, patientname, phone, "noBPJS"
+		 FROM pasien WHERE LOWER(patientname) = LOWER($1)`, name)
 
 	var p models.Pasien
 	err := row.Scan(&p.NIK, &p.NoRM, &p.PatientName, &p.Phone, &p.NoBPJS)

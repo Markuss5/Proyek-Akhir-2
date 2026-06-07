@@ -3,9 +3,9 @@ import 'package:flutter/services.dart';
 
 import 'package:giliran_ku/core/datasources/apiException.dart';
 import 'package:giliran_ku/feature/kiosk/consultation/consultationController.dart';
-import 'package:giliran_ku/feature/kiosk/ticketView.dart';
 import 'package:giliran_ku/core/models/doctorModel.dart';
 import 'package:giliran_ku/core/models/poliModel.dart';
+import 'package:giliran_ku/feature/kiosk/ticketView.dart';
 
 class ConsultationGeneralView extends StatefulWidget {
   const ConsultationGeneralView({super.key});
@@ -25,7 +25,7 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
 
   final _nikController = TextEditingController();
   final _namaController = TextEditingController();
-  final _teleponController = TextEditingController();
+  final _teleponController = TextEditingController(text: '08');
   final ConsultationController _controller = ConsultationController();
 
   bool _isPasienLama = false;
@@ -131,7 +131,6 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
     final nama = _namaController.text.trim();
     final telepon = _teleponController.text.trim();
 
-    // Validate NIK
     if (nik.isEmpty) {
       setState(() => _error = 'Masukkan NIK');
       return;
@@ -145,7 +144,6 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
       return;
     }
 
-    // Validate Nama & Telepon untuk pasien baru
     if (!_isPasienLama) {
       if (nama.isEmpty || telepon.isEmpty) {
         setState(() => _error = 'Nama Lengkap dan Nomor Telepon harus diisi');
@@ -169,6 +167,41 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
       setState(() => _error = 'Pilih poli dan dokter terlebih dahulu');
       return;
     }
+    _showConfirmationDialog();
+  }
+
+  void _showConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Konfirmasi Pendaftaran'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Apakah data anda sudah sesuai?'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Kembali'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _processSubmit();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: _dark, foregroundColor: Colors.white),
+            child: const Text('Ya, Cetak Tiket'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _processSubmit() async {
+    final nik = _nikController.text.trim();
     setState(() {
       _loading = true;
       _error = null;
@@ -409,7 +442,6 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
           _buildCardHeader(context,
               icon: Icons.person_outline, title: 'Identitas Pasien'),
           const SizedBox(height: 16),
-          // NIK Error Message
           if (_nikError != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -446,7 +478,6 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
           ),
           if (!_isPasienLama) ...[
             const SizedBox(height: 16),
-            // Nama Error Message
             if (_namaError != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
@@ -485,6 +516,9 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
             TextField(
               controller: _teleponController,
               keyboardType: TextInputType.phone,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
               decoration: _inputDecoration(
                 label: 'Nomor Telepon',
                 hint: '08xxxxxxxxxx',

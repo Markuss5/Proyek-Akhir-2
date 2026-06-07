@@ -17,8 +17,9 @@ func NewDokterService(repo *repository.DokterRepository) *DokterService {
 
 func (s *DokterService) Create(req request.DokterRequest) (*models.Dokter, error) {
 	dokter := &models.Dokter{
-		DoctorName:     req.DoctorName,
-		Specialization: req.Specialization,
+		DoctorName:       req.DoctorName,
+		SpecializationID: req.SpecializationID,
+		Specialization:   req.Specialization,
 		PolyID:         req.PolyID,
 		Phone:          req.Phone,
 		Schedule:       req.Schedule,
@@ -49,6 +50,7 @@ func (s *DokterService) Update(id int, req request.DokterRequest) (*models.Dokte
 	}
 
 	existing.DoctorName = req.DoctorName
+	existing.SpecializationID = req.SpecializationID
 	existing.Specialization = req.Specialization
 	existing.PolyID = req.PolyID
 	existing.Phone = req.Phone

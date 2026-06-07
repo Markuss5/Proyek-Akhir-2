@@ -13,7 +13,6 @@ func NewPoliRepository(db *sql.DB) *PoliRepository {
 	return &PoliRepository{DB: db}
 }
 
-// FindAll returns all polyclinics from the real hospital tbpoli table
 func (r *PoliRepository) FindAll() ([]models.Poliklinik, error) {
 	query := `
 		SELECT "IdPoli", "NamaPoli", "KodePoli"

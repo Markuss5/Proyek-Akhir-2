@@ -19,8 +19,9 @@ type PoliRequest struct {
 }
 
 type DokterRequest struct {
-	DoctorName     string `json:"doctor_name" binding:"required"`
-	Specialization string `json:"specialization"`
+	DoctorName       string `json:"doctor_name" binding:"required"`
+	SpecializationID int    `json:"specialization_id" binding:"required"`
+	Specialization   string `json:"specialization"`
 	PolyID         int    `json:"poly_id" binding:"required"`
 	Phone          string `json:"phone"`
 	Schedule       string `json:"schedule"`

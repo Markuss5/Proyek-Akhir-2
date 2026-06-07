@@ -14,7 +14,6 @@ func NewInformasiRepository(db *sql.DB) *InformasiRepository {
 	return &InformasiRepository{DB: db}
 }
 
-// Get returns the single hospital information row (ID=1)
 func (r *InformasiRepository) Get() (*models.Informasi, error) {
 	query := `SELECT id, name, description, vision, mission, op_hours, facilities, address, phone, email FROM tbrumahsakit WHERE id = 1`
 
@@ -40,7 +39,6 @@ func (r *InformasiRepository) Get() (*models.Informasi, error) {
 	return &info, nil
 }
 
-// Update updates the single hospital information row (ID=1)
 func (r *InformasiRepository) Update(info *models.Informasi) (*models.Informasi, error) {
 	query := `
 		UPDATE tbrumahsakit

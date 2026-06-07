@@ -314,7 +314,7 @@ return GridView.count(
   crossAxisCount: 2,
   crossAxisSpacing: 10,
   mainAxisSpacing: 10,
-  padding: EdgeInsets.zero, // <--- TAMBAHKAN BARIS INI untuk menghilangkan jarak bawaan
+  padding: EdgeInsets.zero,
   childAspectRatio: cardW / cardH,
   physics: const NeverScrollableScrollPhysics(),
   shrinkWrap: true,

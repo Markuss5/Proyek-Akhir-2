@@ -15,13 +15,14 @@ func NewDokterRepository(db *sql.DB) *DokterRepository {
 
 func (r *DokterRepository) FindByPolyID(polyID int, tanggal string) ([]models.Dokter, error) {
 	query := `
-		SELECT c.id as category_id, c.namadokter, c."IdPoli", p."NamaPoli", d."NoTelp", d."Spesialisasi", c.options as schedule,
+		SELECT c.id as category_id, c.namadokter, c."IdPoli", p."NamaPoli", d."NoTelp", d."Spesialisasi", s.nama, c.options as schedule,
 		       COALESCE(c.senin,''), COALESCE(c.selasa,''), COALESCE(c.rabu,''),
 		       COALESCE(c.kamis,''), COALESCE(c.jumat,''), COALESCE(c.sabtu,''), COALESCE(c.minggu,''),
 		       (COALESCE(c."KuotaNonJKN", 30) - (SELECT COUNT(*) FROM antrian a WHERE a.dokter_id = c.id AND DATE(a.tanggal) = $2::date AND status != 'dibatalkan')), COALESCE(c."KuotaNonJKN", 30)
 		FROM category c
 		JOIN tbpoli p ON c."IdPoli" = p."IdPoli"
 		LEFT JOIN tbdaftardokter d ON c."IdDokter" = d."IdDokter"
+		LEFT JOIN tbspesialis s ON d."Spesialisasi" = s.id
 		WHERE c."IdPoli" = $1 AND c.app = 1
 		ORDER BY c.namadokter ASC
 	`
@@ -39,7 +40,9 @@ func (r *DokterRepository) FindByPolyID(polyID int, tanggal string) ([]models.Do
 		var telp sql.NullString
 		var schedule sql.NullString
 
-		err := rows.Scan(&d.DoctorID, &d.DoctorName, &d.PolyID, &d.PolyName, &telp, &spesialisasi, &schedule,
+		var spesialisasiNama sql.NullString
+
+		err := rows.Scan(&d.DoctorID, &d.DoctorName, &d.PolyID, &d.PolyName, &telp, &spesialisasi, &spesialisasiNama, &schedule,
 			&d.Senin, &d.Selasa, &d.Rabu, &d.Kamis, &d.Jumat, &d.Sabtu, &d.Minggu, &d.KuotaNonJKN, &d.MaxKuotaNonJKN)
 		if err != nil {
 			return nil, err
@@ -50,6 +53,12 @@ func (r *DokterRepository) FindByPolyID(polyID int, tanggal string) ([]models.Do
 		if schedule.Valid {
 			d.Schedule = schedule.String
 		}
+		if spesialisasi.Valid {
+			d.SpecializationID = int(spesialisasi.Int64)
+		}
+		if spesialisasiNama.Valid {
+			d.Specialization = spesialisasiNama.String
+		}
 		d.Status = true
 		results = append(results, d)
 	}
@@ -58,13 +67,14 @@ func (r *DokterRepository) FindByPolyID(polyID int, tanggal string) ([]models.Do
 
 func (r *DokterRepository) FindAll() ([]models.Dokter, error) {
 	query := `
-		SELECT c.id as category_id, c.namadokter, c."IdPoli", p."NamaPoli", d."NoTelp", d."Spesialisasi", c.options as schedule,
+		SELECT c.id as category_id, c.namadokter, c."IdPoli", p."NamaPoli", d."NoTelp", d."Spesialisasi", s.nama, c.options as schedule,
 		       COALESCE(c.senin,''), COALESCE(c.selasa,''), COALESCE(c.rabu,''),
 		       COALESCE(c.kamis,''), COALESCE(c.jumat,''), COALESCE(c.sabtu,''), COALESCE(c.minggu,''),
 		       COALESCE(c."KuotaNonJKN", 0), COALESCE(c."KuotaNonJKN", 30)
 		FROM category c
 		JOIN tbpoli p ON c."IdPoli" = p."IdPoli"
 		LEFT JOIN tbdaftardokter d ON c."IdDokter" = d."IdDokter"
+		LEFT JOIN tbspesialis s ON d."Spesialisasi" = s.id
 		WHERE c.app = 1
 		ORDER BY c.namadokter ASC
 	`
@@ -82,7 +92,9 @@ func (r *DokterRepository) FindAll() ([]models.Dokter, error) {
 		var telp sql.NullString
 		var schedule sql.NullString
 
-		err := rows.Scan(&d.DoctorID, &d.DoctorName, &d.PolyID, &d.PolyName, &telp, &spesialisasi, &schedule,
+		var spesialisasiNama sql.NullString
+
+		err := rows.Scan(&d.DoctorID, &d.DoctorName, &d.PolyID, &d.PolyName, &telp, &spesialisasi, &spesialisasiNama, &schedule,
 			&d.Senin, &d.Selasa, &d.Rabu, &d.Kamis, &d.Jumat, &d.Sabtu, &d.Minggu, &d.KuotaNonJKN, &d.MaxKuotaNonJKN)
 		if err != nil {
 			return nil, err
@@ -93,6 +105,12 @@ func (r *DokterRepository) FindAll() ([]models.Dokter, error) {
 		if schedule.Valid {
 			d.Schedule = schedule.String
 		}
+		if spesialisasi.Valid {
+			d.SpecializationID = int(spesialisasi.Int64)
+		}
+		if spesialisasiNama.Valid {
+			d.Specialization = spesialisasiNama.String
+		}
 		d.Status = true
 		results = append(results, d)
 	}
@@ -101,13 +119,14 @@ func (r *DokterRepository) FindAll() ([]models.Dokter, error) {
 
 func (r *DokterRepository) FindByID(id int) (*models.Dokter, error) {
 	query := `
-		SELECT c.id as category_id, c.namadokter, c."IdPoli", p."NamaPoli", d."NoTelp", d."Spesialisasi", c.options as schedule,
+		SELECT c.id as category_id, c.namadokter, c."IdPoli", p."NamaPoli", d."NoTelp", d."Spesialisasi", s.nama, c.options as schedule,
 		       COALESCE(c.senin,''), COALESCE(c.selasa,''), COALESCE(c.rabu,''),
 		       COALESCE(c.kamis,''), COALESCE(c.jumat,''), COALESCE(c.sabtu,''), COALESCE(c.minggu,''),
 		       COALESCE(c."KuotaNonJKN", 0), COALESCE(c."KuotaNonJKN", 30)
 		FROM category c
 		JOIN tbpoli p ON c."IdPoli" = p."IdPoli"
 		LEFT JOIN tbdaftardokter d ON c."IdDokter" = d."IdDokter"
+		LEFT JOIN tbspesialis s ON d."Spesialisasi" = s.id
 		WHERE c.id = $1 AND c.app = 1
 	`
 
@@ -116,7 +135,9 @@ func (r *DokterRepository) FindByID(id int) (*models.Dokter, error) {
 	var telp sql.NullString
 	var schedule sql.NullString
 
-	err := r.DB.QueryRow(query, id).Scan(&d.DoctorID, &d.DoctorName, &d.PolyID, &d.PolyName, &telp, &spesialisasi, &schedule,
+	var spesialisasiNama sql.NullString
+
+	err := r.DB.QueryRow(query, id).Scan(&d.DoctorID, &d.DoctorName, &d.PolyID, &d.PolyName, &telp, &spesialisasi, &spesialisasiNama, &schedule,
 		&d.Senin, &d.Selasa, &d.Rabu, &d.Kamis, &d.Jumat, &d.Sabtu, &d.Minggu, &d.KuotaNonJKN, &d.MaxKuotaNonJKN)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -130,6 +151,12 @@ func (r *DokterRepository) FindByID(id int) (*models.Dokter, error) {
 	if schedule.Valid {
 		d.Schedule = schedule.String
 	}
+	if spesialisasi.Valid {
+		d.SpecializationID = int(spesialisasi.Int64)
+	}
+	if spesialisasiNama.Valid {
+		d.Specialization = spesialisasiNama.String
+	}
 	d.Status = true
 	return &d, nil
 }
@@ -142,11 +169,11 @@ func (r *DokterRepository) Create(d *models.Dokter) (*models.Dokter, error) {
 
 	queryDokter := `
 		INSERT INTO tbdaftardokter ("NamaDokter", "NoTelp", "Spesialisasi", "Kategori", "Status", "Gambar", "TandaTangan", "IdBPJS")
-		VALUES ($1, $2, 0, 0, 'aktif', '', '', '')
+		VALUES ($1, $2, $3, 0, 'aktif', '', '', '')
 		RETURNING "IdDokter"
 	`
 	var realDokterID int
-	err = tx.QueryRow(queryDokter, d.DoctorName, d.Phone).Scan(&realDokterID)
+	err = tx.QueryRow(queryDokter, d.DoctorName, d.Phone, d.SpecializationID).Scan(&realDokterID)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
@@ -202,8 +229,8 @@ func (r *DokterRepository) Update(d *models.Dokter) (*models.Dokter, error) {
 	}
 
 	if realDokterID > 0 {
-		queryDokter := `UPDATE tbdaftardokter SET "NamaDokter" = $1, "NoTelp" = $2 WHERE "IdDokter" = $3`
-		_, err = tx.Exec(queryDokter, d.DoctorName, d.Phone, realDokterID)
+		queryDokter := `UPDATE tbdaftardokter SET "NamaDokter" = $1, "NoTelp" = $2, "Spesialisasi" = $3 WHERE "IdDokter" = $4`
+		_, err = tx.Exec(queryDokter, d.DoctorName, d.Phone, d.SpecializationID, realDokterID)
 		if err != nil {
 			tx.Rollback()
 			return nil, err

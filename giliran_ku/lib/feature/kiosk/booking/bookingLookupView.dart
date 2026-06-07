@@ -116,7 +116,7 @@ class _BookingLookupViewState extends State<BookingLookupView> {
                     controller: _codeController,
                     decoration: InputDecoration(
                       labelText: 'Kode Booking',
-                      hintText: 'Contoh: GLR-82A1B',
+                      hintText: 'Contoh: PIJ02B4O',
                       prefixIcon: const Icon(Icons.confirmation_number_outlined),
                       errorText: _error,
                     ),

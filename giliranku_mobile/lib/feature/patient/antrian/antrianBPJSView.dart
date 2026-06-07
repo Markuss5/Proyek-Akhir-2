@@ -130,6 +130,40 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
       return;
     }
 
+    _showConfirmationDialog();
+  }
+
+  void _showConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Konfirmasi Pendaftaran'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Apakah data Anda sudah sesuai?'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Kembali'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _processDaftarAntrian();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0D9B86), foregroundColor: Colors.white),
+            child: const Text('Ya, Lanjutkan Pendaftaran'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _processDaftarAntrian() async {
     setState(() => _isLoading = true);
     HapticFeedback.mediumImpact();
 
@@ -379,7 +413,6 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
       );
     }
 
-    // Tidak ada dokter — blokir pemilihan
     if (_dokterList.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(14),

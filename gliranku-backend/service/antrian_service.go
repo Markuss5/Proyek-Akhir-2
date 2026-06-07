@@ -77,6 +77,20 @@ func (s *antrianService) VerifyNIK(nik string) (*response.CekNIKResponse, error)
 }
 
 func (s *antrianService) CreateAntrian(req request.AntrianRequest) (*response.AntrianResponse, error) {
+	if !req.IsPasienLama && req.NamaPasien != "-" {
+		pasien, _ := s.repo.CheckNIK(req.NIK)
+		if pasien != nil {
+			if !strings.EqualFold(pasien.PatientName, req.NamaPasien) {
+				return nil, fmt.Errorf("nama tidak sesuai dengan NIK yang terdaftar")
+			}
+		} else {
+			pasienByName, _ := s.repo.CheckNameCaseInsensitive(req.NamaPasien)
+			if pasienByName != nil {
+				return nil, fmt.Errorf("nama sudah terdaftar dengan NIK yang berbeda")
+			}
+		}
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -203,14 +217,23 @@ func (s *antrianService) GetTicketByBookingCode(code string) (*response.AntrianR
 		}
 	}
 	
+	namaDokter := "dr. -"
+	if a.DokterID != nil {
+		if name, err := s.repo.GetDoctorNameByID(*a.DokterID); err == nil && name != "" {
+			namaDokter = name
+		}
+	}
+	
 	return &response.AntrianResponse{
-		NoAntrian:   a.NoAntrian,
-		KodeBooking: a.KodeBooking,
-		Poliklinik:  namaPoliklinik,
-		Dokter:      "dr. -",
-		Tanggal:     a.Tanggal.Format("02 Jan 2006"),
-		Waktu:       fmt.Sprintf("%s - %s", a.WaktuMulai, a.WaktuSelesai),
-		Pembayaran:  a.Pembayaran,
+		NoAntrian:     a.NoAntrian,
+		NoAntrianPoli: a.NoAntrianPoli,
+		KodeBooking:   a.KodeBooking,
+		Poliklinik:    namaPoliklinik,
+		Dokter:        namaDokter,
+		Tanggal:       a.Tanggal.Format("02 Jan 2006"),
+		Waktu:         fmt.Sprintf("%s - %s", a.WaktuMulai, a.WaktuSelesai),
+		Pembayaran:    a.Pembayaran,
+		NamaPasien:    a.NamaPasien,
 	}, nil
 }
 

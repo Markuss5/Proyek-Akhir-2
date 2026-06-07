@@ -2,8 +2,9 @@ package models
 
 type Dokter struct {
 	DoctorID       int    `json:"doctor_id"`
-	DoctorName     string `json:"doctor_name"`
-	Specialization string `json:"specialization"`
+	DoctorName       string `json:"doctor_name"`
+	SpecializationID int    `json:"specialization_id"`
+	Specialization   string `json:"specialization"`
 	PolyID         int    `json:"poly_id"`
 	PolyName       string `json:"poly_name,omitempty"`
 	Phone          string `json:"phone,omitempty"`

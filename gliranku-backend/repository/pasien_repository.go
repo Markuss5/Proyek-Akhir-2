@@ -13,7 +13,6 @@ func NewPasienRepository(db *sql.DB) *PasienRepository {
 	return &PasienRepository{DB: db}
 }
 
-// FindByNIK retrieves a patient by their NIK
 func (r *PasienRepository) FindByNIK(nik string) (*models.Pasien, error) {
 	query := `
 		SELECT nik, norm, patientname, phone, email,
@@ -35,7 +34,6 @@ func (r *PasienRepository) FindByNIK(nik string) (*models.Pasien, error) {
 	return &p, nil
 }
 
-// Register creates a new patient record
 func (r *PasienRepository) Register(p *models.Pasien) (*models.Pasien, error) {
 	query := `
 		INSERT INTO pasien (nik, patientname, phone)
@@ -55,7 +53,6 @@ func (r *PasienRepository) Register(p *models.Pasien) (*models.Pasien, error) {
 	return &result, nil
 }
 
-// UpdateProfile updates a patient's profile data
 func (r *PasienRepository) UpdateProfile(p *models.Pasien) (*models.Pasien, error) {
 	query := `
 		UPDATE pasien SET
@@ -84,4 +81,25 @@ func (r *PasienRepository) UpdateProfile(p *models.Pasien) (*models.Pasien, erro
 		return nil, err
 	}
 	return &result, nil
+}
+
+func (r *PasienRepository) FindByNameCaseInsensitive(name string) (*models.Pasien, error) {
+	query := `
+		SELECT nik, norm, patientname, phone, email,
+		       "noBPJS", "golonganDarah", "tanggalLahir", alamat, "jenisKelamin"
+		FROM pasien WHERE LOWER(patientname) = LOWER($1)
+	`
+
+	var p models.Pasien
+	err := r.DB.QueryRow(query, name).Scan(
+		&p.NIK, &p.NoRM, &p.PatientName, &p.Phone, &p.Email,
+		&p.NoBPJS, &p.GolonganDarah, &p.TanggalLahir, &p.Alamat, &p.JenisKelamin,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &p, nil
 }

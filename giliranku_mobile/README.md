@@ -1,44 +1,19 @@
-# GiliranKu Mobile
+# GiliranKu Mobile - RSUD Porsea
+Aplikasi mobile untuk pasien Rumah Sakit Umum Daerah (RSUD) Porsea. Aplikasi ini dirancang untuk memberikan kemudahan bagi pasien dalam mereservasi antrean dari rumah, memantau riwayat medis, serta mendapatkan pengingat jadwal kontrol.
 
-GiliranKu Mobile is the patient-facing mobile application for the RSUD Porsea Hospital Queue and Information System. It provides patients with an easy way to view hospital information, doctors' schedules, and manage their routine check-up queues and reminders.
+## Panduan Instalasi (Production)
+Aplikasi ini ditujukan untuk digunakan secara luas oleh pasien RSUD Porsea.
+1. Unduh aplikasi **GiliranKu Mobile** versi rilis terbaru (`.apk` untuk Android).
+2. Instal aplikasi di *smartphone* Anda (pastikan mengizinkan instalasi dari sumber tidak dikenal jika mengunduh di luar Play Store).
+3. Pastikan perangkat Anda terhubung ke internet. Aplikasi akan otomatis tersinkronisasi dengan server produksi rumah sakit secara *real-time*.
+4. Lakukan Pendaftaran atau Login menggunakan NIK untuk mulai menggunakan aplikasi.
 
-## Features
-- **Authentication**: Secure login using NIK and Password.
-- **Hospital Information**: View real-time operational hours, doctors' schedules, and available polyclinics.
-- **Queue Management**: Register for general or BPJS queues and monitor queue statuses.
-- **Notifications**: Automated reminders for routine follow-up check-ups (Kontrol Rutin).
+## Daftar Fitur & Fungsionalitas Utama
+- **Pendaftaran Antrean Online (Pasien Umum)**: Ambil nomor antrean poliklinik dari rumah tangga tanpa perlu antre fisik di lobi.
+- **Manajemen Akun Terintegrasi**: Login aman menggunakan NIK yang divalidasi dengan data Rumah Sakit.
+- **Pengingat Kontrol Rutin Cerdas**: Sistem notifikasi otomatis pada perangkat (H-7, H-3, H-1, dan 1 Jam sebelum jadwal) agar pasien tidak melewatkan jadwal kontrol.
+- **Riwayat Antrean & Tiket Digital**: Simpan riwayat kunjungan dengan aman dan unduh karcis antrean dalam format PDF *paperless*.
+- **Papan Informasi Real-time**: Cek status jam kerja operasional Buka/Tutup Rumah Sakit dan dokter jaga secara aktual.
 
-## Architecture
-The application follows a Clean Architecture approach:
-- `lib/core/`: Contains shared resources, including API constants, models, datasources, services, UI components (widgets), and theme definitions.
-- `lib/feature/`: Contains domain-specific modules such as `auth`, `home`, `patient`, and `notifikasi`.
-
-## Getting Started
-
-### Prerequisites
-- Flutter SDK (>=3.11.4)
-- Dart SDK
-
-### Installation
-1. Navigate to the `giliranku_mobile` directory:
-   ```bash
-   cd giliranku_mobile
-   ```
-2. Install dependencies:
-   ```bash
-   flutter pub get
-   ```
-3. Run the application:
-   ```bash
-   flutter run
-   ```
-
-## Configuration
-Update the `lib/core/constants/apiConstants.dart` file to configure your local or production backend URLs.
-
-## Dependencies
-- `provider`: State management
-- `http`: API communication
-- `flutter_local_notifications` & `timezone`: Local push notifications
-- `shared_preferences`: Local persistent storage
-- `iconsax`: UI icons
+## Catatan Pengembangan Lanjutan
+- **Integrasi Pendaftaran BPJS**: Antarmuka antrean untuk pasien BPJS telah dikembangkan, namun saat ini berstatus *Upcoming Feature* (menunggu rilis Data API Key resmi dan integrasi SimRS BPJS dari pihak rumah sakit) dan akan segera dikembangkan secara lanjut setelah api key didapatkan dan sinkronisasi data BPJS selesai.

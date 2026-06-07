@@ -24,7 +24,6 @@ class _NotifikasiViewState extends State<NotifikasiView> {
 
   late final _refreshTimer = _startRefreshTimer();
   
-  //  DEKLARASIKAN AUDIO PLAYER
   final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
@@ -36,7 +35,7 @@ class _NotifikasiViewState extends State<NotifikasiView> {
   @override
   void dispose() {
     _refreshTimer.cancel();
-    _audioPlayer.dispose(); // DISPOSE AUDIO PLAYER BIAR TIDAK MEMORY LEAK
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -46,7 +45,6 @@ class _NotifikasiViewState extends State<NotifikasiView> {
     });
   }
 
-  // FUNGSI UNTUK MEMUTAR SUARA KRING
   Future<void> _playKringSound() async {
     try {
       await _audioPlayer.play(AssetSource('audio/kring.mp3'));
@@ -61,7 +59,6 @@ class _NotifikasiViewState extends State<NotifikasiView> {
       return;
     }
     
-    // agar aplikasi tidak berkedip terus-menerus bagi pengguna.
     if (_isLoading) {
       setState(() => _isLoading = true);
     }
@@ -70,10 +67,8 @@ class _NotifikasiViewState extends State<NotifikasiView> {
       final data = await NotifikasiRepository().getByNik(widget.nik!);
       if (!mounted) return;
 
-      //  LOGIKA DETEKSI NOTIFIKASI BARU
-      // Jika list lama tidak kosong, dan data baru dari API jumlahnya lebih banyak
       if (_notifications.isNotEmpty && data.length > _notifications.length) {
-        _playKringSound(); // Bunyikan Kring!
+        _playKringSound();
       }
 
       setState(() {

@@ -32,12 +32,6 @@ func (ctrl *KontrolRutinController) Create(c *gin.Context) {
 		utils.Error(c, http.StatusBadRequest, "Format tanggal tak valid. Gunakan ISO-8601")
 		return
 	}
-	loc, errLoc := time.LoadLocation("Asia/Jakarta")
-	if errLoc == nil {
-		controlDate = controlDate.In(loc)
-	} else {
-		controlDate = controlDate.In(time.Local)
-	}
 
 	var notes *string
 	if req.Notes != "" {

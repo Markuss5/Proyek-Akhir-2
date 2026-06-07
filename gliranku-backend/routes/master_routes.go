@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupMasterRoutes(r *gin.Engine, poliCtrl *controller.PoliController, dokterCtrl *controller.DokterController, informasiCtrl *controller.InformasiController) {
+func SetupMasterRoutes(r *gin.Engine, poliCtrl *controller.PoliController, dokterCtrl *controller.DokterController, informasiCtrl *controller.InformasiController, spesialisCtrl *controller.SpesialisController) {
 	r.Use(middleware.SecurityHeaders())
 	r.Use(middleware.CORS())
 	r.Use(middleware.RequestSizeLimit(4 * 1024 * 1024))
@@ -36,5 +36,14 @@ func SetupMasterRoutes(r *gin.Engine, poliCtrl *controller.PoliController, dokte
 		dokter.POST("", dokterCtrl.Create)
 		dokter.PUT("/:id", dokterCtrl.Update)
 		dokter.DELETE("/:id", dokterCtrl.Delete)
+	}
+
+	spesialis := api.Group("/spesialis")
+	{
+		spesialis.GET("", spesialisCtrl.GetAll)
+		spesialis.GET("/:id", spesialisCtrl.GetByID)
+		spesialis.POST("", spesialisCtrl.Create)
+		spesialis.PUT("/:id", spesialisCtrl.Update)
+		spesialis.DELETE("/:id", spesialisCtrl.Delete)
 	}
 }

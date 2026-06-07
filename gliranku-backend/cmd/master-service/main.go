@@ -33,14 +33,17 @@ func main() {
 	poliRepo := repository.NewPoliRepository(db)
 	dokterRepo := repository.NewDokterRepository(db)
 	informasiRepo := repository.NewInformasiRepository(db)
+	spesialisRepo := repository.NewSpesialisRepository(db)
 
 	poliService := service.NewPoliService(poliRepo)
 	dokterService := service.NewDokterService(dokterRepo)
 	informasiService := service.NewInformasiService(informasiRepo)
+	spesialisService := service.NewSpesialisService(spesialisRepo)
 
 	poliCtrl := controller.NewPoliController(poliRepo, poliService)
 	dokterCtrl := controller.NewDokterController(dokterRepo, dokterService)
 	informasiCtrl := controller.NewInformasiController(informasiService)
+	spesialisCtrl := controller.NewSpesialisController(spesialisService)
 
 	r := gin.New()
 	r.Use(gin.Recovery())
@@ -58,7 +61,7 @@ func main() {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	routes.SetupMasterRoutes(r, poliCtrl, dokterCtrl, informasiCtrl)
+	routes.SetupMasterRoutes(r, poliCtrl, dokterCtrl, informasiCtrl, spesialisCtrl)
 
 	port := config.GetEnv("PORT", "8083")
 

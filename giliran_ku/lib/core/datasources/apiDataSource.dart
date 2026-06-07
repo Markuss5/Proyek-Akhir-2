@@ -157,7 +157,10 @@ class QueueApi {
       return <String, dynamic>{};
     }
 
-    final message = _extractError(decoded) ?? 'Gagal memproses permintaan';
+    final errorDetail = _extractError(decoded);
+    final message = errorDetail != null
+        ? 'Gagal memproses permintaan: $errorDetail'
+        : 'Gagal memproses permintaan';
     throw ApiException(message);
   }
 
@@ -198,6 +201,10 @@ class QueueApi {
       final error = decoded['error'];
       if (error is String && error.isNotEmpty) {
         return error;
+      }
+      final message = decoded['message'];
+      if (message is String && message.isNotEmpty) {
+        return message;
       }
     }
     return null;

@@ -42,7 +42,6 @@ class HospitalData {
   }
 }
 
-// ─── Warna tema ──────────────────────────────────────────────────────────────
 class _C {
   static const teal      = Color(0xFF0B7A6E);
   static const tealLight = Color(0xFFE0F5F1);
@@ -57,7 +56,6 @@ class _C {
   static const textSec   = Color(0xFF5B7189);
 }
 
-// ─── Main View ────────────────────────────────────────────────────────────────
 class InformasiView extends StatefulWidget {
   const InformasiView({super.key});
 
@@ -164,7 +162,6 @@ class _InformasiViewState extends State<InformasiView>
     );
   }
 
-  // ─── About Card ────────────────────────────────────────────────────────────
   Widget _buildAboutCard() {
     return _Card(
       child: Column(
@@ -185,11 +182,10 @@ class _InformasiViewState extends State<InformasiView>
     );
   }
 
-  // ─── Visi & Misi Card ──────────────────────────────────────────────────────
   Widget _buildVisiMisiCard() {
     return Container(
       decoration: BoxDecoration(
-        color: _C.white, // Mengubah latar belakang kartu utama menjadi putih bersih
+        color: _C.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFFE4ECF2), width: 1),
         boxShadow: const [
@@ -201,7 +197,6 @@ class _InformasiViewState extends State<InformasiView>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Visi Label
           Row(
             children: const [
               SizedBox(width: 8),
@@ -214,25 +209,23 @@ class _InformasiViewState extends State<InformasiView>
             ],
           ),
           const SizedBox(height: 10),
-          // Box Visi Konten dengan Soft Cyan/Teal Light background
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFE6F4F2), // Menggunakan warna latar soft cyan hangat
+              color: const Color(0xFFE6F4F2),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Text(
               profile!.vision,
               style: const TextStyle(
-                  color: Color(0xFF0D7A6E), // Teks hijau tua solid agar kontras tinggi
+                  color: Color(0xFF0D7A6E),
                   fontWeight: FontWeight.w600,
                   fontSize: 13.5, 
                   height: 1.55),
             ),
           ),
           const SizedBox(height: 20),
-          // Misi Label
           Row(
             children: const [
               SizedBox(width: 8),
@@ -254,7 +247,6 @@ class _InformasiViewState extends State<InformasiView>
     );
   }
 
-  // ─── Operational Hours Card ────────────────────────────────────────────────
   Widget _buildOpHoursCard() {
     return _Card(
       child: Column(
@@ -278,12 +270,10 @@ class _InformasiViewState extends State<InformasiView>
     );
   }
 
-// ─── Facilities Card (Grid 2 Kolom Rapi) ───────────────────────────────────
   Widget _buildFacilitiesCard() {
     final list = profile!.facilities;
     List<Widget> rows = [];
 
-    // Menyusun item fasilitas menjadi pasangan 2 kolom secara dinamis
     for (int i = 0; i < list.length; i += 2) {
       rows.add(
         Row(
@@ -293,7 +283,7 @@ class _InformasiViewState extends State<InformasiView>
             Expanded(
               child: (i + 1 < list.length)
                   ? _buildFacilityGridItem(list[i + 1])
-                  : const SizedBox(), // Sisa grid kosong jika jumlah data ganjil
+                  : const SizedBox(),
             ),
           ],
         ),
@@ -318,19 +308,18 @@ class _InformasiViewState extends State<InformasiView>
     );
   }
 
-  // Komponen kotak item fasilitas (Bentuk Kotak Soft Cyan Elegan & Simetris)
   Widget _buildFacilityGridItem(String text) {
     return Container(
       height: 46,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFE6F4F2), // Latar soft cyan senada dengan aksen Visi
+        color: const Color(0xFFE6F4F2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
           const Icon(
-            Icons.business_center_rounded, // Ikon koper medis minimalis modern
+            Icons.business_center_rounded,
             size: 16,
             color: Color(0xFF0D7A6E),
           ),
@@ -352,7 +341,6 @@ class _InformasiViewState extends State<InformasiView>
     );
   }
 
-  // ─── Contact Card ──────────────────────────────────────────────────────────
   Widget _buildContactCard() {
     return _Card(
       child: Column(
@@ -372,14 +360,12 @@ class _InformasiViewState extends State<InformasiView>
           _ContactRow(
               icon: Icons.email_rounded, text: profile!.email, color: _C.teal),
           const SizedBox(height: 16),
-          // Map Tile
           _MapTile(onTap: _openMaps),
         ],
       ),
     );
   }
 
-  // ─── Loading & Error ───────────────────────────────────────────────────────
   Widget _buildLoading() {
     return const Scaffold(
       backgroundColor: _C.bg,
@@ -426,8 +412,6 @@ class _InformasiViewState extends State<InformasiView>
     );
   }
 }
-
-// ─── Reusable Widgets ─────────────────────────────────────────────────────────
 
 class _Card extends StatelessWidget {
   final Widget child;
@@ -483,7 +467,6 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-/// Item misi bernomor dengan badge lingkaran berwarna Cyan modern
 class _MisiItem extends StatelessWidget {
   final int number;
   final String text;
@@ -501,14 +484,14 @@ class _MisiItem extends StatelessWidget {
             height: 24,
             margin: const EdgeInsets.only(top: 1),
             decoration: const BoxDecoration(
-              color: Color(0xFFE6F4F2), // Menggunakan soft cyan bg untuk nomor list
+              color: Color(0xFFE6F4F2),
               shape: BoxShape.circle,
             ),
             child: Center(
               child: Text(
                 '$number',
                 style: const TextStyle(
-                    color: Color(0xFF0D7A6E), // Teks nomor hijau tua
+                    color: Color(0xFF0D7A6E),
                     fontSize: 11.5,
                     fontWeight: FontWeight.w800),
               ),
@@ -519,7 +502,7 @@ class _MisiItem extends StatelessWidget {
             child: Text(
               text,
               style: const TextStyle(
-                  color: _C.textPri, // Mengubah teks isi misi menjadi gelap agar mudah dibaca di atas putih
+                  color: _C.textPri,
                   fontSize: 13.5, 
                   height: 1.55),
             ),
@@ -692,7 +675,6 @@ class _MapTileState extends State<_MapTile>
           width: double.infinity,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              // Mengubah skema warna gradasi Peta menjadi paduan Teal Utama dan Teal Mid bawaan aplikasi Anda
               colors: [_C.teal, _C.tealMid],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -702,7 +684,6 @@ class _MapTileState extends State<_MapTile>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Decorative circles
               Positioned(
                 top: -20,
                 right: -20,
@@ -727,7 +708,6 @@ class _MapTileState extends State<_MapTile>
                   ),
                 ),
               ),
-              // Content
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

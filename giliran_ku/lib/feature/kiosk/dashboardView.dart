@@ -12,7 +12,6 @@ class DashboardView extends StatelessWidget {
     final actions = _buildActions(context);
     final width = MediaQuery.of(context).size.width;
     
-    // Memberikan sedikit ruang vertikal lebih (0.95 - 1.0) agar tidak rentan overflow di layar kecil
     final crossAxisCount = width >= 900
         ? 3
         : width >= 640
@@ -22,7 +21,6 @@ class DashboardView extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // Background gradient
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -37,7 +35,6 @@ class DashboardView extends StatelessWidget {
             ),
           ),
           
-          // Halo dekoratif
           const Positioned(
             top: -50,
             right: -40,
@@ -60,7 +57,7 @@ class DashboardView extends StatelessWidget {
                       crossAxisCount: crossAxisCount,
                       mainAxisSpacing: 14,
                       crossAxisSpacing: 14,
-                      childAspectRatio: 1.0, // Diubah ke 1.0 agar area card sedikit lebih tinggi ke bawah
+                      childAspectRatio: 1.0,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) => _DashboardCard(action: actions[index]),
@@ -121,7 +118,6 @@ class DashboardView extends StatelessWidget {
   }
 }
 
-// ─── Header ───────────────────────────────────────────────────────────────────
 class _DashboardHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -220,7 +216,6 @@ class _DashboardHeader extends StatelessWidget {
   }
 }
 
-// ─── Card Menu ────────────────────────────────────────────────────────────────
 class _DashboardCard extends StatefulWidget {
   final _DashboardAction action;
   const _DashboardCard({required this.action});
@@ -240,7 +235,6 @@ class _DashboardCardState extends State<_DashboardCard> with TickerProviderState
   void initState() {
     super.initState();
     
-    // Menggunakan instansiasi langsung 'late final' terbukti lebih aman dari LateInitializationError di GridView
     _ctrlScale = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 100),
@@ -258,7 +252,6 @@ class _DashboardCardState extends State<_DashboardCard> with TickerProviderState
       CurvedAnimation(parent: _ctrlArrow, curve: Curves.easeInOut),
     );
 
-    // Menjalankan animasi loop setelah frame pertama selesai dirender secara aman
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _ctrlArrow.repeat(reverse: true);
@@ -303,7 +296,6 @@ class _DashboardCardState extends State<_DashboardCard> with TickerProviderState
           ),
           child: Stack(
             children: [
-              // Efek lingkaran dekoratif latar belakang
               Positioned(
                 top: -22, right: -22,
                 child: Container(
@@ -315,13 +307,11 @@ class _DashboardCardState extends State<_DashboardCard> with TickerProviderState
                 ),
               ),
               
-              // Konten Utama
               Padding(
                 padding: const EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Bagian Atas: Icon Layanan & Panah
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -359,10 +349,8 @@ class _DashboardCardState extends State<_DashboardCard> with TickerProviderState
                       ],
                     ),
                     
-                    // Spacer fleksibel menjamin judul terdorong rapi tanpa overflow
                     const Spacer(),
                     
-                    // Bagian Judul Utama
                     Text(
                       a.title,
                       maxLines: 2,
@@ -376,7 +364,6 @@ class _DashboardCardState extends State<_DashboardCard> with TickerProviderState
                     ),
                     const SizedBox(height: 4),
                     
-                    // Subtitel / Deskripsi Kecil alternatif agar muat sempurna
                     Text(
                       a.subtitle,
                       maxLines: 1,
@@ -397,7 +384,6 @@ class _DashboardCardState extends State<_DashboardCard> with TickerProviderState
   }
 }
 
-// ─── Info Banner ──────────────────────────────────────────────────────────────
 class _InfoBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -457,7 +443,6 @@ class _InfoBanner extends StatelessWidget {
   }
 }
 
-// ─── Halo Circle ─────────────────────────────────────────────────────────────
 class _HaloCircle extends StatelessWidget {
   final double size;
   final Color color;
@@ -476,7 +461,6 @@ class _HaloCircle extends StatelessWidget {
   }
 }
 
-// ─── Data Model ───────────────────────────────────────────────────────────────
 class _DashboardAction {
   final String title;
   final String subtitle;

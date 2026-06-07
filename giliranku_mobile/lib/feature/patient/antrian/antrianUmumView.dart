@@ -231,6 +231,40 @@ class _AntrianViewState extends State<AntrianView>
     }
     if (!valid) return;
 
+    _showConfirmationDialog();
+  }
+
+  void _showConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Konfirmasi Pendaftaran'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Apakah data Anda sudah sesuai?'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Kembali'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _processDaftarAntrian();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0D9B86), foregroundColor: Colors.white),
+            child: const Text('Ya, Lanjutkan Pendaftaran'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _processDaftarAntrian() async {
     setState(() => _isLoading = true);
     HapticFeedback.mediumImpact();
 
@@ -715,7 +749,7 @@ class _AntrianViewState extends State<AntrianView>
                   strokeWidth: 2, color: Color(0xFF0D9B86)),
             ),
             SizedBox(width: 12),
-            Text('Memuat dokter...',
+            Text('Memuat data dokter...',
                 style: TextStyle(
                     color: Color(0xFF9CA3AF), fontSize: 14)),
           ],
@@ -723,7 +757,6 @@ class _AntrianViewState extends State<AntrianView>
       );
     }
 
-    // Tidak ada dokter tersedia — blokir pemilihan
     if (_dokterList.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(14),
