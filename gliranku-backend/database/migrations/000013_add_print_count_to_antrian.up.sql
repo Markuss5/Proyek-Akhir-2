@@ -1,0 +1,1 @@
+ALTER TABLE antrian ADD COLUMN print_count INTEGER DEFAULT 0;

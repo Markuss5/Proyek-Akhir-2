@@ -1,0 +1,1 @@
+ALTER TABLE antrian DROP COLUMN IF EXISTS print_count;

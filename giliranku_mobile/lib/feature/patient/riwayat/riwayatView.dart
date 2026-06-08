@@ -17,6 +17,56 @@ class _RiwayatViewState extends State<RiwayatView> {
   bool _isLoading = true;
   String? _nik;
 
+  String _selectedTimeFilter = 'Semua Waktu';
+  String _selectedPoliFilter = 'Semua Poli';
+
+  List<String> get _availablePoli {
+    final poliSet = {'Semua Poli'};
+    for (var item in _riwayatList) {
+      final poli = item['poliklinik']?.toString() ?? '';
+      if (poli.isNotEmpty) {
+        poliSet.add(poli);
+      }
+    }
+    return poliSet.toList();
+  }
+
+  List<Map<String, dynamic>> get _filteredRiwayat {
+    List<Map<String, dynamic>> result = _riwayatList;
+
+    // Filter by Time
+    if (_selectedTimeFilter != 'Semua Waktu') {
+      final today = DateTime.now();
+      result = result.where((item) {
+        final tgl = item['tanggal']?.toString() ?? '';
+        if (tgl.length != 10) return false;
+        final parts = tgl.split('-');
+        if (parts.length != 3) return false;
+        final itemDate = DateTime.tryParse('${parts[2]}-${parts[1]}-${parts[0]}');
+        if (itemDate == null) return false;
+
+        final itemDateOnly = DateTime(itemDate.year, itemDate.month, itemDate.day);
+        final todayOnly = DateTime(today.year, today.month, today.day);
+
+        if (_selectedTimeFilter == 'Hari Ini') {
+          return itemDateOnly.isAtSameMomentAs(todayOnly);
+        } else if (_selectedTimeFilter == 'Mendatang') {
+          return itemDateOnly.isAfter(todayOnly);
+        } else if (_selectedTimeFilter == 'Selesai') {
+          return item['status']?.toString().toLowerCase() == 'selesai';
+        }
+        return true;
+      }).toList();
+    }
+
+    // Filter by Poli
+    if (_selectedPoliFilter != 'Semua Poli') {
+      result = result.where((item) => (item['poliklinik'] ?? '') == _selectedPoliFilter).toList();
+    }
+
+    return result;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -155,6 +205,7 @@ class _RiwayatViewState extends State<RiwayatView> {
             mode: HeaderMode.page,
             title: 'Riwayat Antrian',
           ),
+          if (!_isLoading && _riwayatList.isNotEmpty) _buildFilterSection(),
           Expanded(
             child: _isLoading
                 ? const Center(
@@ -165,13 +216,13 @@ class _RiwayatViewState extends State<RiwayatView> {
                 : RefreshIndicator(
                     onRefresh: _fetchRiwayat,
                     color: const Color(0xFF25A699),
-                    child: _riwayatList.isEmpty
+                    child: _filteredRiwayat.isEmpty
                         ? _buildEmptyState()
                         : ListView.builder(
                             padding: const EdgeInsets.all(20),
-                            itemCount: _riwayatList.length,
+                            itemCount: _filteredRiwayat.length,
                             itemBuilder: (context, index) {
-                              final item = _riwayatList[index];
+                              final item = _filteredRiwayat[index];
                               final status = item['status'] ?? 'Menunggu';
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 16),
@@ -190,6 +241,94 @@ class _RiwayatViewState extends State<RiwayatView> {
                             },
                           ),
                   ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterSection() {
+    final timeOptions = ['Semua Waktu', 'Hari Ini', 'Mendatang', 'Selesai'];
+    final poliOptions = _availablePoli;
+
+    return Container(
+      width: double.infinity,
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+      child: Row(
+        children: [
+          Expanded(
+            child: DropdownButtonFormField<String>(
+              value: _selectedTimeFilter,
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Color(0xFFD7EFE6)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Color(0xFFD7EFE6)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Color(0xFF25A699)),
+                ),
+                filled: true,
+                fillColor: const Color(0xFFF4F4F4),
+              ),
+              icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF25A699)),
+              items: timeOptions.map((opt) {
+                return DropdownMenuItem(
+                  value: opt,
+                  child: Text(
+                    opt,
+                    style: const TextStyle(fontSize: 14, color: Colors.black87),
+                  ),
+                );
+              }).toList(),
+              onChanged: (val) {
+                if (val != null) setState(() => _selectedTimeFilter = val);
+              },
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: DropdownButtonFormField<String>(
+              value: _selectedPoliFilter,
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Color(0xFFD7EFE6)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Color(0xFFD7EFE6)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Color(0xFF25A699)),
+                ),
+                filled: true,
+                fillColor: const Color(0xFFF4F4F4),
+              ),
+              icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF25A699)),
+              isExpanded: true,
+              items: poliOptions.map((opt) {
+                return DropdownMenuItem(
+                  value: opt,
+                  child: Text(
+                    opt,
+                    style: const TextStyle(fontSize: 14, color: Colors.black87),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              }).toList(),
+              onChanged: (val) {
+                if (val != null) setState(() => _selectedPoliFilter = val);
+              },
+            ),
           ),
         ],
       ),

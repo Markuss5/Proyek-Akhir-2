@@ -202,6 +202,12 @@ func (s *antrianService) GetTicketByBookingCode(code string) (*response.AntrianR
 	if a == nil {
 		return nil, nil
 	}
+
+	if a.PrintCount >= 3 {
+		return nil, fmt.Errorf("Kode booking sudah mencapai limit penggunaan (3 kali)")
+	}
+
+	_ = s.repo.IncrementPrintCount(code)
 	
 	namaPoliklinik := fmt.Sprintf("Poli %d", a.PoliID)
 	polis, _ := s.repo.FetchPoliklinik()

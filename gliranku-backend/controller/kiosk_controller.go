@@ -57,7 +57,7 @@ func (ctrl *kioskController) GetBooking(c *gin.Context) {
 
 	ticket, err := ctrl.antrianService.GetTicketByBookingCode(code)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mencari kode booking"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	if ticket == nil {

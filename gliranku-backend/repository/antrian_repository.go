@@ -26,6 +26,7 @@ type AntrianRepository interface {
 	DecrementDoctorQuota(doctorID int) error
 	GetDoctorNameByID(doctorID int) (string, error)
 	DeleteAntrian(kodeBooking string) error
+	IncrementPrintCount(kodeBooking string) error
 }
 
 type antrianRepository struct {
@@ -124,8 +125,8 @@ func (r *antrianRepository) SaveAntrian(a *models.Antrian) error {
 	_, err := r.db.Exec(`
 		INSERT INTO antrian
 		(no_antrian, no_antrian_poli, kode_booking, nik, nama_pasien, telepon, poli_id, dokter_id,
-		 tanggal, waktu_mulai, waktu_selesai, pembayaran, is_pasien_lama, status, source, no_rm)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+		 tanggal, waktu_mulai, waktu_selesai, pembayaran, is_pasien_lama, status, source, no_rm, print_count)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,0)
 	`,
 		a.NoAntrian, a.NoAntrianPoli, a.KodeBooking, a.NIK, a.NamaPasien, a.Telepon,
 		a.PoliID, a.DokterID, a.Tanggal, a.WaktuMulai, a.WaktuSelesai,
@@ -272,12 +273,12 @@ func (r *antrianRepository) GetTicketByBookingCode(code string) (*models.Antrian
 	var a models.Antrian
 	err := r.db.QueryRow(`
 		SELECT no_antrian, no_antrian_poli, kode_booking, nik, nama_pasien, telepon, poli_id,
-		       dokter_id, tanggal, waktu_mulai, waktu_selesai, pembayaran, is_pasien_lama, status
+		       dokter_id, tanggal, waktu_mulai, waktu_selesai, pembayaran, is_pasien_lama, status, COALESCE(print_count, 0)
 		FROM antrian
 		WHERE kode_booking = $1
 	`, code).Scan(
 		&a.NoAntrian, &a.NoAntrianPoli, &a.KodeBooking, &a.NIK, &a.NamaPasien, &a.Telepon, &a.PoliID,
-		&a.DokterID, &a.Tanggal, &a.WaktuMulai, &a.WaktuSelesai, &a.Pembayaran, &a.IsPasienLama, &a.Status,
+		&a.DokterID, &a.Tanggal, &a.WaktuMulai, &a.WaktuSelesai, &a.Pembayaran, &a.IsPasienLama, &a.Status, &a.PrintCount,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -339,7 +340,7 @@ func (r *antrianRepository) GetBpjsReferralByNik(nik string) (*models.BpjsReferr
 func (r *antrianRepository) GetRiwayatByNIK(nik string) ([]models.AntrianResponseExtended, error) {
 	query := `
 		SELECT a.no_antrian, a.no_antrian_poli, a.kode_booking, p."NamaPoli", COALESCE(c.namadokter, 'dr. -'),
-		       a.tanggal, a.waktu_mulai, a.waktu_selesai, a.pembayaran, a.status
+		       a.tanggal, a.waktu_mulai, a.waktu_selesai, a.pembayaran, a.status, COALESCE(a.print_count, 0)
 		FROM antrian a
 		JOIN tbpoli p ON a.poli_id = p."IdPoli"
 		LEFT JOIN category c ON a.dokter_id = c.id
@@ -358,7 +359,7 @@ func (r *antrianRepository) GetRiwayatByNIK(nik string) ([]models.AntrianRespons
 		var a models.AntrianResponseExtended
 		err := rows.Scan(
 			&a.NoAntrian, &a.NoAntrianPoli, &a.KodeBooking, &a.Poliklinik, &a.Dokter,
-			&a.Tanggal, &a.WaktuMulai, &a.WaktuSelesai, &a.Pembayaran, &a.Status,
+			&a.Tanggal, &a.WaktuMulai, &a.WaktuSelesai, &a.Pembayaran, &a.Status, &a.PrintCount,
 		)
 		if err != nil {
 			return nil, err
@@ -381,4 +382,14 @@ func (r *antrianRepository) DeleteAntrian(kodeBooking string) error {
 		return fmt.Errorf("antrian tidak ditemukan")
 	}
 	return nil
+}
+
+func (r *antrianRepository) IncrementPrintCount(kodeBooking string) error {
+	_, err := r.db.Exec(`
+		UPDATE antrian
+		SET print_count = COALESCE(print_count, 0) + 1,
+		    status = 'Selesai'
+		WHERE kode_booking = $1
+	`, kodeBooking)
+	return err
 }

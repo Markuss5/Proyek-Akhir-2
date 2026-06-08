@@ -19,6 +19,7 @@ type Antrian struct {
 	Status       string    `json:"status"`
 	Source       string    `json:"source"`
 	NoRM         string    `json:"no_rm"`
+	PrintCount   int       `json:"print_count"`
 }
 
 type KunjunganStatPoli struct {
@@ -38,4 +39,5 @@ type AntrianResponseExtended struct {
 	WaktuSelesai string
 	Pembayaran   string
 	Status       string
+	PrintCount   int
 }
