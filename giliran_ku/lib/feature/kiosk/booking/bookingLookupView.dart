@@ -107,7 +107,7 @@ class _BookingLookupViewState extends State<BookingLookupView> {
               child: Column(
                 children: [
                   const Icon(
-                    Icons.qr_code_scanner,
+                    Icons.keyboard_alt_outlined,
                     size: 48,
                     color: Color(0xFF25A699),
                   ),

@@ -106,7 +106,7 @@ class DashboardView extends StatelessWidget {
       _DashboardAction(
         title: 'Cetak\nAntrian',
         subtitle: 'Kode booking',
-        icon: Icons.qr_code_2_outlined,
+        icon: Icons.keyboard_alt_outlined,
         topColor: const Color(0xFF0F8C6D),
         botColor: const Color(0xFF07624D),
         onTap: () => Navigator.push(
