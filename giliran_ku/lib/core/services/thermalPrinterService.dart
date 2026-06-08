@@ -46,7 +46,7 @@ class ThermalPrinterService {
     final patientName = ticket.patientName ?? '-';
     
     final sb = StringBuffer();
-    final divider = '-' * 64;
+    final divider = '-' * 48;
 
     sb.writeln(_centerText('RSUD Porsea'));
     sb.writeln('');
@@ -55,7 +55,7 @@ class ThermalPrinterService {
     sb.writeln(_centerText('Nomor Antrian Bapak / Ibu :'));
     sb.writeln(divider);
     sb.writeln('');
-    sb.writeln(_centerText(queueCode));
+    sb.writeln('<center><hw>$queueCode</hw></center>');
     sb.writeln('');
     sb.writeln(_centerText('Nama : $patientName'));
     sb.writeln('');
@@ -78,7 +78,7 @@ class ThermalPrinterService {
     final doctorName = ticket.doctorName ?? '-';
 
     final sb = StringBuffer();
-    final divider = '-' * 64;
+    final divider = '-' * 48;
 
     sb.writeln(_fmtDateTime(now));
     sb.writeln('');
@@ -87,7 +87,7 @@ class ThermalPrinterService {
     sb.writeln(_centerText('Nomor Antrian Admisi :'));
     sb.writeln(divider);
     sb.writeln('');
-    sb.writeln(_centerText(admissionNumber));
+    sb.writeln('<center><hw>$admissionNumber</hw></center>');
     sb.writeln('');
     sb.writeln(_centerText('Mohon menuju ruang tunggu'));
     sb.writeln(_centerText('admisi/pendaftaran'));
@@ -95,7 +95,7 @@ class ThermalPrinterService {
     sb.writeln(_centerText('Nomor Antrian Anda :'));
     sb.writeln(divider);
     sb.writeln('');
-    sb.writeln(_centerText(poliQueue));
+    sb.writeln('<center><hw>$poliQueue</hw></center>');
     sb.writeln('');
     if (ticket.bookingCode != null) {
       sb.writeln(_centerText(ticket.bookingCode!));
@@ -119,7 +119,7 @@ class ThermalPrinterService {
     return sb.toString();
   }
 
-  static String _centerText(String text, {int width = 64}) {
+  static String _centerText(String text, {int width = 48}) {
     if (text.length >= width) return text;
     final leftPadding = ((width - text.length) / 2).floor();
     return text.padLeft(leftPadding + text.length, ' ');
