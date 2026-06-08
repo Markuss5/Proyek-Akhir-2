@@ -150,7 +150,11 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
     TimeOfDay? selectedTime;
     bool isLoadingDokter = false;
 
-    poliList = await ApiDataSource().fetchPoliklinik();
+    try {
+      poliList = await ApiDataSource().fetchPoliklinik();
+    } catch (e) {
+      poliList = [];
+    }
     if (!mounted) return;
 
     showDialog(
@@ -261,14 +265,23 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
                                     isLoadingDokter = true;
                                   });
                                   if (val != null) {
-                                    ApiDataSource()
-                                        .fetchDokterByPoly(val['poly_id'])
-                                        .then((data) {
+                                    try {
+                                      final doks = ApiDataSource()
+                                          .fetchDokterByPoly(val['poly_id']);
+                                      doks.then((data) {
+                                        if (!mounted) return;
+                                        setDialogState(() {
+                                          dokterList = data;
+                                          isLoadingDokter = false;
+                                        });
+                                      });
+                                    } catch (e) {
+                                      if (!mounted) return;
                                       setDialogState(() {
-                                        dokterList = data;
+                                        dokterList = [];
                                         isLoadingDokter = false;
                                       });
-                                    });
+                                    }
                                   }
                                 },
                               ),

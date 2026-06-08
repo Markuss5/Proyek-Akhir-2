@@ -17,6 +17,7 @@ class _InformasiPoliklinikViewState
 
   List<Map<String, dynamic>> poliList = [];
   bool _isLoading = true;
+  bool _isError = false;
 
   @override
   void initState() {
@@ -25,12 +26,22 @@ class _InformasiPoliklinikViewState
   }
 
   Future<void> _fetchData() async {
-    final data = await ApiDataSource().fetchPoliklinik();
-    if (mounted) {
-      setState(() {
-        poliList = data;
-        _isLoading = false;
-      });
+    setState(() { _isLoading = true; _isError = false; });
+    try {
+      final data = await ApiDataSource().fetchPoliklinik();
+      if (mounted) {
+        setState(() {
+          poliList = data;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isError = true;
+        });
+      }
     }
   }
 
@@ -38,11 +49,6 @@ class _InformasiPoliklinikViewState
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
     final filteredList = poliList.where((item) {
       return (item['poly_name'] ?? '')
           .toString()
@@ -61,31 +67,41 @@ class _InformasiPoliklinikViewState
               title: 'Daftar Poliklinik RSUD Porsea',
             ),
 
-            _buildSearchBox(),
-
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: _fetchData,
-                color: const Color(0xFF25A699),
-                child: ListView.separated(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 8),
-                  itemCount: filteredList.length,
-                  separatorBuilder: (_, __) =>
-                      const Divider(height: 1, color: Color(0xFFEAEAEA)),
-                  itemBuilder: (context, index) {
-                    final poli = filteredList[index];
-  
-                    return _buildPoliItem(
-                      nama: poli['poly_name'] ?? '',
-                      desc: poli['kode_poli'] != null ? 'Kode: ${poli['kode_poli']}' : '',
-                      icon: Icons.local_hospital_outlined,
-                    );
-                  },
+            if (_isLoading)
+              Expanded(child: _buildLoadingBody())
+            else if (_isError)
+              Expanded(child: _buildErrorBody())
+            else
+              Expanded(
+                child: Column(
+                  children: [
+                    _buildSearchBox(),
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: _fetchData,
+                        color: const Color(0xFF25A699),
+                        child: ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 8),
+                          itemCount: filteredList.length,
+                          separatorBuilder: (_, __) =>
+                              const Divider(height: 1, color: Color(0xFFEAEAEA)),
+                          itemBuilder: (context, index) {
+                            final poli = filteredList[index];
+          
+                            return _buildPoliItem(
+                              nama: poli['poly_name'] ?? '',
+                              desc: poli['kode_poli'] != null ? 'Kode: ${poli['kode_poli']}' : '',
+                              icon: Icons.local_hospital_outlined,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -109,6 +125,15 @@ class _InformasiPoliklinikViewState
           prefixIcon: const Icon(Icons.search, color: Colors.grey),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.grey),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.grey),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.grey),
           ),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 15),
@@ -151,6 +176,52 @@ class _InformasiPoliklinikViewState
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingBody() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(color: Color(0xFF25A699)),
+          SizedBox(height: 16),
+          Text('Memuat informasi...', style: TextStyle(color: Colors.grey, fontSize: 14)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorBody() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.close_rounded, color: Colors.grey, size: 40),
+          ),
+          const SizedBox(height: 16),
+          const Text('Terjadi Kesalahan, Silahkan Coba Lagi',
+              style: TextStyle(color: Colors.grey, fontSize: 14)),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: _fetchData,
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('Coba Lagi'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF25A699),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ],

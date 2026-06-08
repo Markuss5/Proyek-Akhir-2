@@ -13,6 +13,7 @@ class _KelolaPoliViewState extends State<KelolaPoliView> {
   List<Map<String, dynamic>> _poliList = [];
   List<Map<String, dynamic>> _filtered = [];
   bool _isLoading = true;
+  bool _hasError = false;
   final _searchCtrl = TextEditingController();
 
   @override
@@ -29,13 +30,29 @@ class _KelolaPoliViewState extends State<KelolaPoliView> {
   }
 
   Future<void> _fetchData() async {
-    setState(() => _isLoading = true);
-    final data = await ApiDataSource().fetchPoliklinik();
     setState(() {
-      _poliList = data;
-      _applyFilter();
-      _isLoading = false;
+      _isLoading = true;
+      _hasError = false;
     });
+    try {
+      final data = await ApiDataSource().fetchPoliklinik();
+      if (mounted) {
+        setState(() {
+          _poliList = data;
+          _applyFilter();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _poliList = [];
+          _applyFilter();
+          _isLoading = false;
+          _hasError = true;
+        });
+      }
+    }
   }
 
   void _applyFilter() {
@@ -183,10 +200,47 @@ class _KelolaPoliViewState extends State<KelolaPoliView> {
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : _filtered.isEmpty
-                    ? const Center(
-                        child: Text('Tidak ada data',
-                            style: TextStyle(color: Colors.grey)))
+                : _hasError
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                            const SizedBox(height: 16),
+                            const Text('Terjadi Kesalahan, Silahkan Coba Lagi',
+                                style: TextStyle(color: Colors.grey, fontSize: 16)),
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: _fetchData,
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Coba Lagi'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : _filtered.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text('Tidak ada data', style: TextStyle(color: Colors.grey)),
+                                const SizedBox(height: 16),
+                                ElevatedButton.icon(
+                                  onPressed: _fetchData,
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('Refresh'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
                     : RefreshIndicator(
                         onRefresh: _fetchData,
                         color: AppColors.primary,

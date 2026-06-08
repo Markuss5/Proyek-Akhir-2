@@ -180,26 +180,29 @@ class _PatientProfilViewState extends State<PatientProfilView> {
           ),
         ],
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(15),
-        leading: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
+      child: Material(
+        color: Colors.transparent,
+        child: ListTile(
+          contentPadding: const EdgeInsets.all(15),
+          leading: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: isProfile && _isLoggedIn 
+              ? Center(child: Text(_name[0].toUpperCase(), style: TextStyle(color: iconColor, fontWeight: FontWeight.bold, fontSize: 18)))
+              : Icon(icon, color: iconColor, size: 24),
           ),
-          child: isProfile && _isLoggedIn 
-            ? Center(child: Text(_name[0].toUpperCase(), style: TextStyle(color: iconColor, fontWeight: FontWeight.bold, fontSize: 18)))
-            : Icon(icon, color: iconColor, size: 24),
+          title: Text(
+            title, 
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)
+          ),
+          subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+          onTap: onTap,
         ),
-        title: Text(
-          title, 
-          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)
-        ),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-        onTap: onTap,
       ),
     );
   }

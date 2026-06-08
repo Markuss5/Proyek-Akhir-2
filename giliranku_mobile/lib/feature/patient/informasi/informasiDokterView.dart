@@ -24,6 +24,7 @@ class _InformasiDokterPageState extends State<InformasiDokterPage> {
   List<Map<String, dynamic>> _allDoctors = [];
   List<Map<String, dynamic>> _filteredDoctors = [];
   bool _isLoading = true;
+  bool _isError = false;
   String _searchKeyword = '';
   int _selectedDayIndex = 0;
 
@@ -34,13 +35,23 @@ class _InformasiDokterPageState extends State<InformasiDokterPage> {
   }
 
   Future<void> _fetchData() async {
-    final data = await ApiDataSource().fetchDokterByPoly(null);
-    if (mounted) {
-      setState(() {
-        _allDoctors = data;
-        _isLoading = false;
-        _applyFilters();
-      });
+    setState(() { _isLoading = true; _isError = false; });
+    try {
+      final data = await ApiDataSource().fetchDokterByPoly(null);
+      if (mounted) {
+        setState(() {
+          _allDoctors = data;
+          _isLoading = false;
+          _applyFilters();
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isError = true;
+        });
+      }
     }
   }
 
@@ -86,93 +97,107 @@ class _InformasiDokterPageState extends State<InformasiDokterPage> {
               title: 'Daftar Dokter RSUD Porsea',
             ),
 
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-              child: TextField(
-                onChanged: _onSearch,
-                decoration: InputDecoration(
-                  hintText: "Cari Dokter...",
-                  filled: true,
-                  fillColor: Colors.white,
-                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                ),
-              ),
-            ),
-
-            Container(
-              height: 54,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _days.length,
-                itemBuilder: (context, index) {
-                  final isSelected = _selectedDayIndex == index;
-                  return GestureDetector(
-                    onTap: () => _onDaySelected(index),
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 10),
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFFE0F2F1) : Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(10),
-                        border: isSelected ? Border.all(color: const Color(0xFF25A699)) : null,
-                      ),
-                      child: Center(
-                        child: Text(
-                          _days[index]['label']!,
-                          style: TextStyle(
-                            color: isSelected ? const Color(0xFF25A699) : Colors.grey,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            if (_isLoading)
+              Expanded(child: _buildLoadingBody())
+            else if (_isError)
+              Expanded(child: _buildErrorBody())
+            else
+              Expanded(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                      child: TextField(
+                        onChanged: _onSearch,
+                        decoration: InputDecoration(
+                          hintText: "Cari Dokter...",
+                          filled: true,
+                          fillColor: Colors.white,
+                          prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.grey),
                           ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.grey),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.grey),
+                          ),
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 15),
                         ),
                       ),
                     ),
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(height: 4),
-
-            _isLoading
-                ? const Expanded(
-                    child: Center(child: CircularProgressIndicator()),
-                  )
-                : _filteredDoctors.isEmpty
-                    ? Expanded(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.person_off, size: 60, color: Colors.grey.shade300),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Tidak ada dokter pada hari ini',
-                                style: TextStyle(color: Colors.grey.shade500),
+                    Container(
+                      height: 54,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _days.length,
+                        itemBuilder: (context, index) {
+                          final isSelected = _selectedDayIndex == index;
+                          return GestureDetector(
+                            onTap: () => _onDaySelected(index),
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 10),
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              decoration: BoxDecoration(
+                                color: isSelected ? const Color(0xFFE0F2F1) : Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(10),
+                                border: isSelected ? Border.all(color: const Color(0xFF25A699)) : null,
                               ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : Expanded(
-                        child: RefreshIndicator(
-                          onRefresh: _fetchData,
-                          color: const Color(0xFF25A699),
-                          child: ListView.builder(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
-                            itemCount: _filteredDoctors.length,
-                            itemBuilder: (context, index) {
-                              return _buildDoctorCard(_filteredDoctors[index]);
-                            },
-                          ),
-                        ),
+                              child: Center(
+                                child: Text(
+                                  _days[index]['label']!,
+                                  style: TextStyle(
+                                    color: isSelected ? const Color(0xFF25A699) : Colors.grey,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
+                    ),
+                    const SizedBox(height: 4),
+                    _filteredDoctors.isEmpty
+                        ? Expanded(
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.person_off, size: 60, color: Colors.grey.shade300),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Tidak ada dokter pada hari ini',
+                                    style: TextStyle(color: Colors.grey.shade500),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : Expanded(
+                            child: RefreshIndicator(
+                              onRefresh: _fetchData,
+                              color: const Color(0xFF25A699),
+                              child: ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 10),
+                                itemCount: _filteredDoctors.length,
+                                itemBuilder: (context, index) {
+                                  return _buildDoctorCard(_filteredDoctors[index]);
+                                },
+                              ),
+                            ),
+                          ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
@@ -272,6 +297,52 @@ class _InformasiDokterPageState extends State<InformasiDokterPage> {
                   ],
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingBody() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(color: Color(0xFF25A699)),
+          SizedBox(height: 16),
+          Text('Memuat informasi...', style: TextStyle(color: Colors.grey, fontSize: 14)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorBody() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.close_rounded, color: Colors.grey, size: 40),
+          ),
+          const SizedBox(height: 16),
+          const Text('Terjadi Kesalahan, Silahkan Coba Lagi',
+              style: TextStyle(color: Colors.grey, fontSize: 14)),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: _fetchData,
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('Coba Lagi'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF25A699),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ],

@@ -144,10 +144,11 @@ class ApiDataSource {
         return ((jsonDecode(res.body) as Map<String, dynamic>)['data'] as List<dynamic>? ?? [])
             .cast<Map<String, dynamic>>();
       }
+      throw Exception('Failed to fetch poliklinik');
     } catch (e) {
       debugPrint('ApiDataSource.fetchPoliklinik: $e');
+      rethrow;
     }
-    return [];
   }
 
   Future<List<Map<String, dynamic>>> fetchRujukanBpjs(String nik) async {
@@ -215,10 +216,11 @@ class ApiDataSource {
         return ((jsonDecode(res.body) as Map<String, dynamic>)['data'] as List<dynamic>? ?? [])
             .cast<Map<String, dynamic>>();
       }
+      throw Exception('Failed to fetch dokter');
     } catch (e) {
       debugPrint('ApiDataSource.fetchDokter: $e');
+      rethrow;
     }
-    return [];
   }
 
   Future<bool> createDokter(Map<String, dynamic> data) async {
@@ -467,10 +469,11 @@ class ApiDataSource {
                 [])
             .cast<Map<String, dynamic>>();
       }
+      throw Exception('Failed to get dokter by poli');
     } catch (e) {
       debugPrint('ApiDataSource.getDokterByPoli: $e');
+      rethrow;
     }
-    return [];
   }
 
   Future<dynamic> getRiwayatAntrian(String nik) async {

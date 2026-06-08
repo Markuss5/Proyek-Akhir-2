@@ -123,40 +123,47 @@ class _InformasiViewState extends State<InformasiView>
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) return _buildLoading();
-    if (profile == null) return _buildError();
-
     return Scaffold(
       backgroundColor: _C.bg,
-      body: RefreshIndicator(
-        onRefresh: _fetchData,
-        color: _C.teal,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            children: [
-              AppHeader(
-                mode: HeaderMode.page,
-                title: 'Informasi RSUD Porsea',
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 20, 18, 32),
-                child: Column(
-                  children: [
-                    _AnimatedSection(controller: _staggerCtrl, delay: 0.0, child: _buildAboutCard()),
-                    const SizedBox(height: 16),
-                    _AnimatedSection(controller: _staggerCtrl, delay: 0.1, child: _buildVisiMisiCard()),
-                    const SizedBox(height: 16),
-                    _AnimatedSection(controller: _staggerCtrl, delay: 0.2, child: _buildOpHoursCard()),
-                    const SizedBox(height: 16),
-                    _AnimatedSection(controller: _staggerCtrl, delay: 0.3, child: _buildFacilitiesCard()),
-                    const SizedBox(height: 16),
-                    _AnimatedSection(controller: _staggerCtrl, delay: 0.4, child: _buildContactCard()),
-                  ],
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            AppHeader(
+              mode: HeaderMode.page,
+              title: 'Informasi RSUD Porsea',
+            ),
+            if (_isLoading)
+              Expanded(child: _buildLoadingBody())
+            else if (profile == null)
+              Expanded(child: _buildErrorBody())
+            else
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: _fetchData,
+                  color: _C.teal,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 20, 18, 32),
+                      child: Column(
+                        children: [
+                          _AnimatedSection(controller: _staggerCtrl, delay: 0.0, child: _buildAboutCard()),
+                          const SizedBox(height: 16),
+                          _AnimatedSection(controller: _staggerCtrl, delay: 0.1, child: _buildVisiMisiCard()),
+                          const SizedBox(height: 16),
+                          _AnimatedSection(controller: _staggerCtrl, delay: 0.2, child: _buildOpHoursCard()),
+                          const SizedBox(height: 16),
+                          _AnimatedSection(controller: _staggerCtrl, delay: 0.3, child: _buildFacilitiesCard()),
+                          const SizedBox(height: 16),
+                          _AnimatedSection(controller: _staggerCtrl, delay: 0.4, child: _buildContactCard()),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -366,48 +373,48 @@ class _InformasiViewState extends State<InformasiView>
     );
   }
 
-  Widget _buildLoading() {
-    return const Scaffold(
-      backgroundColor: _C.bg,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(color: _C.teal),
-            SizedBox(height: 16),
-            Text('Memuat informasi...',
-                style: TextStyle(color: _C.textSec, fontSize: 14)),
-          ],
-        ),
+  Widget _buildLoadingBody() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(color: _C.teal),
+          SizedBox(height: 16),
+          Text('Memuat informasi...', style: TextStyle(color: _C.textSec, fontSize: 14)),
+        ],
       ),
     );
   }
 
-  Widget _buildError() {
-    return Scaffold(
-      backgroundColor: _C.bg,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.cloud_off_rounded, color: _C.textSec, size: 48),
-            const SizedBox(height: 12),
-            const Text('Gagal memuat data.',
-                style: TextStyle(color: _C.textSec, fontSize: 14)),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: _fetchData,
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Coba lagi'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _C.teal,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
-            )
-          ],
-        ),
+  Widget _buildErrorBody() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.close_rounded, color: Colors.grey, size: 40),
+          ),
+          const SizedBox(height: 16),
+          const Text('Terjadi Kesalahan, Silahkan Coba Lagi',
+              style: TextStyle(color: _C.textSec, fontSize: 14)),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: _fetchData,
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('Coba Lagi'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _C.teal,
+              foregroundColor: _C.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ],
       ),
     );
   }
