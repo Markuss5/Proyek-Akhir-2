@@ -32,6 +32,54 @@ class _RiwayatViewState extends State<RiwayatView> {
 
     if (_nik != null) {
       final data = await PasienRepository().getRiwayatAntrian(_nik!);
+      
+      // Sort logic
+      data.sort((a, b) {
+        // 1. Sort by Poliklinik Name (Ascending)
+        final poliA = (a['poliklinik'] ?? 'Poli Umum').toString();
+        final poliB = (b['poliklinik'] ?? 'Poli Umum').toString();
+        final poliComp = poliA.compareTo(poliB);
+        if (poliComp != 0) return poliComp;
+
+        // 2. Sort by Tanggal (Ascending)
+        final tglA = a['tanggal']?.toString() ?? '';
+        final tglB = b['tanggal']?.toString() ?? '';
+        
+        DateTime? dateA;
+        if (tglA.isNotEmpty && tglA.length == 10) {
+          final parts = tglA.split('-');
+          if (parts.length == 3) {
+            dateA = DateTime.tryParse('${parts[2]}-${parts[1]}-${parts[0]}');
+          }
+        }
+        
+        DateTime? dateB;
+        if (tglB.isNotEmpty && tglB.length == 10) {
+          final parts = tglB.split('-');
+          if (parts.length == 3) {
+            dateB = DateTime.tryParse('${parts[2]}-${parts[1]}-${parts[0]}');
+          }
+        }
+
+        if (dateA != null && dateB != null) {
+          final dateComp = dateA.compareTo(dateB);
+          if (dateComp != 0) return dateComp;
+        } else if (dateA != null) {
+          return -1;
+        } else if (dateB != null) {
+          return 1;
+        }
+
+        // 3. Sort by No Antrian (Ascending)
+        final noAStr = a['no_antrian']?.toString() ?? '0';
+        final noBStr = b['no_antrian']?.toString() ?? '0';
+        
+        final noA = int.tryParse(noAStr) ?? 0;
+        final noB = int.tryParse(noBStr) ?? 0;
+        
+        return noA.compareTo(noB);
+      });
+
       if (mounted) {
         setState(() {
           _riwayatList = data;
