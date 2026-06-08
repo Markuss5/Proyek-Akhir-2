@@ -53,13 +53,12 @@ class QueueApi {
       queryParameters: {'tanggal': date},
     );
     final data = _dataList(payload);
-    return data
-        .map((item) => Doctor(
-              id: '${item['doctor_id'] ?? item['id'] ?? ''}',
-              name: item['doctor_name'] ?? item['nama'] ?? '',
-              poliId: poliId,
-            ))
-        .toList();
+    return data.map((item) {
+      if (item is Map<String, dynamic>) {
+        return Doctor.fromJson(item);
+      }
+      return Doctor(id: '', name: '', poliId: poliId);
+    }).toList();
   }
 
   Future<List<dynamic>> fetchRujukanBpjs(String nik) async {

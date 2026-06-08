@@ -107,6 +107,10 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
       if (!mounted) return;
       setState(() {
         _dokterList = list.map((e) => Dokter.fromJson(e)).toList();
+        if (_dokterList.isNotEmpty) {
+          _selectedDokterID = _dokterList.first.id;
+          _selectedDokterNama = _dokterList.first.nama;
+        }
         _isLoadingDokter = false;
       });
     } catch (e) {
@@ -341,12 +345,6 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
             const SizedBox(height: 12),
             ..._rujukanList.map((ruj) => _buildRujukanCard(ruj)),
           ],
-          if (_selectedRujukan != null) ...[
-            const SizedBox(height: 24),
-            _label('Pilih Dokter'),
-            const SizedBox(height: 12),
-            _buildDropdownDokter(),
-          ]
         ],
       ),
     );
@@ -365,9 +363,9 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
+          color: isSelected ? const Color(0xFFF0FAF6) : Colors.white,
           border: Border.all(
-            color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFFE5E7EB),
+            color: isSelected ? const Color(0xFF0D9B86) : const Color(0xFFE5E7EB),
             width: 1.5,
           ),
           borderRadius: BorderRadius.circular(12),
@@ -378,12 +376,21 @@ class _AntrianBpjsViewState extends State<AntrianBpjsView>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(ruj['no_rujukan'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E40AF))),
-                if (isSelected) const Icon(Icons.check_circle, color: Color(0xFF3B82F6), size: 20),
+                Text(ruj['no_rujukan'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0D9B86))),
+                if (isSelected) const Icon(Icons.check_circle, color: Color(0xFF0D9B86), size: 20),
               ],
             ),
             const SizedBox(height: 8),
             Text('Poli: ${ruj['poli_nama']}', style: const TextStyle(fontSize: 13, color: Color(0xFF4B5563))),
+            if (isSelected) ...[
+              const SizedBox(height: 4),
+              if (_isLoadingDokter)
+                const Text('Dokter: Memuat...', style: TextStyle(fontSize: 13, color: Color(0xFF4B5563)))
+              else if (_dokterList.isNotEmpty)
+                Text('Dokter: ${_dokterList.first.nama}', style: const TextStyle(fontSize: 13, color: Color(0xFF4B5563)))
+              else
+                const Text('Dokter: Tidak tersedia', style: TextStyle(fontSize: 13, color: Colors.red)),
+            ],
             const SizedBox(height: 4),
             Text('Faskes Asal: ${ruj['asal_faskes']}', style: const TextStyle(fontSize: 13, color: Color(0xFF4B5563))),
             const SizedBox(height: 4),

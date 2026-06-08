@@ -83,11 +83,6 @@ func (s *antrianService) CreateAntrian(req request.AntrianRequest) (*response.An
 			if !strings.EqualFold(pasien.PatientName, req.NamaPasien) {
 				return nil, fmt.Errorf("nama tidak sesuai dengan NIK yang terdaftar")
 			}
-		} else {
-			pasienByName, _ := s.repo.CheckNameCaseInsensitive(req.NamaPasien)
-			if pasienByName != nil {
-				return nil, fmt.Errorf("nama sudah terdaftar dengan NIK yang berbeda")
-			}
 		}
 	}
 

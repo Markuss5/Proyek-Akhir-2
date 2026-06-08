@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:giliran_ku/core/datasources/apiException.dart';
 import 'package:giliran_ku/feature/kiosk/consultation/consultationController.dart';
@@ -292,6 +293,10 @@ class _ConsultationBpjsViewState extends State<ConsultationBpjsView> {
           TextField(
             controller: _inputController,
             keyboardType: TextInputType.number,
+            maxLength: 16,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+            ],
             decoration: InputDecoration(
               labelText: 'NIK atau No BPJS',
               hintText: 'Contoh: 1203010101010001',
@@ -300,6 +305,7 @@ class _ConsultationBpjsViewState extends State<ConsultationBpjsView> {
               fillColor: const Color(0xFFF5FBF8),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              counterText: '',
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(color: _cardBorder),

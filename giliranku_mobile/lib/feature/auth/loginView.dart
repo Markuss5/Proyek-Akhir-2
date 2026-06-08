@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:giliranku/feature/patient/home/homeView.dart';
 import 'package:giliranku/feature/auth/adminLoginView.dart';
 import 'package:giliranku/core/repositories/pasienRepository.dart';
@@ -167,6 +168,10 @@ class _LoginViewState extends State<LoginView> {
                           hint: 'NIK (16 digit)',
                           icon: Icons.credit_card,
                           keyboardType: TextInputType.number,
+                          maxLength: 16,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
                         ),
 
                         const SizedBox(height: 12),
@@ -258,11 +263,15 @@ class _LoginViewState extends State<LoginView> {
     required FocusNode focusNode,
     FocusNode? nextFocus,
     TextInputType keyboardType = TextInputType.text,
+    int? maxLength,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return TextField(
       controller: controller,
       focusNode: focusNode,
       keyboardType: keyboardType,
+      maxLength: maxLength,
+      inputFormatters: inputFormatters,
       textInputAction:
           nextFocus != null ? TextInputAction.next : TextInputAction.done,
       onSubmitted: (_) {
@@ -282,6 +291,7 @@ class _LoginViewState extends State<LoginView> {
         fillColor: Colors.grey[100],
         contentPadding:
             const EdgeInsets.symmetric(vertical: 14),
+        counterText: '',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,

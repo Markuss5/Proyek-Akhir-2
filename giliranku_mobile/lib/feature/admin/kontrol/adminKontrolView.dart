@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:giliranku/core/datasources/apiDataSource.dart';
 import 'package:giliranku/core/repositories/kontrolRutinRepository.dart';
 import 'package:giliranku/core/services/notificationService.dart';
@@ -219,6 +220,8 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
                             "NIK Pasien (16 digit)",
                             icon: Icons.badge_outlined,
                             keyboardType: TextInputType.number,
+                            maxLength: 16,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                           ),
                           const SizedBox(height: 14),
                           _dialogTextField(
@@ -552,10 +555,14 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
     String hint, {
     IconData? icon,
     TextInputType keyboardType = TextInputType.text,
+    int? maxLength,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
+      maxLength: maxLength,
+      inputFormatters: inputFormatters,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey[400]),
@@ -578,6 +585,7 @@ class _AdminKontrolViewState extends State<AdminKontrolView> {
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        counterText: '',
       ),
     );
   }

@@ -247,6 +247,7 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
       fillColor: const Color(0xFFF5FBF8),
       contentPadding:
           const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      counterText: '',
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: _cardBorder),
@@ -466,6 +467,7 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
           TextField(
             controller: _nikController,
             keyboardType: TextInputType.number,
+            maxLength: 16,
             inputFormatters: [
               LengthLimitingTextInputFormatter(16),
               FilteringTextInputFormatter.digitsOnly,
@@ -607,10 +609,18 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
                 label: 'Dokter',
                 icon: Icons.medical_services_outlined,
               ),
+              selectedItemBuilder: (BuildContext context) {
+                return _doctors.map<Widget>((Doctor d) {
+                  return Text(
+                    d.name,
+                    overflow: TextOverflow.ellipsis,
+                  );
+                }).toList();
+              },
               items: _doctors.map((d) {
                 return DropdownMenuItem<Doctor>(
                   value: d,
-                  child: Text(d.name),
+                  child: Text('${d.name} (Sisa Kuota: ${d.kuota})'),
                 );
               }).toList(),
               onChanged: (val) => setState(() => _selectedDoctor = val),
