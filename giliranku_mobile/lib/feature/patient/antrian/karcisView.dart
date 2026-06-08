@@ -180,7 +180,40 @@ class _KarcisViewState extends State<KarcisView>
                     fontWeight: FontWeight.w900,
                     color: Color(0xFF0D9B86),
                     height: 1)),
-            const SizedBox(height: 8),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFB8E4D2), width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF0D9B86).withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  const Text('Kode Booking',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0D9B86))),
+                  const SizedBox(height: 4),
+                  Text(widget.result.kodeBooking,
+                      style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF111827),
+                          letterSpacing: 3,
+                          height: 1)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
             Text(widget.result.poliklinik.toUpperCase(),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
