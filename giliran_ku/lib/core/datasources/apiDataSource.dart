@@ -157,9 +157,7 @@ class QueueApi {
     }
 
     final errorDetail = _extractError(decoded);
-    final message = errorDetail != null
-        ? 'Gagal memproses permintaan: $errorDetail'
-        : 'Gagal memproses permintaan';
+    final message = errorDetail ?? 'Gagal memproses permintaan';
     throw ApiException(message);
   }
 
