@@ -35,6 +35,7 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
   String? _error;
   String? _nikError;
   String? _namaError;
+  String? _teleponError;
 
   List<Poli> _polis = [];
   Poli? _selectedPoli;
@@ -47,6 +48,7 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
     _loadPolis();
     _nikController.addListener(_validateNik);
     _namaController.addListener(_validateNama);
+    _teleponController.addListener(_validateTelepon);
   }
 
   void _validateNik() {
@@ -73,6 +75,19 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
         _namaError = 'Nama hanya boleh berisi huruf';
       } else {
         _namaError = null;
+      }
+    });
+  }
+
+  void _validateTelepon() {
+    final telepon = _teleponController.text.trim();
+    setState(() {
+      if (telepon.isEmpty) {
+        _teleponError = null;
+      } else if (!RegExp(r'^[0-9]*$').hasMatch(telepon)) {
+        _teleponError = 'Nomor telepon hanya boleh berisi angka';
+      } else {
+        _teleponError = null;
       }
     });
   }
@@ -155,6 +170,14 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
       }
       if (_namaError != null) {
         setState(() => _error = 'Periksa kembali data Nama');
+        return;
+      }
+      if (!RegExp(r'^[0-9]*$').hasMatch(telepon)) {
+        setState(() => _error = 'Nomor telepon hanya boleh berisi angka');
+        return;
+      }
+      if (_teleponError != null) {
+        setState(() => _error = 'Periksa kembali data Nomor Telepon');
         return;
       }
     }
@@ -515,12 +538,30 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
               ),
             ),
             const SizedBox(height: 12),
+            if (_teleponError != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline,
+                        color: Colors.red, size: 14),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        _teleponError!,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             TextField(
               controller: _teleponController,
               keyboardType: TextInputType.phone,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-              ],
               decoration: _inputDecoration(
                 label: 'Nomor Telepon',
                 hint: '08xxxxxxxxxx',
@@ -620,7 +661,21 @@ class _ConsultationGeneralViewState extends State<ConsultationGeneralView> {
               items: _doctors.map((d) {
                 return DropdownMenuItem<Doctor>(
                   value: d,
-                  child: Text('${d.name} (Sisa Kuota: ${d.kuota})'),
+                  child: RichText(
+                    text: TextSpan(
+                      text: d.name,
+                      style: const TextStyle(color: Colors.black87, fontSize: 15),
+                      children: [
+                        TextSpan(
+                          text: ' (Sisa Kuota: ${d.kuota})',
+                          style: TextStyle(
+                            color: d.kuota > 0 ? const Color(0xFF17A889) : Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               }).toList(),
               onChanged: (val) => setState(() => _selectedDoctor = val),
