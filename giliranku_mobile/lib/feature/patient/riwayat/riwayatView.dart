@@ -183,9 +183,7 @@ class _RiwayatViewState extends State<RiwayatView> {
                                   code: item['kode_booking'] ?? '-',
                                   queueNo: item['no_antrian']?.toString() ?? '-',
                                   status: status,
-                                  icon: item['pembayaran'] == 'BPJS'
-                                      ? Icons.health_and_safety_outlined
-                                      : Icons.medical_services_outlined,
+                                  icon: Icons.medical_services_outlined,
                                   onDelete: () => _confirmDelete(item),
                                 ),
                               );
@@ -312,11 +310,39 @@ class QueueCard extends StatelessWidget {
               _buildInfoColumn("Jam", time),
             ],
           ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              _buildInfoColumn("Kode Booking", code),
-            ],
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE6F7F5),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFB8E4D2), width: 1.2),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "KODE BOOKING", 
+                  style: TextStyle(
+                    color: Color(0xFF0D9B86), 
+                    fontSize: 10, 
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1,
+                  )
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  code, 
+                  style: const TextStyle(
+                    color: Color(0xFF063A25), 
+                    fontWeight: FontWeight.w900, 
+                    fontSize: 20, 
+                    letterSpacing: 3,
+                  )
+                ),
+              ],
+            ),
           ),
         ],
       ),
