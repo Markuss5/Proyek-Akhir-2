@@ -36,5 +36,6 @@ func SetupAntrianRoutes(r *gin.Engine, antrianCtrl *controller.AntrianController
 		kiosk.GET("/booking/:code", kioskCtrl.GetBooking)
 		kiosk.POST("/pdf", kioskCtrl.UploadPDF)
 		kiosk.POST("/bpjs", kioskCtrl.CreateBpjsTicket)
+		kiosk.GET("/bpjs/rujukan/:nik", antrianCtrl.GetRujukanBPJS)
 	}
 }

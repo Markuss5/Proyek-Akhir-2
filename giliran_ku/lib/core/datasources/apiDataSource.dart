@@ -62,7 +62,7 @@ class QueueApi {
   }
 
   Future<List<dynamic>> fetchRujukanBpjs(String nik) async {
-    final payload = await _get('/antrian/bpjs/rujukan/$nik');
+    final payload = await _get('/kiosk/bpjs/rujukan/$nik');
     return _dataList(payload);
   }
 
@@ -91,10 +91,10 @@ class QueueApi {
     required String noRujukan,
     required int dokterId,
   }) async {
-    final payload = await _post('/antrian', {
+    final payload = await _post('/antrian/bpjs', {
       'nik': nik,
       'no_rujukan': noRujukan,
-      'tipe': 'bpjs',
+      'source': 'kiosk',
       'dokter_id': dokterId,
     });
     final data = _dataMap(payload);
